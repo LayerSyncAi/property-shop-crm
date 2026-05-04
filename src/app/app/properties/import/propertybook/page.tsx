@@ -87,54 +87,7 @@ type BatchResult = {
   imageFailures: Array<{ row: number; url: string; message: string }>;
 };
 
-const PER_LISTING_DELAY_MS = 1000;
-const PREVIEW_CONCURRENCY = 3;
-
-// Runs `worker` over `items` with a fixed-size client-side worker pool.
-// Each worker independently dequeues, runs the worker, then sleeps the
-// per-slot delay before grabbing the next item. Steady-state HTTP rate is
-// `concurrency` requests every `perSlotDelayMs` (here: 3 every 1000ms).
-//
-// `onProgress(completed)` fires after each item (success or failure) and
-// is used to drive the progress bar. The caller can cancel between items
-// via `shouldCancel()` — workers exit at the next loop check.
-async function runPool<T, R>(
-  items: T[],
-  concurrency: number,
-  perSlotDelayMs: number,
-  worker: (item: T, index: number) => Promise<R>,
-  onProgress: (completed: number) => void,
-  shouldCancel: () => boolean
-): Promise<{ successes: Array<R>; failed: number }> {
-  const successes: R[] = [];
-  let failed = 0;
-  let completed = 0;
-  let next = 0;
-
-  const runWorker = async () => {
-    while (true) {
-      if (shouldCancel()) return;
-      const i = next++;
-      if (i >= items.length) return;
-      try {
-        const result = await worker(items[i], i);
-        successes.push(result);
-      } catch {
-        failed++;
-      }
-      completed++;
-      onProgress(completed);
-      if (next < items.length && !shouldCancel()) {
-        await new Promise((r) => setTimeout(r, perSlotDelayMs));
-      }
-    }
-  };
-
-  const workerCount = Math.min(concurrency, items.length);
-  await Promise.all(Array.from({ length: workerCount }, runWorker));
-
-  return { successes, failed };
-}
+const PER_LISTING_DELAY_MS = 700;
 
 export default function PropertyBookImportPage() {
   const { isLoading: authLoading, isAdmin } = useRequireAuth();
@@ -175,14 +128,11 @@ export default function PropertyBookImportPage() {
   const [ackChecked, setAckChecked] = React.useState(false);
 
   const loadAgencies = React.useCallback(
-    async (query: string, options?: { force?: boolean }) => {
+    async (query: string) => {
       setAgenciesLoading(true);
       setError("");
       try {
-        const result = await listAgencies({
-          query: query || undefined,
-          force: options?.force,
-        });
+        const result = await listAgencies({ query: query || undefined });
         setAgencies(result);
       } catch (e: unknown) {
         setError((e as Error).message || "Failed to load agencies");
@@ -250,25 +200,27 @@ export default function PropertyBookImportPage() {
       setPreviewProgress({ current: 0, total: urls.length, failed: 0 });
 
       const collected: PreviewListing[] = [];
-      await runPool<string, PreviewListing>(
-        urls,
-        PREVIEW_CONCURRENCY,
-        PER_LISTING_DELAY_MS,
-        async (url) => {
-          const listing = (await fetchOneListing({ url })) as PreviewListing;
+      let failed = 0;
+      for (let i = 0; i < urls.length; i++) {
+        if (cancelPreviewRef.current) break;
+        try {
+          const listing = (await fetchOneListing({
+            url: urls[i],
+          })) as PreviewListing;
           collected.push(listing);
           setListings([...collected]);
-          return listing;
-        },
-        (completed) => {
-          setPreviewProgress({
-            current: completed,
-            total: urls.length,
-            failed: completed - collected.length,
-          });
-        },
-        () => cancelPreviewRef.current
-      );
+        } catch {
+          failed++;
+        }
+        setPreviewProgress({
+          current: i + 1,
+          total: urls.length,
+          failed,
+        });
+        if (i < urls.length - 1 && !cancelPreviewRef.current) {
+          await new Promise((r) => setTimeout(r, PER_LISTING_DELAY_MS));
+        }
+      }
 
       if (cancelPreviewRef.current) {
         cancelPreviewRef.current = false;
@@ -494,7 +446,7 @@ export default function PropertyBookImportPage() {
                       variant="secondary"
                       size="sm"
                       disabled={agenciesLoading}
-                      onClick={() => loadAgencies("", { force: true })}
+                      onClick={() => loadAgencies("")}
                     >
                       {agenciesLoading ? "Loading…" : "Refresh"}
                     </Button>
@@ -521,7 +473,7 @@ export default function PropertyBookImportPage() {
                       variant="secondary"
                       size="sm"
                       className="mt-3"
-                      onClick={() => loadAgencies("", { force: true })}
+                      onClick={() => loadAgencies("")}
                     >
                       Try again
                     </Button>
@@ -603,7 +555,7 @@ export default function PropertyBookImportPage() {
                         Math.ceil(
                           ((previewProgress.total - previewProgress.current) *
                             (PER_LISTING_DELAY_MS + 800)) /
-                            (PREVIEW_CONCURRENCY * 1000)
+                            1000
                         )
                       )}s remaining · throttled to be polite to PropertyBook.`}
                 </p>
