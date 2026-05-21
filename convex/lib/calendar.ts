@@ -1,13 +1,18 @@
 /**
  * Generic calendar-event utilities.
  *
- * Both functions share one event model and contain no app-specific text —
+ * The event model and the two generators contain no app-specific text —
  * callers map their domain objects (tasks, activities, …) onto `CalendarEvent`
  * before calling in.
+ *
+ * Note: the `.ics` generator lives in `src/lib/calendar-ics.ts`, not here.
+ * It depends on `ical-generator`, which the Convex bundler cannot bundle, and
+ * Convex bundles every file under `convex/`. This file holds only the pieces
+ * that are safe to run inside Convex (the reminder cron builds Google links).
  */
 
 /** Default event length used when no explicit end is supplied. */
-const DEFAULT_DURATION_MS = 2 * 60 * 60 * 1000;
+export const DEFAULT_DURATION_MS = 2 * 60 * 60 * 1000;
 
 export interface CalendarEvent {
   title: string;
@@ -36,7 +41,7 @@ function toDate(value: Date | string): Date {
 }
 
 /** Resolve the start/end pair, applying the default duration when needed. */
-function resolveRange(event: CalendarEvent): { start: Date; end: Date } {
+export function resolveRange(event: CalendarEvent): { start: Date; end: Date } {
   const start = toDate(event.start);
   const end = event.end
     ? toDate(event.end)
@@ -67,25 +72,4 @@ export function generateGoogleCalendarUrl(event: CalendarEvent): string {
   if (event.location) params.set("location", event.location);
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
-}
-
-/**
- * Build a valid iCalendar (.ics) document for the event using the
- * `ical-generator` package. Returns the serialized .ics string.
- */
-export async function generateIcsContent(event: CalendarEvent): Promise<string> {
-  const { default: ical, ICalCalendarMethod } = await import("ical-generator");
-  const { start, end } = resolveRange(event);
-
-  const calendar = ical({ method: ICalCalendarMethod.PUBLISH });
-  calendar.createEvent({
-    start,
-    end,
-    summary: event.title,
-    description: event.description,
-    location: event.location,
-    url: event.url,
-  });
-
-  return calendar.toString();
 }

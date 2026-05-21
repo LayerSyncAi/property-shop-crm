@@ -1,7 +1,7 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
-import { generateIcsContent } from "../../../../../convex/lib/calendar";
+import { generateIcsContent } from "@/lib/calendar-ics";
 
 /**
  * Serves a downloadable .ics file for an activity. Linked from reminder emails,
@@ -36,7 +36,7 @@ export async function GET(
   }
 
   const siteUrl = process.env.SITE_URL || "http://localhost:3000";
-  const ics = await generateIcsContent({
+  const ics = generateIcsContent({
     title: activity.title,
     description: activity.description || undefined,
     start: new Date(activity.scheduledAt),
