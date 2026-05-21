@@ -164,36 +164,65 @@ function activityTypeLabel(type: string): string {
 // =====================
 
 /**
- * Get todo activities with scheduledAt in the pre-reminder window (50–70 min from now).
- * Uses the by_next_reminder index to query only due activities in batches
- * instead of scanning all todo activities.
+ * Maximum age of a missed reminder we'll still send, in minutes. Caps
+ * catch-up after an outage so a long downtime can't blast stale reminders for
+ * events that already started. Override with the REMINDER_MAX_CATCHUP_MINUTES
+ * env var; defaults to 60.
  */
-export const getUpcomingActivities = internalQuery({
+const DEFAULT_REMINDER_MAX_CATCHUP_MINUTES = 60;
+
+/**
+ * Most reminders claimed per run. The per-minute cadence and the catch-up cap
+ * keep this comfortably within Convex transaction limits; the next run picks
+ * up any remainder.
+ */
+const PRE_REMINDER_BATCH_LIMIT = 100;
+
+function getMaxCatchupMinutes(): number {
+  const parsed = parseInt(process.env.REMINDER_MAX_CATCHUP_MINUTES ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0
+    ? parsed
+    : DEFAULT_REMINDER_MAX_CATCHUP_MINUTES;
+}
+
+/**
+ * Atomically claim pre-reminders that are due to send.
+ *
+ * "Due" means the reminder's due time — nextReminderAt, which equals
+ * scheduledAt − 1 hour — is at or before now, the activity is still open, and
+ * no reminder has been sent yet. This `due_at <= now AND not-yet-sent`
+ * window (rather than an exact 60-minute match) fires reminders within ~1
+ * minute of the hour mark and automatically catches up missed ticks.
+ * Reminders whose due time is older than the catch-up cap are skipped.
+ *
+ * The claim — setting reminderSentAt — happens here, inside one serializable
+ * transaction, *before* any email is sent. Two overlapping cron runs
+ * therefore cannot both claim the same activity (the second sees the marker
+ * already set), and a restart cannot re-send. All times are absolute UTC
+ * instants (unix ms), so there is no local-timezone drift.
+ */
+export const claimDuePreReminders = internalMutation({
   handler: async (ctx) => {
     const now = Date.now();
-    const windowStart = now + 50 * 60 * 1000;
-    const windowEnd = now + 70 * 60 * 1000;
-    // nextReminderAt = scheduledAt - 60min, so pre-reminder window maps to
-    // nextReminderAt between (now - 10min) and (now + 10min)
-    const reminderWindowStart = windowStart - 60 * 60 * 1000;
-    const reminderWindowEnd = windowEnd - 60 * 60 * 1000;
+    const cutoff = now - getMaxCatchupMinutes() * 60 * 1000;
 
-    // Use index-based query: only fetch activities with nextReminderAt in range
-    const activities = await ctx.db
+    const due = await ctx.db
       .query("activities")
       .withIndex("by_next_reminder", (q) =>
-        q.gte("nextReminderAt", reminderWindowStart).lte("nextReminderAt", reminderWindowEnd)
+        q.gte("nextReminderAt", cutoff).lte("nextReminderAt", now)
       )
-      .collect();
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("status"), "todo"),
+          q.eq(q.field("reminderSentAt"), undefined)
+        )
+      )
+      .take(PRE_REMINDER_BATCH_LIMIT);
 
-    // Filter to only uncompleted activities with valid scheduledAt
-    return activities.filter(
-      (a) =>
-        a.status === "todo" &&
-        a.scheduledAt &&
-        a.scheduledAt >= windowStart &&
-        a.scheduledAt <= windowEnd
-    );
+    for (const activity of due) {
+      await ctx.db.patch(activity._id, { reminderSentAt: now });
+    }
+    return due;
   },
 });
 
@@ -348,29 +377,29 @@ export const recordReminder = internalMutation({
 
 /**
  * Sends "1 hour before" email reminders for upcoming activities.
- * Runs every 5 minutes via cron; deduplication prevents repeat sends.
+ *
+ * Runs once per minute. It claims every reminder whose due time has passed
+ * (see claimDuePreReminders) rather than matching an exact 60-minute offset,
+ * so reminders fire within ~1 minute of the hour mark and ticks missed during
+ * downtime are caught up automatically, bounded by the catch-up cap.
  */
 export const processPreReminders = internalAction({
   handler: async (ctx) => {
-    const activities = await ctx.runQuery(
-      internal.activityReminders.getUpcomingActivities
+    // Claiming marks reminderSentAt inside one transaction, so the send below
+    // is already deduplicated against overlapping runs and restarts.
+    const activities = await ctx.runMutation(
+      internal.activityReminders.claimDuePreReminders
     );
 
     for (const activity of activities) {
-      const alreadySent = await ctx.runQuery(
-        internal.activityReminders.checkReminderSent,
-        { activityId: activity._id, reminderType: "pre_reminder" }
-      );
-      if (alreadySent) continue;
-
       const user = await ctx.runQuery(internal.activityReminders.getUserById, {
         userId: activity.assignedToUserId,
       });
+      if (!user || !user.email || !user.isActive) continue;
+
       const lead = activity.leadId
         ? await ctx.runQuery(internal.activityReminders.getLeadById, { leadId: activity.leadId })
         : null;
-
-      if (!user || !user.email || !user.isActive) continue;
 
       const timezone = user.timezone || "UTC";
       const userName = user.fullName || user.name || "there";
@@ -432,12 +461,6 @@ export const processPreReminders = internalAction({
         relatedType: "activity",
         relatedId: activity._id,
         orgId: user.orgId,
-      });
-
-      await ctx.runMutation(internal.activityReminders.recordReminder, {
-        activityId: activity._id,
-        reminderType: "pre_reminder",
-        userId: user._id,
       });
     }
   },
