@@ -573,7 +573,7 @@ export default function PropertiesPage() {
           {isAdmin && (
             <Link href="/app/properties/import/propertybook">
               <Button variant="secondary" className="h-10">
-                Import from PropertyBook
+                Discover New Properties
               </Button>
             </Link>
           )}
