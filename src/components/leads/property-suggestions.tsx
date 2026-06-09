@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { propertyToasts } from "@/lib/toast";
+import { formatMoney, getCurrencySymbol } from "@/lib/currency";
 
 // --- #26-28 animation variants ---
 
@@ -118,13 +119,9 @@ export function PropertySuggestions({
     }
   };
 
-  const formatPrice = (price: number, currency: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency || "USD",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  // Symbol + separators, safe for non-ISO codes (ZiG/ZWL).
+  const formatPrice = (price: number, currency: string) =>
+    formatMoney(price, currency || "USD", { decimals: 0 });
 
   if (suggestions === undefined) {
     return (
@@ -140,7 +137,7 @@ export function PropertySuggestions({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-text-muted">
+          <h3 className="text-h3">
             AI-Suggested Properties
           </h3>
           <p className="text-xs text-text-muted mt-1">
@@ -166,7 +163,7 @@ export function PropertySuggestions({
             <span className="text-text-muted">Budget:</span>
             <span className="ml-1 font-medium">
               {lead.budgetMin || lead.budgetMax
-                ? `${lead.budgetCurrency || "USD"} ${lead.budgetMin?.toLocaleString() || "0"} - ${lead.budgetMax?.toLocaleString() || "No max"}`
+                ? `${getCurrencySymbol(lead.budgetCurrency || "USD")}${lead.budgetMin?.toLocaleString() || "0"} - ${lead.budgetMax != null ? getCurrencySymbol(lead.budgetCurrency || "USD") + lead.budgetMax.toLocaleString() : "No max"}`
                 : "Not specified"}
             </span>
           </div>
