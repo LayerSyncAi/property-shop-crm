@@ -449,7 +449,7 @@ export default function TasksPage() {
                     <Tooltip content="View Details">
                       <Button
                         variant="secondary"
-                        className="action-btn h-9 w-9 p-0 md:opacity-0 md:translate-x-3 md:scale-90 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-200 ease-out"
+                        className="action-btn h-9 w-9 p-0 md:opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150"
                         style={{ transitionDelay: "0ms" }}
                         onClick={(e) => { e.stopPropagation(); handleViewTask(task as TaskActivity); }}
                       >
@@ -461,7 +461,7 @@ export default function TasksPage() {
                         <Link href={`/app/leads/${task.lead._id}`} onClick={(e) => e.stopPropagation()}>
                           <Button
                             variant="secondary"
-                            className="action-btn h-9 w-9 p-0 md:opacity-0 md:translate-x-3 md:scale-90 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-200 ease-out"
+                            className="action-btn h-9 w-9 p-0 md:opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150"
                             style={{ transitionDelay: "50ms" }}
                           >
                             <ExternalLink className="h-4 w-4" />
@@ -472,7 +472,7 @@ export default function TasksPage() {
                     <Tooltip content="Delete Task">
                       <Button
                         variant="secondary"
-                        className="action-btn h-9 w-9 p-0 md:opacity-0 md:translate-x-3 md:scale-90 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-200 ease-out text-danger hover:bg-danger/10"
+                        className="action-btn h-9 w-9 p-0 md:opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150 text-danger hover:bg-danger/10"
                         style={{ transitionDelay: "100ms" }}
                         onClick={(e) => { e.stopPropagation(); handleOpenDeleteModal(task as TaskActivity); }}
                       >

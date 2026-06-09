@@ -763,7 +763,7 @@ export default function PropertiesPage() {
                         >
                           <Button
                             variant="secondary"
-                            className="action-btn h-9 w-9 p-0 md:opacity-0 md:translate-x-3 md:scale-90 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-200 ease-out"
+                            className="action-btn h-9 w-9 p-0 md:opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150"
                             style={{ transitionDelay: "0ms" }}
                           >
                             <UserPlus className="h-4 w-4" />
@@ -773,7 +773,7 @@ export default function PropertiesPage() {
                       <Tooltip content="View">
                         <Button
                           variant="secondary"
-                          className="action-btn h-9 w-9 p-0 md:opacity-0 md:translate-x-3 md:scale-90 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-200 ease-out"
+                          className="action-btn h-9 w-9 p-0 md:opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150"
                           style={{ transitionDelay: "50ms" }}
                           onClick={(e) => { e.stopPropagation(); setSelectedProperty(property); }}
                         >
@@ -784,7 +784,7 @@ export default function PropertiesPage() {
                         <Tooltip content="Delete">
                           <Button
                             variant="secondary"
-                            className="action-btn-danger h-9 w-9 p-0 text-red-500 md:opacity-0 md:translate-x-3 md:scale-90 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-200 ease-out"
+                            className="action-btn-danger h-9 w-9 p-0 text-red-500 md:opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150"
                             style={{ transitionDelay: "100ms" }}
                             onClick={(e) => { e.stopPropagation(); setDeleteTarget(property); }}
                           >

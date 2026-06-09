@@ -548,7 +548,7 @@ export default function CommissionsPage() {
                               <Tooltip content="View details">
                                 <Button
                                   variant="secondary"
-                                  className="action-btn h-9 w-9 p-0 md:opacity-0 md:translate-x-3 md:scale-90 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-200 ease-out"
+                                  className="action-btn h-9 w-9 p-0 md:opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150"
                                   onClick={() => setDetailCommissionId(commission._id)}
                                 >
                                   <Eye className="h-4 w-4" />
