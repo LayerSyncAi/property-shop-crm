@@ -805,7 +805,7 @@ export default function ContactsPage() {
                             className={`rounded-full px-3 py-1 text-sm transition-colors ${
                               isSelected
                                 ? "bg-primary text-white"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                : "bg-surface-2 text-text-muted hover:bg-border"
                             }`}
                           >
                             {user.name}
@@ -929,7 +929,7 @@ export default function ContactsPage() {
                         className={`rounded-full px-3 py-1 text-sm transition-colors ${
                           selected
                             ? "bg-primary text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            : "bg-surface-2 text-text-muted hover:bg-border"
                         }`}
                       >
                         {opt.label}

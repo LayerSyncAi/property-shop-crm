@@ -372,7 +372,7 @@ export default function UsersPage() {
                             exit={{ scale: 0.8, opacity: 0 }}
                             transition={{ type: "spring", stiffness: 400, damping: 25 }}
                           >
-                            <Badge variant={u.isActive ? "default" : "secondary"}>
+                            <Badge variant={u.isActive ? "success" : "secondary"}>
                               {u.isActive ? "Active" : "Inactive"}
                             </Badge>
                           </motion.div>
@@ -424,7 +424,7 @@ export default function UsersPage() {
                   </Button>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Badge variant={u.isActive ? "default" : "secondary"}>{u.isActive ? "Active" : "Inactive"}</Badge>
+                  <Badge variant={u.isActive ? "success" : "secondary"}>{u.isActive ? "Active" : "Inactive"}</Badge>
                   {u.resetPasswordOnNextLogin && <Badge variant="warning">Password reset pending</Badge>}
                 </div>
               </div>

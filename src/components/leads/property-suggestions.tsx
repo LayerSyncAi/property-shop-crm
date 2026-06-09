@@ -37,11 +37,11 @@ function getScoreColor(score: number): string {
   return "text-red-600";
 }
 
-function getScoreBadgeClass(score: number): string {
-  if (score >= 80) return "bg-green-100 text-green-700 border-green-200";
-  if (score >= 60) return "bg-blue-100 text-blue-700 border-blue-200";
-  if (score >= 40) return "bg-amber-100 text-amber-700 border-amber-200";
-  return "bg-red-100 text-red-700 border-red-200";
+function scoreVariant(score: number): "success" | "info" | "warning" | "danger" {
+  if (score >= 80) return "success";
+  if (score >= 60) return "info";
+  if (score >= 40) return "warning";
+  return "danger";
 }
 
 // #27: Score bar with spring fill
@@ -221,7 +221,7 @@ export function PropertySuggestions({
                       <h4 className="font-medium text-sm truncate">{suggestion.property.title}</h4>
                       <p className="text-xs text-text-muted">{suggestion.property.location}</p>
                     </div>
-                    <Badge className={getScoreBadgeClass(suggestion.totalScore)}>
+                    <Badge variant={scoreVariant(suggestion.totalScore)}>
                       {suggestion.totalScore}% match
                     </Badge>
                   </div>

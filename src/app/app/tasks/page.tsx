@@ -14,7 +14,7 @@ import { Table, TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { PaginationControls } from "@/components/ui/pagination";
 import { usePagination } from "@/hooks/usePagination";
 import { Tooltip } from "@/components/ui/tooltip";
-import { Eye, ExternalLink, Trash2, Plus } from "lucide-react";
+import { Eye, ExternalLink, Trash2, Plus, Clock } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useAuth";
 import { DueDateRing } from "@/components/ui/due-date-ring";
 import { Modal } from "@/components/ui/modal";
@@ -404,6 +404,11 @@ export default function TasksPage() {
                         ? formatDateTime(task.scheduledAt)
                         : formatDateTime(task.createdAt)}
                     </span>
+                    {overdue && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-danger">
+                        <Clock className="h-3 w-3" /> Overdue
+                      </span>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -509,6 +514,11 @@ export default function TasksPage() {
                     <span className={overdue ? "overdue-breathe font-medium text-danger" : "text-text-muted"}>
                       {task.scheduledAt ? formatDateTime(task.scheduledAt) : formatDateTime(task.createdAt)}
                     </span>
+                    {overdue && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-danger/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-danger">
+                        <Clock className="h-3 w-3" /> Overdue
+                      </span>
+                    )}
                   </div>
                   {celebrating ? (
                     <span className="flex items-center gap-1.5 text-xs font-medium text-success"><CelebrationCheck /> Done!</span>

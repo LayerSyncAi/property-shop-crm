@@ -158,8 +158,8 @@ a {
 
 /* Task overdue urgency animations */
 @keyframes overdue-pulse {
-  0%, 100% { border-left-color: rgba(220, 38, 38, 0.25); }
-  50% { border-left-color: rgba(220, 38, 38, 0.8); }
+  0%, 100% { background-color: rgba(220, 38, 38, 0.035); }
+  50% { background-color: rgba(220, 38, 38, 0.09); }
 }
 
 @keyframes overdue-breathe {
@@ -178,13 +178,20 @@ a {
   100% { box-shadow: none; background-color: transparent; }
 }
 
+/* Overdue tasks: subtle pulsing red tint (no side-stripe), with a text
+   "Overdue" marker in the markup for non-visual users. */
 .overdue-pulse {
-  border-left: 3px solid rgba(220, 38, 38, 0.5) !important;
-  animation: overdue-pulse 2s ease-in-out infinite;
+  background-color: rgba(220, 38, 38, 0.05);
+  animation: overdue-pulse 2.4s ease-in-out infinite;
 }
 
 .overdue-breathe {
   animation: overdue-breathe 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overdue-pulse { animation: none; background-color: rgba(220, 38, 38, 0.06); }
+  .overdue-breathe { animation: none; }
 }
 
 .check-draw-in {

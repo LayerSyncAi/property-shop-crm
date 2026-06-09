@@ -202,29 +202,15 @@ const LeadCard = React.memo(function LeadCard({
 
 function ScoreBadge({ score }: { score: number | undefined }) {
   if (score === undefined || score === null) {
-    return (
-      <span className="inline-flex items-center rounded-full bg-border px-2 py-0.5 text-xs text-text-dim">
-        --
-      </span>
-    );
+    return <Badge variant="neutral" className="px-2 py-0.5">--</Badge>;
   }
-
-  const color =
-    score >= 70
-      ? "bg-success/15 text-success"
-      : score >= 40
-        ? "bg-warning/15 text-warning"
-        : "bg-danger/15 text-danger";
-
+  const variant = score >= 70 ? "success" : score >= 40 ? "warning" : "danger";
+  const dot = score >= 70 ? "bg-success" : score >= 40 ? "bg-warning" : "bg-danger";
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${color}`}>
-      <span
-        className={`inline-block h-1.5 w-1.5 rounded-full ${
-          score >= 70 ? "bg-success" : score >= 40 ? "bg-warning" : "bg-danger"
-        }`}
-      />
+    <Badge variant={variant} className="gap-1 px-2 py-0.5 font-semibold">
+      <span className={`inline-block h-1.5 w-1.5 rounded-full ${dot}`} />
       {score}
-    </span>
+    </Badge>
   );
 }
 
