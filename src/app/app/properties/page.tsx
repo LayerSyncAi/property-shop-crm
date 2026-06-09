@@ -28,7 +28,7 @@ import { PropertyShare } from "@/components/properties/property-share";
 import { PropertyBookBadge } from "@/components/properties/property-book-badge";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Eye, Trash2, Plus } from "lucide-react";
+import { UserPlus, Eye, Trash2, Plus, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 const propertyTabs = ["Details", "Sharing", "Documentation", "Gallery"] as const;
 type PropertyTab = (typeof propertyTabs)[number];
@@ -111,6 +111,13 @@ const formatStatus = (status: PropertyStatus): string => {
   };
   return statusMap[status] || status;
 };
+
+const formatDateAdded = (timestamp: number) =>
+  new Date(timestamp).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 
 const statusVariant: Record<
   PropertyStatus,
@@ -250,6 +257,15 @@ export default function PropertiesPage() {
     pagination.resetPage();
   }, [listingTypeFilter, statusFilter, typeFilter, priceMin]);
 
+  // Sort by date added (server-side, so it orders the full set not just the page)
+  const [addedSort, setAddedSort] = React.useState<"" | "created_desc" | "created_asc">("");
+  const toggleAddedSort = React.useCallback(() => {
+    setAddedSort((prev) =>
+      prev === "" ? "created_desc" : prev === "created_desc" ? "created_asc" : ""
+    );
+    pagination.resetPage();
+  }, [pagination]);
+
   const properties = useQuery(
     api.properties.list,
     currentUser
@@ -260,6 +276,7 @@ export default function PropertiesPage() {
           type: typeFilter || undefined,
           location: debouncedLocation || undefined,
           priceMin: priceMin ? parseFloat(parseCurrencyInput(priceMin)) : undefined,
+          sortBy: addedSort || undefined,
           page: pagination.page > 0 ? pagination.page : undefined,
           pageSize: pagination.pageSize !== 50 ? pagination.pageSize : undefined,
         }
@@ -704,13 +721,25 @@ export default function PropertiesPage() {
               <TableHead className="text-right">Area (m²)</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Added by</TableHead>
+              <TableHead>
+                <button
+                  onClick={toggleAddedSort}
+                  className="inline-flex items-center gap-1 transition-colors hover:text-primary"
+                  aria-label="Sort by date added"
+                >
+                  Added
+                  {addedSort === "" && <ArrowUpDown className="h-3 w-3 text-text-dim" />}
+                  {addedSort === "created_desc" && <ArrowDown className="h-3 w-3 text-primary" />}
+                  {addedSort === "created_asc" && <ArrowUp className="h-3 w-3 text-primary" />}
+                </button>
+              </TableHead>
               <TableHead className="text-right">Action</TableHead>
             </tr>
           </thead>
           {!properties ? (
             <tbody>
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-text-muted">
+                <TableCell colSpan={10} className="text-center text-text-muted">
                   Loading properties...
                 </TableCell>
               </TableRow>
@@ -718,7 +747,7 @@ export default function PropertiesPage() {
           ) : propertiesList.length === 0 ? (
             <tbody>
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-text-muted">
+                <TableCell colSpan={10} className="text-center text-text-muted">
                   {debouncedSearch || listingTypeFilter || statusFilter || typeFilter || debouncedLocation || priceMin
                     ? "No properties match your filters"
                     : "No properties yet. Create one to get started."}
@@ -754,6 +783,7 @@ export default function PropertiesPage() {
                     <Badge variant={statusVariant[property.status]}>{formatStatus(property.status)}</Badge>
                   </TableCell>
                   <TableCell className="text-sm text-text-muted">{property.createdByName || "System"}</TableCell>
+                  <TableCell className="whitespace-nowrap text-sm text-text-muted tabular-nums">{formatDateAdded(property.createdAt)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1.5">
                       <Tooltip content="Add Lead">
@@ -905,6 +935,10 @@ export default function PropertiesPage() {
                     <div className="flex items-center justify-between gap-2 text-text">
                       <span className="text-text-muted">{property.type === "commercial" ? "Floor Area" : "Area"}</span>
                       <span>{property.area} m²</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 text-text">
+                      <span className="text-text-muted">Added</span>
+                      <span className="tabular-nums">{formatDateAdded(property.createdAt)}</span>
                     </div>
                     {property.type === "commercial" && property.commercialType && (
                       <div className="flex items-center justify-between gap-2 text-text">
