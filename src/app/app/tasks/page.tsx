@@ -14,7 +14,7 @@ import { Table, TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { PaginationControls } from "@/components/ui/pagination";
 import { usePagination } from "@/hooks/usePagination";
 import { Tooltip } from "@/components/ui/tooltip";
-import { Eye, ExternalLink, Trash2 } from "lucide-react";
+import { Eye, ExternalLink, Trash2, Plus } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useAuth";
 import { DueDateRing } from "@/components/ui/due-date-ring";
 import { Modal } from "@/components/ui/modal";
@@ -282,32 +282,16 @@ export default function TasksPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold">Tasks</h2>
+        <div className="space-y-1">
+          <h1 className="text-h1">Tasks</h1>
           <p className="text-sm text-text-muted">
             Manage and track your activities and tasks.
           </p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="group flex h-10 items-center gap-2 rounded-full bg-border pl-3 pr-4 transition-all duration-300 ease-in-out hover:bg-primary hover:pl-2 hover:text-white active:bg-primary-600"
-        >
-          <span className="flex items-center justify-center overflow-hidden rounded-full bg-primary p-1 text-white transition-all duration-300 group-hover:bg-white">
-            <svg
-              viewBox="0 0 16 16"
-              fill="none"
-              className="h-0 w-0 transition-all duration-300 group-hover:h-4 group-hover:w-4 group-hover:text-primary"
-            >
-              <path
-                d="M8 3v10M3 8h10"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
-          <span className="text-sm font-medium">New Task</span>
-        </button>
+        <Button onClick={() => setShowCreateModal(true)} className="h-10 gap-2">
+          <Plus className="h-4 w-4" />
+          New Task
+        </Button>
       </div>
 
       <motion.div
@@ -316,22 +300,22 @@ export default function TasksPage() {
         animate="show"
         className="grid gap-4 md:grid-cols-3"
       >
-        <motion.div variants={cardItemVariants} whileHover={{ scale: 1.02, boxShadow: "0 8px 25px rgba(0,0,0,0.1)" }}>
-          <Card className="p-4">
-            <p className="text-xs text-text-muted uppercase tracking-wide">To Do</p>
-            <p className="text-2xl font-semibold mt-1"><AnimatedCounter value={todoCount} /></p>
+        <motion.div variants={cardItemVariants} whileHover={{ scale: 1.02, boxShadow: "0 10px 24px rgba(31,42,68,0.10)" }}>
+          <Card className="p-5">
+            <p className="text-eyebrow text-text-muted">To Do</p>
+            <p className="text-display tabular-nums mt-2"><AnimatedCounter value={todoCount} /></p>
           </Card>
         </motion.div>
-        <motion.div variants={cardItemVariants} whileHover={{ scale: 1.02, boxShadow: "0 8px 25px rgba(0,0,0,0.1)" }}>
-          <Card className="p-4">
-            <p className="text-xs text-text-muted uppercase tracking-wide">Completed</p>
-            <p className="text-2xl font-semibold mt-1"><AnimatedCounter value={completedCount} /></p>
+        <motion.div variants={cardItemVariants} whileHover={{ scale: 1.02, boxShadow: "0 10px 24px rgba(31,42,68,0.10)" }}>
+          <Card className="p-5">
+            <p className="text-eyebrow text-text-muted">Completed</p>
+            <p className="text-display tabular-nums mt-2"><AnimatedCounter value={completedCount} /></p>
           </Card>
         </motion.div>
-        <motion.div variants={cardItemVariants} whileHover={{ scale: 1.02, boxShadow: "0 8px 25px rgba(0,0,0,0.1)" }}>
-          <Card className="p-4">
-            <p className="text-xs text-text-muted uppercase tracking-wide">Total</p>
-            <p className="text-2xl font-semibold mt-1"><AnimatedCounter value={totalCount} /></p>
+        <motion.div variants={cardItemVariants} whileHover={{ scale: 1.02, boxShadow: "0 10px 24px rgba(31,42,68,0.10)" }}>
+          <Card className="p-5">
+            <p className="text-eyebrow text-text-muted">Total</p>
+            <p className="text-display tabular-nums mt-2"><AnimatedCounter value={totalCount} /></p>
           </Card>
         </motion.div>
       </motion.div>
@@ -380,6 +364,8 @@ export default function TasksPage() {
           <p className="text-text-muted">No tasks found matching your filters.</p>
         </Card>
       ) : (
+        <>
+        <div className="hidden md:block">
         <Table>
           <thead>
             <tr>
@@ -431,7 +417,7 @@ export default function TasksPage() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge className="bg-info/10 text-info">
+                  <Badge variant="info">
                     {getActivityTypeLabel(task.type)}
                   </Badge>
                 </TableCell>
@@ -453,13 +439,7 @@ export default function TasksPage() {
                       <span className="text-xs font-medium text-success">Done!</span>
                     </div>
                   ) : (
-                    <Badge
-                      className={
-                        task.status === "completed"
-                          ? "bg-success/10 text-success"
-                          : "bg-warning/10 text-warning"
-                      }
-                    >
+                    <Badge variant={task.status === "completed" ? "success" : "warning"}>
                       {task.status === "completed" ? "Completed" : "To Do"}
                     </Badge>
                   )}
@@ -506,6 +486,68 @@ export default function TasksPage() {
             })}
           </motion.tbody>
         </Table>
+        </div>
+
+        {/* Mobile: stacked cards instead of a horizontally scrolling table */}
+        <motion.div variants={listVariants} initial="hidden" animate="show" className="space-y-3 md:hidden">
+          {tasks.map((task: TaskActivity) => {
+            const overdue = isTaskOverdue(task);
+            const celebrating = celebratingIds.has(task._id);
+            return (
+              <motion.div
+                key={task._id}
+                variants={rowVariants}
+                layout
+                onClick={() => handleViewTask(task as TaskActivity)}
+                className={`rounded-[12px] border border-border-strong bg-card-bg p-4 space-y-3 ${overdue ? "overdue-pulse" : ""} ${celebrating ? "celebration-glow" : ""}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 text-xs">
+                    {task.status === "todo" && task.scheduledAt && (
+                      <DueDateRing scheduledAt={task.scheduledAt} createdAt={task.createdAt} />
+                    )}
+                    <span className={overdue ? "overdue-breathe font-medium text-danger" : "text-text-muted"}>
+                      {task.scheduledAt ? formatDateTime(task.scheduledAt) : formatDateTime(task.createdAt)}
+                    </span>
+                  </div>
+                  {celebrating ? (
+                    <span className="flex items-center gap-1.5 text-xs font-medium text-success"><CelebrationCheck /> Done!</span>
+                  ) : (
+                    <Badge variant={task.status === "completed" ? "success" : "warning"}>
+                      {task.status === "completed" ? "Completed" : "To Do"}
+                    </Badge>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium">{task.title}</p>
+                  {task.description && <p className="text-xs text-text-muted line-clamp-2">{task.description}</p>}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="info">{getActivityTypeLabel(task.type)}</Badge>
+                  {task.lead ? (
+                    <span className="text-xs text-text-muted">{task.lead.fullName}</span>
+                  ) : (
+                    <Badge variant="secondary" className="text-xs">Standalone</Badge>
+                  )}
+                </div>
+                <div className="flex items-center justify-end gap-1.5 pt-1" onClick={(e) => e.stopPropagation()}>
+                  <Button variant="secondary" className="h-9 w-9 p-0" aria-label="View task" onClick={() => handleViewTask(task as TaskActivity)}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  {task.lead && (
+                    <Link href={`/app/leads/${task.lead._id}`} aria-label="Open lead">
+                      <Button variant="secondary" className="h-9 w-9 p-0"><ExternalLink className="h-4 w-4" /></Button>
+                    </Link>
+                  )}
+                  <Button variant="secondary" className="h-9 w-9 p-0 text-danger hover:bg-danger/10" aria-label="Delete task" onClick={() => handleOpenDeleteModal(task as TaskActivity)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+        </>
       )}
 
       <PaginationControls

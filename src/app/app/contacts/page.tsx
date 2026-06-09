@@ -19,7 +19,7 @@ import { ConfirmDeleteDialog } from "@/components/common/confirm-delete-dialog";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { contactToasts, locationToasts } from "@/lib/toast";
 import { Tooltip } from "@/components/ui/tooltip";
-import { Eye, Settings, Trash2 } from "lucide-react";
+import { Eye, Settings, Trash2, Plus, Phone, Mail } from "lucide-react";
 
 type PropertyType = "house" | "apartment" | "land" | "commercial" | "other";
 type InterestType = "rent" | "buy";
@@ -159,6 +159,73 @@ const ContactTableRow = React.memo(function ContactTableRow({
         </div>
       </TableCell>
     </motion.tr>
+  );
+});
+
+// Mobile equivalent of ContactTableRow: data tables stack as cards below md.
+const ContactCard = React.memo(function ContactCard({
+  contact,
+  isAdmin,
+  currentUserId,
+  onEdit,
+  onDelete,
+}: {
+  contact: ContactWithOwners;
+  isAdmin: boolean;
+  currentUserId: Id<"users">;
+  onEdit: (contact: ContactWithOwners) => void;
+  onDelete: (contact: ContactWithOwners) => void;
+}) {
+  return (
+    <motion.div
+      variants={rowVariants}
+      initial="hidden"
+      animate="show"
+      className="rounded-[12px] border border-border-strong bg-card-bg p-4 space-y-3"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <button onClick={() => onEdit(contact)} className="block truncate text-left font-medium hover:text-primary">
+            {contact.name}
+          </button>
+          {contact.company && <p className="truncate text-xs text-text-muted">{contact.company}</p>}
+        </div>
+        <div className="flex flex-wrap justify-end gap-1">
+          {contact.ownerNames.slice(0, 2).map((ownerName: string, i: number) => (
+            <Badge key={i} variant="secondary" className="text-xs">{ownerName}</Badge>
+          ))}
+          {contact.ownerNames.length > 2 && (
+            <Badge variant="secondary" className="text-xs">+{contact.ownerNames.length - 2}</Badge>
+          )}
+        </div>
+      </div>
+      {(contact.phone || contact.email) && (
+        <div className="space-y-1 text-sm text-text-muted">
+          {contact.phone && <p className="truncate">{contact.phone}</p>}
+          {contact.email && <p className="truncate">{contact.email}</p>}
+        </div>
+      )}
+      <div className="flex items-center justify-end gap-1.5 pt-1">
+        {contact.phone && (
+          <a href={`tel:${contact.phone}`} aria-label="Call contact">
+            <Button variant="secondary" className="h-9 w-9 p-0"><Phone className="h-4 w-4" /></Button>
+          </a>
+        )}
+        {contact.email && (
+          <a href={`mailto:${contact.email}`} aria-label="Email contact">
+            <Button variant="secondary" className="h-9 w-9 p-0"><Mail className="h-4 w-4" /></Button>
+          </a>
+        )}
+        <Button variant="secondary" className="h-9 w-9 p-0" aria-label="Edit contact" onClick={() => onEdit(contact)}>
+          <Settings className="h-4 w-4" />
+        </Button>
+        {(isAdmin || contact.ownerUserIds.includes(currentUserId)) && (
+          <Button variant="secondary" className="h-9 w-9 p-0 text-danger hover:bg-danger/10 hover:text-danger" aria-label="Delete contact" onClick={() => onDelete(contact)}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </motion.div>
   );
 });
 
@@ -470,8 +537,8 @@ export default function ContactsPage() {
     return (
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold">Contacts</h2>
+          <div className="space-y-1">
+            <h1 className="text-h1">Contacts</h1>
             <p className="text-sm text-text-muted">Loading...</p>
           </div>
         </div>
@@ -482,32 +549,16 @@ export default function ContactsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold">Contacts</h2>
+        <div className="space-y-1">
+          <h1 className="text-h1">Contacts</h1>
           <p className="text-sm text-text-muted">
             Contacts are the people you engage, separate from property-specific leads.
           </p>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="group flex h-10 items-center gap-2 rounded-full bg-border pl-3 pr-4 transition-all duration-300 ease-in-out hover:bg-primary hover:pl-2 hover:text-white active:bg-primary-600"
-        >
-          <span className="flex items-center justify-center overflow-hidden rounded-full bg-primary p-1 text-white transition-all duration-300 group-hover:bg-white">
-            <svg
-              viewBox="0 0 16 16"
-              fill="none"
-              className="h-0 w-0 transition-all duration-300 group-hover:h-4 group-hover:w-4 group-hover:text-primary"
-            >
-              <path
-                d="M8 3v10M3 8h10"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
-          <span className="text-sm font-medium">New Contact</span>
-        </button>
+        <Button onClick={openCreateModal} className="h-10 gap-2">
+          <Plus className="h-4 w-4" />
+          New Contact
+        </Button>
       </div>
 
       <div className="rounded-[12px] border border-border-strong bg-card-bg p-4">
@@ -541,7 +592,7 @@ export default function ContactsPage() {
         </div>
       </div>
 
-      <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+      <div className="hidden md:block overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
       <Table>
         <thead>
           <tr>
@@ -592,6 +643,22 @@ export default function ContactsPage() {
         )}
       </Table>
       </div>
+
+      {/* Mobile: stacked cards instead of a horizontally scrolling table */}
+      {contacts && contacts.length > 0 && (
+        <motion.div variants={listVariants} initial="hidden" animate="show" className="space-y-3 md:hidden">
+          {contacts.map((contact: ContactWithOwners) => (
+            <ContactCard
+              key={contact._id}
+              contact={contact}
+              isAdmin={isAdmin}
+              currentUserId={currentUser._id}
+              onEdit={setSelectedContact}
+              onDelete={setDeleteTarget}
+            />
+          ))}
+        </motion.div>
+      )}
 
       <PaginationControls
         page={pagination.page}
