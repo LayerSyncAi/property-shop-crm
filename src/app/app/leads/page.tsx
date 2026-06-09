@@ -22,6 +22,7 @@ import { Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, LayoutList, Columns3, Plu
 import { ErrorBoundary } from "@/components/common/error-boundary";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { KanbanBoard } from "@/components/leads/kanban-board";
 
 const listVariants = {
@@ -594,9 +595,7 @@ export default function LeadsPage() {
       {viewMode === "kanban" ? (
         /* ── Kanban Board View ── */
         kanbanData === undefined ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-          </div>
+          <ListSkeleton />
         ) : (
           <ErrorBoundary sectionName="Kanban Board">
             <motion.div
@@ -615,9 +614,7 @@ export default function LeadsPage() {
       ) : (
         /* ── List View ── */
         leads === undefined ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-          </div>
+          <ListSkeleton />
         ) : leads.length === 0 ? (
           <EmptyState
             icon={Waypoints}

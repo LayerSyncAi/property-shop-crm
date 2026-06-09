@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { StaggeredDropDown } from "@/components/ui/staggered-dropdown";
 import { Table, TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { PaginationControls } from "@/components/ui/pagination";
@@ -357,9 +358,7 @@ export default function TasksPage() {
       </Card>
 
       {tasks === undefined ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
+        <ListSkeleton />
       ) : tasks.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
