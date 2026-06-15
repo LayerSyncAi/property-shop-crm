@@ -519,14 +519,14 @@ export default function LandingPage() {
       carShiftX: [-0.8, 0.8] as [number, number],
       carFloorSeparation: [0, 5] as [number, number],
       colors: {
-        roadColor: 0x080808,
-        islandColor: 0x0a0a0a,
-        background: 0x000000,
-        shoulderLines: 0x131313,
-        brokenLines: 0x131313,
-        leftCars: [0xeca400, 0xf59e0b, 0xd97706],
-        rightCars: [0xfbbf24, 0xb45309, 0x92400e],
-        sticks: 0xeca400,
+        roadColor: 0x051d39,
+        islandColor: 0x07244a,
+        background: 0x03142a,
+        shoulderLines: 0x1c3a5e,
+        brokenLines: 0x1c3a5e,
+        leftCars: [0xc1a051, 0xd9bd6f, 0xa8893f],
+        rightCars: [0xe6cd8a, 0xb8923e, 0x8a6f2e],
+        sticks: 0xc1a051,
       },
     }),
     []
@@ -707,8 +707,8 @@ export default function LandingPage() {
       </AnimatedSection>
 
       {/* ── CTA ──────────────────────────────────────────────────── */}
-      <section className="relative h-[600px] overflow-hidden bg-black">
-        {/* Hyperspeed background — SynCRM amber/gold palette */}
+      <section className="relative h-[600px] overflow-hidden bg-[#03142a]">
+        {/* Hyperspeed background: Property Shop gold-on-navy palette */}
         <div className="absolute inset-0">
           <Hyperspeed effectOptions={hyperspeedOptions} />
         </div>
