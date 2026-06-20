@@ -242,6 +242,14 @@ export const Sidebar = memo(function Sidebar({ isAdmin, collapsed, onToggle, org
             : (orgName || brand.name)}
         </div>
       </div>
+      <div
+        className={cn(
+          "flex flex-1 flex-col [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin]",
+          // Keep overflow visible when collapsed so hover tooltips aren't clipped;
+          // allow vertical scrolling when expanded so expandable panels never overflow.
+          collapsed ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"
+        )}
+      >
       <nav className="flex-1 space-y-1" data-tour="sidebar-nav">
         {navItems.map((item) => (
           <NavItem
@@ -418,6 +426,7 @@ export const Sidebar = memo(function Sidebar({ isAdmin, collapsed, onToggle, org
           )}
         </div>
       ) : null}
+      </div>
       </aside>
     </>
   );
