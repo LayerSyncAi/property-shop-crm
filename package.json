@@ -23,6 +23,7 @@
     "date-fns": "^4.1.0",
     "dayzed": "^3.2.3",
     "framer-motion": "^12.38.0",
+    "jose": "^6.2.3",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.469.0",
