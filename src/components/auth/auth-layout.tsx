@@ -198,6 +198,7 @@ function SupplementalContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.7 }}
         >
+          <BrandMark className="mb-4 h-14 w-14" />
           <h2 className="text-2xl font-bold leading-tight text-white lg:text-3xl">
             Close more deals,
             <br />
