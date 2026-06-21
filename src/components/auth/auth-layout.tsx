@@ -6,30 +6,6 @@ import { motion, Variants } from "framer-motion";
 import { propertyShop } from "@/config/marketing-brand";
 import { Star, BarChart3, Users, TrendingUp, Building2 } from "lucide-react";
 
-/* ── Brand logo mark + wordmark ── */
-
-function BrandMark({ className = "h-8 w-8" }: { className?: string }) {
-  return (
-    <Image
-      src="/brand/icon-512x512.png"
-      alt={`${propertyShop.name} logo`}
-      width={512}
-      height={512}
-      priority
-      className={`rounded-lg object-contain shadow-[0_4px_12px_rgba(31,42,68,0.25)] ${className}`}
-    />
-  );
-}
-
-function Wordmark({ className = "" }: { className?: string }) {
-  return (
-    <span className={className}>
-      {propertyShop.nameLead}
-      <span className="text-primary-600">{propertyShop.nameAccent}</span>
-    </span>
-  );
-}
-
 /* ── Required field label helper ── */
 
 export function RequiredLabel({ children }: { children: React.ReactNode }) {
@@ -187,10 +163,16 @@ function SupplementalContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.7 }}
-          className="mb-6 flex items-center gap-2.5"
+          className="mb-6"
         >
-          <BrandMark className="h-9 w-9" />
-          <Wordmark className="text-lg font-semibold tracking-tight text-white" />
+          <Image
+            src="/brand/wordmark.png"
+            alt={`${propertyShop.name} logo`}
+            width={1000}
+            height={1000}
+            priority
+            className="h-20 w-auto object-contain"
+          />
         </motion.div>
 
         <motion.div
@@ -198,7 +180,6 @@ function SupplementalContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.7 }}
         >
-          <BrandMark className="mb-4 h-14 w-14" />
           <h2 className="text-2xl font-bold leading-tight text-white lg:text-3xl">
             Close more deals,
             <br />
@@ -265,11 +246,17 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       <div className="relative bg-content-bg overflow-y-auto flex flex-col">
         <Link
           href="/"
-          className="sticky top-0 z-20 flex items-center gap-2 px-8 pt-8 pb-2 bg-content-bg md:px-14 lg:px-20"
+          className="sticky top-0 z-20 flex items-center px-8 pt-8 pb-2 bg-content-bg md:px-14 lg:px-20"
           aria-label={`${propertyShop.name} home`}
         >
-          <BrandMark className="h-7 w-7" />
-          <Wordmark className="text-sm font-semibold tracking-tight text-text" />
+          <Image
+            src="/brand/wordmark.png"
+            alt={`${propertyShop.name} logo`}
+            width={1000}
+            height={1000}
+            priority
+            className="h-14 w-auto object-contain"
+          />
         </Link>
         <div className="flex flex-1 items-center justify-center px-8 pb-10 md:px-14 lg:px-20">
           <div className="w-full max-w-lg">
