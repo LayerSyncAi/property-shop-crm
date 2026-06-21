@@ -1,44 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion, Variants } from "framer-motion";
 import { propertyShop } from "@/config/marketing-brand";
-import {
-  Star,
-  BarChart3,
-  Users,
-  TrendingUp,
-  Building2,
-  Store,
-} from "lucide-react";
-
-/* ── Brand logo mark + wordmark ── */
-
-function BrandMark({
-  className = "h-8 w-8",
-  iconClassName = "h-4 w-4",
-}: {
-  className?: string;
-  iconClassName?: string;
-}) {
-  return (
-    <div
-      className={`flex items-center justify-center rounded-lg text-white shadow-[0_4px_12px_rgba(42,89,37,0.25)] ${className}`}
-      style={{ backgroundImage: "linear-gradient(135deg, #eca400 0%, #2a5925 130%)" }}
-    >
-      <Store className={iconClassName} />
-    </div>
-  );
-}
-
-function Wordmark({ className = "" }: { className?: string }) {
-  return (
-    <span className={className}>
-      {propertyShop.nameLead}
-      <span className="text-primary-600">{propertyShop.nameAccent}</span>
-    </span>
-  );
-}
+import { Star, BarChart3, Users, TrendingUp, Building2 } from "lucide-react";
 
 /* ── Required field label helper ── */
 
@@ -197,10 +163,16 @@ function SupplementalContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.7 }}
-          className="mb-6 flex items-center gap-2.5"
+          className="mb-6"
         >
-          <BrandMark className="h-9 w-9" iconClassName="h-[18px] w-[18px]" />
-          <Wordmark className="text-lg font-semibold tracking-tight text-white" />
+          <Image
+            src="/brand/wordmark.png"
+            alt={`${propertyShop.name} logo`}
+            width={1000}
+            height={1000}
+            priority
+            className="h-20 w-auto object-contain"
+          />
         </motion.div>
 
         <motion.div
@@ -274,11 +246,17 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       <div className="relative bg-content-bg overflow-y-auto flex flex-col">
         <Link
           href="/"
-          className="sticky top-0 z-20 flex items-center gap-2 px-8 pt-8 pb-2 bg-content-bg md:px-14 lg:px-20"
+          className="sticky top-0 z-20 flex items-center px-8 pt-8 pb-2 bg-content-bg md:px-14 lg:px-20"
           aria-label={`${propertyShop.name} home`}
         >
-          <BrandMark className="h-7 w-7" iconClassName="h-3.5 w-3.5" />
-          <Wordmark className="text-sm font-semibold tracking-tight text-text" />
+          <Image
+            src="/brand/wordmark.png"
+            alt={`${propertyShop.name} logo`}
+            width={1000}
+            height={1000}
+            priority
+            className="h-14 w-auto object-contain"
+          />
         </Link>
         <div className="flex flex-1 items-center justify-center px-8 pb-10 md:px-14 lg:px-20">
           <div className="w-full max-w-lg">

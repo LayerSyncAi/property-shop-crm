@@ -2,6 +2,7 @@
 
 import { memo, useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
@@ -233,13 +234,23 @@ export const Sidebar = memo(function Sidebar({ isAdmin, collapsed, onToggle, org
       <div className="mb-6 flex items-center justify-between px-2">
         <div
           className={cn(
-            "rounded-[12px] border border-white/20 bg-white/10 px-3 py-3 text-sm font-semibold transition-all duration-200",
-            collapsed ? "w-full text-center" : "w-auto"
+            "flex items-center gap-2.5 transition-all duration-200",
+            collapsed ? "w-full justify-center" : "w-auto"
           )}
         >
-          {collapsed
-            ? (orgName ? orgName[0].toUpperCase() : brand.name[0].toUpperCase())
-            : (orgName || brand.name)}
+          <Image
+            src="/brand/icon-512x512.png"
+            alt={`${brand.name} logo`}
+            width={512}
+            height={512}
+            priority
+            className="h-9 w-9 shrink-0 rounded-[10px] object-contain"
+          />
+          {!collapsed && (
+            <span className="truncate text-sm font-semibold text-sidebar-fg">
+              {orgName || brand.name}
+            </span>
+          )}
         </div>
       </div>
       <div
