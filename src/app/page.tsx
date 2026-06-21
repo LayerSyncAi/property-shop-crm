@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -36,7 +37,6 @@ import {
   Search,
   Shield,
   Star,
-  Store,
   Target,
   Trophy,
   User,
@@ -49,14 +49,16 @@ import {
 /*  Brand logo mark                                                     */
 /* ------------------------------------------------------------------ */
 
-function BrandMark({ className = "h-8 w-8", iconClassName = "h-4 w-4" }: { className?: string; iconClassName?: string }) {
+function BrandMark({ className = "h-8 w-8" }: { className?: string }) {
   return (
-    <div
-      className={`flex items-center justify-center rounded-lg text-white shadow-[0_4px_12px_rgba(42,89,37,0.25)] ${className}`}
-      style={{ backgroundImage: "linear-gradient(135deg, #eca400 0%, #2a5925 130%)" }}
-    >
-      <Store className={iconClassName} />
-    </div>
+    <Image
+      src="/brand/icon-512x512.png"
+      alt={`${propertyShop.name} logo`}
+      width={512}
+      height={512}
+      priority
+      className={`rounded-lg object-contain ${className}`}
+    />
   );
 }
 
@@ -242,7 +244,7 @@ function HeroMockupScreen() {
         {/* Sidebar */}
         <div className="h-full border-r border-border p-2">
           <div className="flex items-center gap-1.5">
-            <BrandMark className="h-5 w-5 rounded" iconClassName="h-3 w-3" />
+            <BrandMark className="h-5 w-5 rounded" />
             <Wordmark className="text-[10px] font-semibold" />
           </div>
           <div className="mt-3 space-y-1.5">
@@ -772,7 +774,7 @@ export default function LandingPage() {
       <footer className="border-t border-border py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
           <div className="flex items-center gap-2">
-            <BrandMark className="h-7 w-7" iconClassName="h-3.5 w-3.5" />
+            <BrandMark className="h-7 w-7" />
             <Wordmark className="text-sm font-semibold" />
           </div>
           <p className="text-xs text-text-dim">
