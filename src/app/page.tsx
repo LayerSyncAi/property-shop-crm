@@ -9,7 +9,7 @@ const Hyperspeed = dynamic(() => import("@/components/ui/hyperspeed"), {
   ssr: false,
 });
 import { useAuth } from "@/hooks/useAuth";
-import { brand } from "@/config/brand";
+import { propertyShop } from "@/config/marketing-brand";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import {
   ArrowRight,
@@ -35,8 +35,8 @@ import {
   Merge,
   Search,
   Shield,
-  Sparkles,
   Star,
+  Store,
   Target,
   Trophy,
   User,
@@ -44,6 +44,30 @@ import {
   Waypoints,
   Zap,
 } from "lucide-react";
+
+/* ------------------------------------------------------------------ */
+/*  Brand logo mark                                                     */
+/* ------------------------------------------------------------------ */
+
+function BrandMark({ className = "h-8 w-8", iconClassName = "h-4 w-4" }: { className?: string; iconClassName?: string }) {
+  return (
+    <div
+      className={`flex items-center justify-center rounded-lg text-white shadow-[0_4px_12px_rgba(42,89,37,0.25)] ${className}`}
+      style={{ backgroundImage: "linear-gradient(135deg, #eca400 0%, #2a5925 130%)" }}
+    >
+      <Store className={iconClassName} />
+    </div>
+  );
+}
+
+function Wordmark({ className = "" }: { className?: string }) {
+  return (
+    <span className={className}>
+      {propertyShop.nameLead}
+      <span className="text-primary-600">{propertyShop.nameAccent}</span>
+    </span>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Animation variants                                                 */
@@ -160,7 +184,7 @@ function HeroCopy() {
             NEW
           </span>
           <span className="ml-1.5 mr-1 inline-block text-text-muted">
-            {brand.tagline}
+            {propertyShop.tagline}
           </span>
           <ArrowUpRight className="mr-2 inline-block h-3.5 w-3.5 text-text-muted" />
         </Link>
@@ -181,8 +205,8 @@ function HeroCopy() {
       </h1>
 
       <p className="mx-auto my-4 max-w-3xl text-center text-base leading-relaxed text-text-muted md:my-6 md:text-xl md:leading-relaxed">
-        {brand.name} helps real estate teams track leads, match properties, and close
-        deals faster — with beautiful dashboards, smart scoring, and real-time
+        {propertyShop.name} helps real estate teams track leads, match properties, and
+        close deals faster — with beautiful dashboards, smart scoring, and real-time
         collaboration.
       </p>
 
@@ -208,7 +232,7 @@ function HeroMockupScreen() {
           <span className="size-2 rounded-full bg-green-400" />
         </div>
         <span className="rounded bg-[#2d3a56] px-2 py-0.5 text-xs text-zinc-100">
-          {brand.appDomain}
+          {propertyShop.appDomain}
         </span>
         <ChevronDown className="h-3.5 w-3.5 text-white/60" />
       </div>
@@ -218,12 +242,8 @@ function HeroMockupScreen() {
         {/* Sidebar */}
         <div className="h-full border-r border-border p-2">
           <div className="flex items-center gap-1.5">
-            <div className="flex h-5 w-5 items-center justify-center rounded bg-primary-600">
-              <Sparkles className="h-3 w-3 text-white" />
-            </div>
-            <span className="text-[10px] font-semibold">
-              Syn<span className="text-primary-600">CRM</span>
-            </span>
+            <BrandMark className="h-5 w-5 rounded" iconClassName="h-3 w-3" />
+            <Wordmark className="text-[10px] font-semibold" />
           </div>
           <div className="mt-3 space-y-1.5">
             <span className="flex items-center gap-1.5 text-xs text-primary-600">
@@ -560,12 +580,8 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 border-b border-border bg-card-bg/80 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-base font-semibold tracking-tight">
-              Syn<span className="text-primary-600">CRM</span>
-            </span>
+            <BrandMark />
+            <Wordmark className="text-base font-semibold tracking-tight" />
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
@@ -608,7 +624,7 @@ export default function LandingPage() {
                 custom={0}
                 className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-600"
               >
-                Why {brand.name}
+                Why {propertyShop.name}
               </motion.span>
               <motion.h2
                 variants={fadeUp}
@@ -722,7 +738,7 @@ export default function LandingPage() {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl"
           >
-            Ready to sync your pipeline?
+            Ready to grow your property business?
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 24 }}
@@ -731,8 +747,8 @@ export default function LandingPage() {
             transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/80"
           >
-            Join real estate teams who use {brand.name} to stay organized, collaborate
-            better, and close deals faster. Set up your workspace in minutes.
+            Join real estate teams who use {propertyShop.name} to stay organized,
+            collaborate better, and close deals faster. Set up your workspace in minutes.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -756,15 +772,11 @@ export default function LandingPage() {
       <footer className="border-t border-border py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-600">
-              <Sparkles className="h-3.5 w-3.5 text-white" />
-            </div>
-            <span className="text-sm font-semibold">
-              Syn<span className="text-primary-600">CRM</span>
-            </span>
+            <BrandMark className="h-7 w-7" iconClassName="h-3.5 w-3.5" />
+            <Wordmark className="text-sm font-semibold" />
           </div>
           <p className="text-xs text-text-dim">
-            &copy; {new Date().getFullYear()} {brand.legalName}. Built for real estate teams.
+            &copy; {new Date().getFullYear()} {propertyShop.legalName}. Built for real estate teams.
           </p>
           <Link
             href="/login"
