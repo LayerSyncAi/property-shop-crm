@@ -156,6 +156,18 @@ function SupplementalContent() {
         }}
       />
 
+      {/* Property Shop logo watermark — personalises the panel as a faint backdrop */}
+      <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden select-none">
+        <Image
+          src="/brand/wordmark.png"
+          alt=""
+          aria-hidden="true"
+          width={1000}
+          height={1000}
+          className="w-[135%] max-w-none object-contain opacity-[0.06]"
+        />
+      </div>
+
       {/* Content */}
       <div className="relative z-10 flex flex-col justify-center h-full p-8 lg:p-10">
         {/* Brand lockup */}
