@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import { propertyShop } from "@/config/marketing-brand";
-import { Star, BarChart3, Users, TrendingUp, Building2 } from "lucide-react";
+import { ArrowUpRight, Building2, Home, Store } from "lucide-react";
 
 /* ── Required field label helper ── */
 
@@ -17,119 +17,191 @@ export function RequiredLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-/* ── Avatar data for social proof ── */
+/* ── Listings-by-type semicircle gauge (SVG) ──
+ *  Coordinates are pre-computed for a top half-circle (cx 90, cy 82, r 70),
+ *  split into three arc segments so it renders deterministically. */
 
-const AVATARS = [
-  { initials: "SM", bg: "bg-amber-400 text-amber-900" },
-  { initials: "JR", bg: "bg-emerald-400 text-emerald-900" },
-  { initials: "AL", bg: "bg-sky-400 text-sky-900" },
-  { initials: "KP", bg: "bg-rose-400 text-rose-900" },
+const GAUGE_SEGMENTS = [
+  { d: "M20 82 A70 70 0 0 1 79.05 12.86", color: "var(--brand-primary, #eca400)" },
+  { d: "M79.05 12.86 A70 70 0 0 1 139.5 32.5", color: "#f6c95a" },
+  { d: "M139.5 32.5 A70 70 0 0 1 160 82", color: "#94a3b8" },
 ];
 
-const avatarVariants: Variants = {
-  initial: { x: 10, opacity: 0 },
-  animate: (i: number) => ({
-    x: 0,
-    opacity: 1,
-    transition: {
-      delay: 0.6 + i * 0.1,
-      type: "spring" as const,
-      stiffness: 100,
-    },
-  }),
-};
+const GAUGE_LEGEND = [
+  { label: "Apartments", value: "124", color: "var(--brand-primary, #eca400)", Icon: Building2 },
+  { label: "Villas", value: "86", color: "#f6c95a", Icon: Home },
+  { label: "Commercial", value: "38", color: "#94a3b8", Icon: Store },
+];
 
-/* ── Mini dashboard mockup (rendered with CSS) ── */
+function CategoryGauge() {
+  return (
+    <div>
+      <div className="relative mx-auto h-[95px] w-[180px]">
+        <svg viewBox="0 0 180 95" className="absolute inset-0 h-full w-full">
+          {/* Track */}
+          <path
+            d="M20 82 A70 70 0 0 1 160 82"
+            fill="none"
+            stroke="#e2e8f0"
+            strokeWidth={14}
+            strokeLinecap="round"
+          />
+          {/* Coloured segments */}
+          {GAUGE_SEGMENTS.map((seg, i) => (
+            <motion.path
+              key={seg.d}
+              d={seg.d}
+              fill="none"
+              stroke={seg.color}
+              strokeWidth={14}
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ delay: 0.9 + i * 0.18, duration: 0.7, ease: "easeOut" }}
+            />
+          ))}
+        </svg>
+        {/* Centre total */}
+        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center">
+          <span className="text-[10px] font-medium text-slate-400">Total listings</span>
+          <span className="text-xl font-bold text-slate-800">248</span>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="mt-3 space-y-1.5">
+        {GAUGE_LEGEND.map(({ label, value, color, Icon }) => (
+          <div key={label} className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span
+                className="inline-block h-2 w-2 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              <Icon className="h-3 w-3 text-slate-400" />
+              <span className="text-[11px] text-slate-500">{label}</span>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-700">{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Layered dashboard mockup (rendered with CSS, mirrors the reference) ── */
+
+const OVERVIEW_BARS = [38, 64, 50, 82, 58, 94, 70];
+
+const RECENT_DEALS = [
+  { name: "Marina Heights · 2BR", price: "$420K", status: "Closed", tone: "bg-emerald-400/15 text-emerald-300" },
+  { name: "Palm Grove Villa", price: "$1.1M", status: "Pending", tone: "bg-amber-400/15 text-amber-300" },
+  { name: "Downtown Loft 14B", price: "$285K", status: "Viewing", tone: "bg-sky-400/15 text-sky-300" },
+];
+
+function cardEntrance(delay: number) {
+  return {
+    initial: { opacity: 0, y: 24 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay, duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
+  };
+}
 
 function DashboardMockup() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        delay: 0.6,
-        duration: 0.8,
-        ease: [0.22, 1, 0.36, 1] as const,
-      }}
-      className="mt-8 w-[85%] mx-auto"
-    >
-      <div className="rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-sm p-4 shadow-2xl">
-        {/* Mock top bar */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
-            <div className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
-            <div className="h-2.5 w-2.5 rounded-full bg-green-400/70" />
+    <div className="relative mt-8 w-full">
+      {/* Top stat row */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Total sales — gold hero card */}
+        <motion.div
+          {...cardEntrance(0.55)}
+          className="rounded-2xl bg-gradient-to-br from-primary to-primary-600 p-3.5 shadow-lg shadow-primary/20"
+        >
+          <p className="text-[11px] font-medium text-[#3a2d00]/70">Total Sales Volume</p>
+          <p className="mt-1 text-2xl font-bold text-[#1f2a44]">$4.2M</p>
+          <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-white/30 px-1.5 py-0.5">
+            <ArrowUpRight className="h-3 w-3 text-[#1f2a44]" />
+            <span className="text-[10px] font-semibold text-[#1f2a44]">7% this month</span>
           </div>
-          <div className="flex-1 h-5 rounded-md bg-white/[0.06] mx-6" />
-        </div>
+        </motion.div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="rounded-lg bg-white/[0.06] p-2.5">
-            <div className="flex items-center gap-1 mb-1">
-              <Users className="h-3 w-3 text-primary" />
-              <span className="text-[9px] text-slate-400">Leads</span>
-            </div>
-            <p className="text-base font-bold text-white">247</p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <TrendingUp className="h-2.5 w-2.5 text-emerald-400" />
-              <span className="text-[8px] text-emerald-400">+12%</span>
-            </div>
+        {/* Commission — frosted card */}
+        <motion.div
+          {...cardEntrance(0.65)}
+          className="rounded-2xl border border-white/10 bg-white/[0.07] p-3.5 backdrop-blur-sm"
+        >
+          <p className="text-[11px] font-medium text-slate-400">Commission Earned</p>
+          <p className="mt-1 text-2xl font-bold text-white">$312K</p>
+          <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-1.5 py-0.5">
+            <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+            <span className="text-[10px] font-semibold text-emerald-400">5% this month</span>
           </div>
-          <div className="rounded-lg bg-white/[0.06] p-2.5">
-            <div className="flex items-center gap-1 mb-1">
-              <Building2 className="h-3 w-3 text-primary" />
-              <span className="text-[9px] text-slate-400">Properties</span>
-            </div>
-            <p className="text-base font-bold text-white">89</p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <TrendingUp className="h-2.5 w-2.5 text-emerald-400" />
-              <span className="text-[8px] text-emerald-400">+5%</span>
-            </div>
-          </div>
-          <div className="rounded-lg bg-white/[0.06] p-2.5">
-            <div className="flex items-center gap-1 mb-1">
-              <BarChart3 className="h-3 w-3 text-primary" />
-              <span className="text-[9px] text-slate-400">Deals</span>
-            </div>
-            <p className="text-base font-bold text-white">$1.2M</p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <TrendingUp className="h-2.5 w-2.5 text-emerald-400" />
-              <span className="text-[8px] text-emerald-400">+18%</span>
-            </div>
-          </div>
-        </div>
+        </motion.div>
+      </div>
 
-        {/* Pipeline bars */}
+      {/* Sales overview — frosted card with bar chart */}
+      <motion.div
+        {...cardEntrance(0.75)}
+        className="mt-3 rounded-2xl border border-white/10 bg-white/[0.07] p-3.5 backdrop-blur-sm"
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-white">Sales Overview</p>
+            <p className="text-[10px] text-slate-400">Pipeline performance</p>
+          </div>
+          <span className="rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] text-slate-300">
+            Weekly
+          </span>
+        </div>
+        <div className="flex h-20 items-end gap-2">
+          {OVERVIEW_BARS.map((h, i) => (
+            <motion.div
+              key={i}
+              className="flex-1 rounded-t-md bg-gradient-to-t from-primary-600 to-primary"
+              initial={{ height: 0 }}
+              animate={{ height: `${h}%` }}
+              transition={{ delay: 1.0 + i * 0.07, duration: 0.6, ease: "easeOut" }}
+            />
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Recent deals — frosted table card */}
+      <motion.div
+        {...cardEntrance(0.85)}
+        className="mt-3 rounded-2xl border border-white/10 bg-white/[0.07] p-3.5 backdrop-blur-sm"
+      >
+        <p className="mb-2 text-xs font-semibold text-white">Recent Deals</p>
         <div className="space-y-2">
-          {[
-            { label: "New Lead", width: "85%", delay: 1.0, color: "from-primary to-primary-600" },
-            { label: "Contacted", width: "62%", delay: 1.1, color: "from-primary/80 to-primary-600/80" },
-            { label: "Viewing", width: "44%", delay: 1.2, color: "from-primary/60 to-primary-600/60" },
-            { label: "Closed", width: "28%", delay: 1.3, color: "from-emerald-500/80 to-emerald-400/80" },
-          ].map((bar) => (
-            <div key={bar.label} className="flex items-center gap-2">
-              <span className="text-[8px] text-slate-400 w-14 shrink-0">
-                {bar.label}
-              </span>
-              <div className="flex-1 h-2.5 rounded-full bg-white/[0.06] overflow-hidden">
-                <motion.div
-                  className={`h-full rounded-full bg-gradient-to-r ${bar.color}`}
-                  initial={{ width: 0 }}
-                  animate={{ width: bar.width }}
-                  transition={{
-                    delay: bar.delay,
-                    duration: 0.8,
-                    ease: "easeOut",
-                  }}
-                />
+          {RECENT_DEALS.map((d) => (
+            <div key={d.name} className="flex items-center justify-between">
+              <span className="text-[11px] text-slate-300">{d.name}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold text-white">{d.price}</span>
+                <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${d.tone}`}>
+                  {d.status}
+                </span>
               </div>
             </div>
           ))}
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+
+      {/* Floating "Listings by Type" gauge card — overlaps for a layered look */}
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.94 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.95, duration: 0.8, ease: [0.22, 1, 0.36, 1] as const }}
+        className="absolute -right-2 top-[96px] w-[56%] rounded-2xl bg-white p-3.5 shadow-2xl shadow-black/40 ring-1 ring-black/5"
+      >
+        <div className="mb-1 flex items-center justify-between">
+          <p className="text-xs font-semibold text-slate-800">Listings by Type</p>
+          <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-500">
+            This month
+          </span>
+        </div>
+        <CategoryGauge />
+      </motion.div>
+    </div>
   );
 }
 
@@ -193,53 +265,17 @@ function SupplementalContent() {
           transition={{ delay: 0.4, duration: 0.7 }}
         >
           <h2 className="text-2xl font-bold leading-tight text-white lg:text-3xl">
-            Close more deals,
+            Effortlessly manage your
             <br />
-            <span className="text-primary">faster than ever.</span>
+            <span className="text-primary">listings and deals.</span>
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-slate-400 max-w-sm">
-            {propertyShop.name} is the real estate CRM that helps you track leads,
-            manage your pipeline, and close deals with confidence.
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-slate-400">
+            Sign in to your {propertyShop.name} dashboard to track leads, manage
+            properties, and close more deals — all in one place.
           </p>
         </motion.div>
 
-        {/* Social proof */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="mt-5 flex items-center gap-3"
-        >
-          <div className="flex -space-x-3">
-            {AVATARS.map((a, i) => (
-              <motion.div
-                key={a.initials}
-                custom={i}
-                variants={avatarVariants}
-                initial="initial"
-                animate="animate"
-                className={`flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#1f2a44] text-xs font-bold ${a.bg}`}
-              >
-                {a.initials}
-              </motion.div>
-            ))}
-          </div>
-          <div>
-            <div className="flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className="h-4 w-4 fill-primary text-primary"
-                />
-              ))}
-            </div>
-            <p className="mt-0.5 text-xs text-slate-400">
-              Trusted by 500+ agents
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Dashboard mockup — narrower than the form side */}
+        {/* Layered dashboard mockup — narrower than the form side */}
         <DashboardMockup />
       </div>
 
