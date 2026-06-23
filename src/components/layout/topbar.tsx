@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronDown, Globe, LogOut, Menu } from "lucide-react";
+import { ChevronDown, Globe, LogOut, Menu, Search } from "lucide-react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { cn } from "@/lib/utils";
 import { TIMEZONES, detectBrowserTimezone } from "@/lib/timezones";
+import { brand } from "@/config/brand";
 
 interface TopbarProps {
   userName: string;
@@ -43,7 +44,7 @@ export function Topbar({ userName, userEmail, orgName, userTimezone, onMobileMen
 
   const title = useMemo(() => {
     const match = Object.keys(titleMap).find((key) => pathname.startsWith(key));
-    return match ? titleMap[match] : "SynCRM";
+    return match ? titleMap[match] : brand.name;
   }, [pathname]);
 
   // Recommendation #4: Progressive scroll shadow + backdrop blur
@@ -115,6 +116,16 @@ export function Topbar({ userName, userEmail, orgName, userTimezone, onMobileMen
         </div>
       )}
       <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
+          aria-label="Open command palette"
+          className="hidden h-9 items-center gap-2 rounded-[10px] border border-border-strong px-3 text-sm text-text-muted transition hover:border-primary/60 hover:text-text md:inline-flex"
+        >
+          <Search className="h-4 w-4" />
+          <span>Search</span>
+          <kbd className="rounded border border-border px-1.5 text-[10px] font-medium">⌘K</kbd>
+        </button>
         <div className="relative" data-tour="user-profile">
           <button
             className="flex items-center gap-2 rounded-[10px] border border-border-strong px-3 py-2 text-sm text-text"

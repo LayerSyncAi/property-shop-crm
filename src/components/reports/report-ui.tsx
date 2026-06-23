@@ -22,20 +22,21 @@ import {
   exportReportPdf,
   type ExportPayload,
 } from "@/lib/report-export";
+import { brand } from "@/config/brand";
 
-// Theme colours pulled from the app's CSS tokens (see globals.css).
+// Theme colours sourced from the brand config (see src/config/brand.ts).
 export const COLOR = {
-  primary: "#eca400",
-  success: "#16a34a",
-  warning: "#ca8a04",
-  danger: "#dc2626",
-  info: "#0284c7",
+  primary: brand.colors.primary,
+  success: brand.colors.success,
+  warning: brand.colors.warning,
+  danger: brand.colors.danger,
+  info: brand.colors.info,
   muted: "#5b647f",
 };
 
 // Categorical palette for sources / stages / agents.
 export const PALETTE = [
-  "#eca400",
+  brand.colors.primary,
   "#0284c7",
   "#16a34a",
   "#dc2626",
@@ -131,10 +132,10 @@ export function KpiCard({
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs uppercase tracking-wide text-text-dim">{label}</p>
+        <p className="text-eyebrow text-text-muted">{label}</p>
         {icon ? <span className="text-text-muted">{icon}</span> : null}
       </div>
-      <p className="mt-2 text-xl font-semibold">{value}</p>
+      <p className="mt-2 text-2xl font-semibold tabular-nums">{value}</p>
       {hint ? <p className="mt-1 text-xs text-text-dim">{hint}</p> : null}
     </Card>
   );
@@ -170,7 +171,7 @@ export function BarsCard({
   return (
     <Card>
       <CardHeader>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-text-muted">
+        <h3 className="text-h3">
           {title}
         </h3>
       </CardHeader>
@@ -223,7 +224,7 @@ export function PieCard({
   return (
     <Card>
       <CardHeader>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-text-muted">
+        <h3 className="text-h3">
           {title}
         </h3>
       </CardHeader>
