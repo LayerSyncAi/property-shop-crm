@@ -150,8 +150,26 @@ export default function LoginPage() {
 
       setSubmitState("success");
       didAttemptForward = true;
+
+      // Show the success state briefly, then hand off to the dashboard with a
+      // full-document navigation (window.location) rather than router.replace().
+      //
+      // Why not a client-side (soft) navigation: signIn persists the Convex Auth
+      // session as an httpOnly cookie via the /api/auth proxy, but that cookie is
+      // only committed to the browser as signIn resolves. A soft navigation to
+      // /app/dashboard re-runs the auth middleware against the in-flight Router
+      // Cache / RSC state, which can still reflect the pre-login "unauthenticated"
+      // session. When it does, the middleware bounces /app/dashboard -> /login and
+      // the user is stranded on the login screen, looking like a redirect loop,
+      // until they manually refresh — a full document load that re-reads the
+      // now-settled cookie and lets them through. A fixed setTimeout before the
+      // redirect only papered over the race and still failed on slower
+      // cookie/session propagation (notably a freshly added user's first login).
+      //
+      // Doing the full-document load ourselves makes first login land
+      // deterministically: it IS the manual refresh, performed for the user.
       await new Promise((resolve) => setTimeout(resolve, 600));
-      router.replace("/app/dashboard");
+      window.location.assign("/app/dashboard");
     } catch (err) {
       console.error("[LoginPage] Auth error:", err);
 
