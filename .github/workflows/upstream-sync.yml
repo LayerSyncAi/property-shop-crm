@@ -1,0 +1,155 @@
+name: Sync from upstream (syncrm)
+
+# Keeps this white-label downstream in sync with its upstream, LayerSyncAi/syncrm.
+# It does NOT push to main. On a schedule (and on demand) it merges upstream into a
+# bot branch and opens a review PR, so a human can resolve branding conflicts and
+# keep the Property Shop white-label before anything lands. See docs/UPSTREAM_SYNC.md.
+
+on:
+  schedule:
+    # Mondays 06:17 UTC. Off-the-hour minute to dodge GitHub's top-of-hour congestion.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: "Upstream branch/ref to sync from"
+        default: "main"
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  UPSTREAM_REPO: LayerSyncAi/syncrm
+  UPSTREAM_BRANCH: ${{ github.event.inputs.upstream_ref || 'main' }}
+  SYNC_BRANCH: automated/upstream-sync
+  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout downstream (full history)
+        uses: actions/checkout@v4
+        with:
+          # Full history is required so git can find the common ancestor with
+          # upstream and perform a real 3-way merge.
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Skip if a sync PR is already open
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing=$(gh pr list --head "$SYNC_BRANCH" --state open --json number --jq '.[0].number' || true)
+          if [ -n "$existing" ]; then
+            echo "::notice::Upstream-sync PR #$existing is already open; leaving it for review instead of clobbering it."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Add upstream remote and fetch
+        if: steps.guard.outputs.skip == 'false'
+        env:
+          # Fine-grained PAT (or classic PAT) with read access to the upstream repo.
+          # Optional only if the upstream repo is public. See docs/UPSTREAM_SYNC.md.
+          UPSTREAM_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN }}
+        run: |
+          if [ -z "${UPSTREAM_TOKEN}" ]; then
+            echo "::warning::UPSTREAM_SYNC_TOKEN is not set; attempting an unauthenticated fetch (only works if $UPSTREAM_REPO is public)."
+            git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          else
+            git remote add upstream "https://x-access-token:${UPSTREAM_TOKEN}@github.com/${UPSTREAM_REPO}.git"
+          fi
+          git fetch --no-tags upstream "$UPSTREAM_BRANCH"
+
+      - name: Merge upstream into sync branch
+        if: steps.guard.outputs.skip == 'false'
+        id: merge
+        run: |
+          # Always rebuild the bot branch from the current default branch, then
+          # merge upstream on top. (Safe to force-rebuild: the guard above ensured
+          # no open PR is using this branch.)
+          git checkout -B "$SYNC_BRANCH" "origin/${DEFAULT_BRANCH}"
+
+          set +e
+          git merge --no-ff --no-edit "upstream/${UPSTREAM_BRANCH}"
+          code=$?
+          set -e
+
+          if [ "$code" -ne 0 ]; then
+            echo "conflicts=true" >> "$GITHUB_OUTPUT"
+            # Capture the conflicted paths BEFORE staging (diff-filter=U only shows
+            # them while they are still unmerged).
+            git diff --name-only --diff-filter=U > conflicts.txt
+            # Commit the tree WITH conflict markers so the PR shows exactly what
+            # needs human resolution. CI will (correctly) fail until markers are gone.
+            git add -A
+            git commit --no-edit -m "Merge upstream/${UPSTREAM_BRANCH} into ${SYNC_BRANCH} (UNRESOLVED CONFLICTS — resolve before merging)"
+          else
+            echo "conflicts=false" >> "$GITHUB_OUTPUT"
+            : > conflicts.txt
+          fi
+
+      - name: Detect whether anything changed
+        if: steps.guard.outputs.skip == 'false'
+        id: diff
+        run: |
+          if git diff --quiet "origin/${DEFAULT_BRANCH}..HEAD"; then
+            echo "::notice::No upstream changes to sync — downstream is up to date."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure 'upstream-sync' label exists
+        if: steps.guard.outputs.skip == 'false' && steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create upstream-sync --color 1d76db --description "Automated merge from upstream syncrm" 2>/dev/null || true
+
+      - name: Push branch and open review PR
+        if: steps.guard.outputs.skip == 'false' && steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONFLICTS: ${{ steps.merge.outputs.conflicts }}
+        run: |
+          git push -f origin "$SYNC_BRANCH"
+
+          {
+            echo "Automated sync of \`${UPSTREAM_REPO}@${UPSTREAM_BRANCH}\` into this white-label downstream."
+            echo
+            if [ "$CONFLICTS" = "true" ]; then
+              echo "> ⚠️ **Merge conflicts were committed as \`<<<<<<<\` markers.**"
+              echo "> This is expected wherever downstream branding diverges from upstream."
+              echo "> Resolve each one, **keeping the Property Shop white-label**, then push to this branch."
+              echo "> CI will stay red until every marker is gone."
+              echo
+              echo "**Conflicted files:**"
+              if [ -s conflicts.txt ]; then sed 's/^/- \`/; s/$/\`/' conflicts.txt; else echo "- (see merge commit)"; fi
+            else
+              echo "Merged cleanly. Review the diff and merge once CI is green."
+            fi
+            echo
+            echo "---"
+            echo "_Opened by the \`upstream-sync\` workflow. Setup & conflict guidance: [docs/UPSTREAM_SYNC.md](../blob/${DEFAULT_BRANCH}/docs/UPSTREAM_SYNC.md)._"
+          } > pr-body.md
+
+          gh pr create \
+            --base "$DEFAULT_BRANCH" \
+            --head "$SYNC_BRANCH" \
+            --title "Sync upstream ${UPSTREAM_REPO} → property-shop-crm" \
+            --body-file pr-body.md \
+            --label upstream-sync
