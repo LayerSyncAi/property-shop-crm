@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAction, useMutation } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertTriangle,
@@ -15,6 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { api } from "../../../../../../convex/_generated/api";
+import { Id } from "../../../../../../convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -172,6 +173,18 @@ export default function PropertyBookImportPage() {
     null
   );
   const [ackChecked, setAckChecked] = React.useState(false);
+
+  // Import ownership assignment (admin chooses; defaults to the company).
+  const agents = useQuery(api.users.listForAssignment) ?? [];
+  const [ownershipMode, setOwnershipMode] = React.useState<"company" | "agents">(
+    "company"
+  );
+  const [importOwnerIds, setImportOwnerIds] = React.useState<Id<"users">[]>([]);
+  const toggleImportOwner = (id: Id<"users">) => {
+    setImportOwnerIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
 
   const loadAgencies = React.useCallback(
     async (query: string, options?: { force?: boolean }) => {
@@ -342,7 +355,13 @@ export default function PropertyBookImportPage() {
           i * batchSize,
           (i + 1) * batchSize
         );
-        const result = (await importBatch({ listings: slice })) as BatchResult;
+        const result = (await importBatch({
+          listings: slice,
+          ownerUserIds:
+            ownershipMode === "agents" && importOwnerIds.length > 0
+              ? importOwnerIds
+              : undefined,
+        })) as BatchResult;
         aggregated.created += result.created;
         aggregated.updated += result.updated;
         aggregated.skipped += result.skipped;
@@ -783,6 +802,79 @@ export default function PropertyBookImportPage() {
                       })}
                     </TableBody>
                   </Table>
+                </div>
+
+                {/* Ownership assignment for the imported batch */}
+                <div className="space-y-3 rounded-[10px] border border-border-strong bg-gray-50 px-4 py-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-xs font-medium text-text-muted">
+                      Assign ownership:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setOwnershipMode("company")}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                        ownershipMode === "company"
+                          ? "border-primary-600 bg-primary-600 text-white"
+                          : "border-border-strong bg-white text-text-muted hover:border-primary-600/60"
+                      }`}
+                    >
+                      Company
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOwnershipMode("agents")}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                        ownershipMode === "agents"
+                          ? "border-primary-600 bg-primary-600 text-white"
+                          : "border-border-strong bg-white text-text-muted hover:border-primary-600/60"
+                      }`}
+                    >
+                      Specific agent(s)
+                    </button>
+                    <span className="ml-auto text-[11px] text-text-muted">
+                      Defaults to the company. Owners can see imported
+                      documents &amp; mandates.
+                    </span>
+                  </div>
+                  {ownershipMode === "agents" && (
+                    <div className="flex flex-wrap gap-2">
+                      {agents.length === 0 ? (
+                        <span className="text-[11px] text-text-muted">
+                          No agents available.
+                        </span>
+                      ) : (
+                        agents.map((a) => {
+                          const checked = importOwnerIds.includes(
+                            a._id as Id<"users">
+                          );
+                          return (
+                            <button
+                              key={a._id}
+                              type="button"
+                              onClick={() =>
+                                toggleImportOwner(a._id as Id<"users">)
+                              }
+                              className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                                checked
+                                  ? "border-primary-600 bg-primary-600 text-white"
+                                  : "border-border-strong bg-white text-text-muted hover:border-primary-600/60"
+                              }`}
+                            >
+                              {checked ? "✓ " : ""}
+                              {a.name}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                  {ownershipMode === "agents" && importOwnerIds.length === 0 && (
+                    <p className="text-[11px] text-amber-600">
+                      Select at least one agent, or the batch will default to
+                      company ownership.
+                    </p>
+                  )}
                 </div>
 
                 <label className="flex items-start gap-2 text-xs text-text-muted">

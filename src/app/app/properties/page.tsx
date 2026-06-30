@@ -25,6 +25,7 @@ import { LocationTypeahead } from "@/components/ui/location-typeahead";
 import { propertyToasts } from "@/lib/toast";
 import { DocumentManager } from "@/components/documents/document-manager";
 import { PropertyShare } from "@/components/properties/property-share";
+import { PropertyAccess } from "@/components/properties/property-access";
 import { PropertyMarketingTab } from "@/components/properties/property-marketing-tab";
 import { PropertyBookBadge } from "@/components/properties/property-book-badge";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -79,6 +80,9 @@ type Property = {
   listedOnMarketAt?: number;
   createdByUserId?: Id<"users">;
   createdByName?: string;
+  ownershipType?: "agent" | "multiple" | "company";
+  ownerUserIds?: Id<"users">[];
+  ownerNames?: string[];
   pbRefCode?: string;
   pbSourceUrl?: string;
   createdAt: number;
@@ -305,6 +309,12 @@ export default function PropertiesPage() {
     api.properties.getPropertyDealInfo,
     selectedProperty ? { propertyId: selectedProperty._id } : "skip"
   );
+
+  // Full detail for the selected property: ownership + access flags.
+  const selectedDetail = useQuery(
+    api.properties.getById,
+    selectedProperty ? { propertyId: selectedProperty._id } : "skip"
+  );
   const [propertyTab, setPropertyTab] = React.useState<PropertyTab>("Details");
   const [isSaving, setIsSaving] = React.useState(false);
   const [deleteTarget, setDeleteTarget] = React.useState<Property | null>(null);
@@ -366,8 +376,20 @@ export default function PropertiesPage() {
   const isCommercial = type === "commercial";
   const isLand = type === "land";
   const isAdmin = currentUser?.role === "admin";
-  // Allow editing if admin or the property creator
-  const canEditProperty = isAdmin || (selectedProperty?.createdByUserId != null && selectedProperty?.createdByUserId === currentUser?._id);
+  // Optimistic owner check from list data (refined by selectedDetail once loaded).
+  const isOptimisticOwner =
+    !!currentUser &&
+    (selectedProperty?.ownerUserIds?.some((id) => id === currentUser._id) ||
+      // legacy/un-migrated fallback: creator owns it
+      (selectedProperty?.ownerUserIds == null &&
+        selectedProperty?.createdByUserId === currentUser._id));
+  // Manage (edit / reassign / collaborators): admins and owners.
+  const canManageProperty =
+    selectedDetail?.canManage ?? (isAdmin || isOptimisticOwner);
+  const canEditProperty = canManageProperty;
+  // View private data (documents, mandate, collaborators): owners, collaborators, admins.
+  const canViewPrivate =
+    selectedDetail?.canAccessPrivate ?? (isAdmin || isOptimisticOwner);
 
   // Validation functions
   const validateTitle = (value: string): string | undefined => {
@@ -1059,7 +1081,9 @@ export default function PropertiesPage() {
           {/* Property tab bar */}
           <div className="border-b border-border">
             <div className="flex gap-6 relative">
-              {propertyTabs.map((tab) => (
+              {propertyTabs
+                .filter((tab) => tab !== "Documentation" || canViewPrivate)
+                .map((tab) => (
                 <button
                   key={tab}
                   className={`relative pb-3 text-sm font-medium transition-colors duration-150 ${
@@ -1326,6 +1350,22 @@ export default function PropertiesPage() {
                       ]}
                     />
                   </div>
+
+                  {/* Ownership (read-only here; managed in the Documentation tab) */}
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Owner</Label>
+                    <div className="rounded-md border border-border-strong bg-surface-2/40 px-3 py-2 text-sm text-text">
+                      {(() => {
+                        const oType =
+                          selectedDetail?.ownershipType ?? selectedProperty?.ownershipType;
+                        const oNames =
+                          selectedDetail?.ownerNames ?? selectedProperty?.ownerNames ?? [];
+                        if (oType === "company") return "Company (no individual agent owner)";
+                        if (oNames.length > 0) return oNames.join(", ");
+                        return "—";
+                      })()}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Description */}
@@ -1377,11 +1417,29 @@ export default function PropertiesPage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } }}
                 exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
+                className="space-y-6"
               >
-                <DocumentManager
-                  propertyId={selectedProperty._id}
-                  folders={["mandates_to_sell", "contracts", "id_copies", "proof_of_funds"]}
-                />
+                {canViewPrivate ? (
+                  <>
+                    <PropertyAccess
+                      propertyId={selectedProperty._id}
+                      canManage={canManageProperty}
+                      isAdmin={isAdmin}
+                      ownershipType={selectedDetail?.ownershipType ?? selectedProperty.ownershipType}
+                      ownerUserIds={selectedDetail?.ownerUserIds ?? selectedProperty.ownerUserIds}
+                      ownerNames={selectedDetail?.ownerNames ?? selectedProperty.ownerNames}
+                    />
+                    <DocumentManager
+                      propertyId={selectedProperty._id}
+                      folders={["mandates_to_sell", "contracts", "id_copies", "proof_of_funds"]}
+                    />
+                  </>
+                ) : (
+                  <div className="rounded-lg border border-border bg-surface-2/30 p-6 text-center text-sm text-text-muted">
+                    You don&apos;t have access to this property&apos;s documents
+                    or mandate information.
+                  </div>
+                )}
               </motion.div>
             )}
 

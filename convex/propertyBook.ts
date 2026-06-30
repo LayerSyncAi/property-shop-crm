@@ -213,6 +213,9 @@ export const fetchOneListing = action({
 export const importBatch = action({
   args: {
     listings: v.array(parsedListingValidator),
+    // Ownership for the imported properties. Empty/omitted => the company owns
+    // them (the bulk-import default). Admin may assign to one or more agents.
+    ownerUserIds: v.optional(v.array(v.id("users"))),
   },
   handler: async (
     ctx,
@@ -268,6 +271,7 @@ export const importBatch = action({
     const persisted = await ctx.runMutation(
       internal.propertyBook.persistImported,
       {
+        ownerUserIds: args.ownerUserIds,
         entries: resolved.map((r) => ({
           row: r.row,
           pbRefCode: r.listing.pbRefCode,
@@ -309,6 +313,7 @@ export const assertAdminAccess = internalQuery({
 
 export const persistImported = internalMutation({
   args: {
+    ownerUserIds: v.optional(v.array(v.id("users"))),
     entries: v.array(
       v.object({
         row: v.number(),
@@ -329,9 +334,29 @@ export const persistImported = internalMutation({
       })
     ),
   },
-  handler: async (ctx, { entries }) => {
+  handler: async (ctx, { entries, ownerUserIds }) => {
     const user = await requireAdmin(ctx);
     const now = Date.now();
+
+    // Resolve & validate import ownership once for the whole batch.
+    //   - no ids  => company-owned (the bulk-import default)
+    //   - ids set => validate each belongs to this org, assign as owner(s)
+    const uniqueOwners = Array.from(new Set(ownerUserIds ?? []));
+    for (const id of uniqueOwners) {
+      const owner = await ctx.db.get(id);
+      if (!owner || !owner.isActive || owner.orgId !== user.orgId) {
+        throw new ConvexError(
+          "Invalid owner: user not found in your organization"
+        );
+      }
+    }
+    const ownershipType: "agent" | "multiple" | "company" =
+      uniqueOwners.length === 0
+        ? "company"
+        : uniqueOwners.length === 1
+          ? "agent"
+          : "multiple";
+
     const result = {
       created: 0,
       updated: 0,
@@ -373,6 +398,8 @@ export const persistImported = internalMutation({
           description: entry.description,
           images: entry.images,
           isDraft: false,
+          ownershipType,
+          ownerUserIds: uniqueOwners,
           createdByUserId: user._id,
           orgId: user.orgId,
           pbRefCode: entry.pbRefCode,
