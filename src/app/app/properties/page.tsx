@@ -241,7 +241,7 @@ export default function PropertiesPage() {
   const [locationFilter, setLocationFilter] = React.useState("");
   const [debouncedLocation, setDebouncedLocation] = React.useState("");
   const [priceMin, setPriceMin] = React.useState("");
-  const [addedByFilter, setAddedByFilter] = React.useState<Id<"users"> | "">("");
+  const [ownedByFilter, setOwnedByFilter] = React.useState<Id<"users"> | "">("");
 
   // Debounce search
   React.useEffect(() => {
@@ -264,7 +264,7 @@ export default function PropertiesPage() {
   // Reset page on filter changes
   React.useEffect(() => {
     pagination.resetPage();
-  }, [listingTypeFilter, statusFilter, typeFilter, priceMin, addedByFilter]);
+  }, [listingTypeFilter, statusFilter, typeFilter, priceMin, ownedByFilter]);
 
   // Sort by date added (server-side, so it orders the full set not just the page)
   const [addedSort, setAddedSort] = React.useState<"" | "created_desc" | "created_asc">("");
@@ -285,7 +285,7 @@ export default function PropertiesPage() {
           type: typeFilter || undefined,
           location: debouncedLocation || undefined,
           priceMin: priceMin ? parseFloat(parseCurrencyInput(priceMin)) : undefined,
-          createdByUserId: addedByFilter || undefined,
+          ownerUserId: ownedByFilter || undefined,
           sortBy: addedSort || undefined,
           page: pagination.page > 0 ? pagination.page : undefined,
           pageSize: pagination.pageSize !== 50 ? pagination.pageSize : undefined,
@@ -729,10 +729,10 @@ export default function PropertiesPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Added by</Label>
+            <Label>Owned by</Label>
             <StaggeredDropDown
-              value={addedByFilter}
-              onChange={(val) => setAddedByFilter(val as Id<"users"> | "")}
+              value={ownedByFilter}
+              onChange={(val) => setOwnedByFilter(val as Id<"users"> | "")}
               options={[
                 { value: "", label: "Anyone" },
                 ...(orgUsers?.map((u) => ({ value: u._id, label: u.name })) ?? []),
