@@ -109,9 +109,10 @@ export const listAgencies = action({
       });
     }
 
+    const resolved: PublicAgency[] = agencies ?? [];
     const needle = (args.query || "").trim().toLowerCase();
-    if (!needle) return agencies;
-    return agencies.filter(
+    if (!needle) return resolved;
+    return resolved.filter(
       (a) =>
         a.name.toLowerCase().includes(needle) ||
         a.slug.toLowerCase().includes(needle)

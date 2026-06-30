@@ -189,16 +189,31 @@ export const repairUserAuthInternal = internalMutation({
   },
 });
 
+// One result entry per email processed by `repairUserAuth`. An explicit type
+// (plus the handler's annotated return type below) is required because the
+// action calls a sibling function in this same module via `internal.authRepair`,
+// which would otherwise make its type infer circularly.
+type RepairResult =
+  | {
+      ok: true;
+      email: string;
+      userId: string;
+      deletedAccounts: number;
+      deletedSessions: number;
+      tempPassword: string;
+    }
+  | { ok: false; email: string; error: string };
+
 /**
  * Repair one or more emails in a single run. Hashes the temp password and
  * rebuilds a clean password account for each. Safe to re-run (idempotent).
  */
 export const repairUserAuth = internalAction({
   args: { emails: v.array(v.string()) },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<RepairResult[]> => {
     const passwordHash = await new Scrypt().hash(DEFAULT_TEMP_PASSWORD);
 
-    const results = [];
+    const results: RepairResult[] = [];
     for (const rawEmail of args.emails) {
       const email = rawEmail.trim().toLowerCase();
       try {
