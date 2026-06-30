@@ -26,6 +26,7 @@ import { propertyToasts } from "@/lib/toast";
 import { DocumentManager } from "@/components/documents/document-manager";
 import { PropertyShare } from "@/components/properties/property-share";
 import { PropertyAccess } from "@/components/properties/property-access";
+import { ErrorBoundary } from "@/components/common/error-boundary";
 import { PropertyMarketingTab } from "@/components/properties/property-marketing-tab";
 import { PropertyBookBadge } from "@/components/properties/property-book-badge";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -1421,18 +1422,25 @@ export default function PropertiesPage() {
               >
                 {canViewPrivate ? (
                   <>
-                    <PropertyAccess
-                      propertyId={selectedProperty._id}
-                      canManage={canManageProperty}
-                      isAdmin={isAdmin}
-                      ownershipType={selectedDetail?.ownershipType ?? selectedProperty.ownershipType}
-                      ownerUserIds={selectedDetail?.ownerUserIds ?? selectedProperty.ownerUserIds}
-                      ownerNames={selectedDetail?.ownerNames ?? selectedProperty.ownerNames}
-                    />
-                    <DocumentManager
-                      propertyId={selectedProperty._id}
-                      folders={["mandates_to_sell", "contracts", "id_copies", "proof_of_funds"]}
-                    />
+                    {/* Isolate each panel: if the ownership/collaborator data
+                        can't load (e.g. backend not yet deployed), show an
+                        inline message instead of crashing the whole page. */}
+                    <ErrorBoundary sectionName="Ownership & collaborators">
+                      <PropertyAccess
+                        propertyId={selectedProperty._id}
+                        canManage={canManageProperty}
+                        isAdmin={isAdmin}
+                        ownershipType={selectedDetail?.ownershipType ?? selectedProperty.ownershipType}
+                        ownerUserIds={selectedDetail?.ownerUserIds ?? selectedProperty.ownerUserIds}
+                        ownerNames={selectedDetail?.ownerNames ?? selectedProperty.ownerNames}
+                      />
+                    </ErrorBoundary>
+                    <ErrorBoundary sectionName="Documents">
+                      <DocumentManager
+                        propertyId={selectedProperty._id}
+                        folders={["mandates_to_sell", "contracts", "id_copies", "proof_of_funds"]}
+                      />
+                    </ErrorBoundary>
                   </>
                 ) : (
                   <div className="rounded-lg border border-border bg-surface-2/30 p-6 text-center text-sm text-text-muted">
