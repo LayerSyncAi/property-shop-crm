@@ -116,6 +116,12 @@ describe("daysOnMarket", () => {
     expect(daysOnMarket(0, 10 * day)).toBe(10);
     expect(daysOnMarket(10 * day, 0)).toBe(0);
   });
+
+  it("floors partial days rather than rounding up", () => {
+    const day = 24 * 60 * 60 * 1000;
+    expect(daysOnMarket(0, 10 * day + day / 2)).toBe(10);
+    expect(daysOnMarket(0, day - 1)).toBe(0);
+  });
 });
 
 describe("addToCurrencyMap", () => {

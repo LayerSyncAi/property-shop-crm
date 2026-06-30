@@ -52,9 +52,9 @@ export function inWindow(
   return typeof ts === "number" && ts >= start && ts <= end;
 }
 
-/** Whole days between a creation time and an end instant (never negative). */
-export function daysOnMarket(createdAt: number, endTs: number): number {
-  return Math.max(0, Math.round((endTs - createdAt) / (24 * 60 * 60 * 1000)));
+/** Whole days between a start instant and an end instant (never negative). */
+export function daysOnMarket(startTs: number, endTs: number): number {
+  return Math.max(0, Math.floor((endTs - startTs) / (24 * 60 * 60 * 1000)));
 }
 
 // ── Task (activity) reporting ────────────────────────────────────────

@@ -360,15 +360,15 @@ export const propertyPerformance = query({
       spend.set(id, m);
     }
 
-    const SOLD = new Set(["sold", "let"]);
+    const now = Date.now();
     const statusCounts: Record<string, number> = {};
     const rows = properties.map((p) => {
       statusCounts[p.status] = (statusCounts[p.status] ?? 0) + 1;
-      const endTs = SOLD.has(p.status) ? p.updatedAt : args.end;
-      // Prefer the marketing "date listed on market" when set; fall back to the
-      // record creation time for properties that predate the field.
-      const marketStart = p.listedOnMarketAt ?? p.createdAt;
       const id = p._id as string;
+      // Days on market is the whole number of days from the "Date listed on
+      // market" field to today. Properties with no listing date set report
+      // null so the UI can show a placeholder rather than a bogus figure.
+      const listedAt = p.listedOnMarketAt;
       return {
         propertyId: p._id,
         title: p.title,
@@ -379,7 +379,8 @@ export const propertyPerformance = query({
         inquiries: inquiries.get(id) ?? 0,
         viewings: viewings.get(id) ?? 0,
         offers: offers.get(id) ?? 0,
-        daysOnMarket: daysOnMarket(marketStart, endTs),
+        daysOnMarket:
+          typeof listedAt === "number" ? daysOnMarket(listedAt, now) : null,
         spend: spend.get(id) ?? {},
       };
     });

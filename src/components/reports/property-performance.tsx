@@ -83,6 +83,7 @@ export function PropertyPerformanceSection({
         rows: data.rows.map((r) => ({
           ...r,
           status: STATUS_LABELS[r.status] ?? r.status,
+          daysOnMarket: r.daysOnMarket ?? "—",
           spendText: formatCurrencyMap(r.spend),
         })),
       },
@@ -109,9 +110,15 @@ export function PropertyPerformanceSection({
       {data.rows.length === 0 ? (
         <EmptyState message="No properties to report on yet." />
       ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <PieCard title="Listings by status" data={statusData} nameKey="name" valueKey="count" />
-          <Card>
+        // The engagement table is the primary content here, so give it the
+        // wider 2/3 column and let the status donut sit alongside as a compact
+        // summary (it aligns to the top rather than stretching to match the
+        // taller table). Both stack to full width below the lg breakpoint.
+        <div className="grid items-start gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <PieCard title="Listings by status" data={statusData} nameKey="name" valueKey="count" />
+          </div>
+          <Card className="lg:col-span-2">
             <CardHeader>
               <h3 className="text-h3">
                 Property engagement
@@ -125,21 +132,21 @@ export function PropertyPerformanceSection({
                     <TableHead className="text-right">Inq.</TableHead>
                     <TableHead className="text-right">View.</TableHead>
                     <TableHead className="text-right">Offers</TableHead>
-                    <TableHead className="text-right">Days</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Days on market</TableHead>
                     <TableHead className="text-right">Spend</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {data.rows.slice(0, 30).map((r) => (
                     <TableRow key={r.propertyId}>
-                      <TableCell className="max-w-[160px] truncate font-medium" title={r.title}>
+                      <TableCell className="max-w-[260px] truncate font-medium" title={r.title}>
                         {r.title}
                       </TableCell>
-                      <TableCell className="text-right">{r.inquiries}</TableCell>
-                      <TableCell className="text-right">{r.viewings}</TableCell>
-                      <TableCell className="text-right">{r.offers}</TableCell>
-                      <TableCell className="text-right">{r.daysOnMarket}</TableCell>
-                      <TableCell className="text-right">{formatCurrencyMap(r.spend)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{r.inquiries}</TableCell>
+                      <TableCell className="text-right tabular-nums">{r.viewings}</TableCell>
+                      <TableCell className="text-right tabular-nums">{r.offers}</TableCell>
+                      <TableCell className="text-right tabular-nums">{r.daysOnMarket ?? "—"}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrencyMap(r.spend)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -156,7 +163,7 @@ export function PropertyPerformanceSection({
                       ["Inquiries", r.inquiries],
                       ["Viewings", r.viewings],
                       ["Offers", r.offers],
-                      ["Days on market", r.daysOnMarket],
+                      ["Days on market", r.daysOnMarket ?? "—"],
                       ["Spend", formatCurrencyMap(r.spend)],
                     ].map(([k, v]) => (
                       <div key={k as string} className="flex justify-between gap-2">
@@ -173,8 +180,8 @@ export function PropertyPerformanceSection({
       )}
 
       <p className="text-xs text-text-dim">
-        Days on market is approximate: from listing creation to the last update for
-        sold/let listings, otherwise to today.
+        Days on market counts whole days from each property&apos;s &ldquo;Date listed on
+        market&rdquo; to today. Properties with no listing date set show &ldquo;—&rdquo;.
       </p>
 
       <MarketingSpendModal
