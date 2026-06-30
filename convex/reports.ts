@@ -7,7 +7,7 @@ import {
   weightedForecastValue,
   conversionRate,
   inWindow,
-  daysOnMarket,
+  daysOnMarketSince,
   addToCurrencyMap,
   computeTaskMetrics,
   type CurrencyMap,
@@ -366,9 +366,8 @@ export const propertyPerformance = query({
       statusCounts[p.status] = (statusCounts[p.status] ?? 0) + 1;
       const id = p._id as string;
       // Days on market is the whole number of days from the "Date listed on
-      // market" field to today. Properties with no listing date set report
-      // null so the UI can show a placeholder rather than a bogus figure.
-      const listedAt = p.listedOnMarketAt;
+      // market" field to today. Missing or implausible dates report null so the
+      // UI can show a placeholder rather than a bogus figure.
       return {
         propertyId: p._id,
         title: p.title,
@@ -379,8 +378,7 @@ export const propertyPerformance = query({
         inquiries: inquiries.get(id) ?? 0,
         viewings: viewings.get(id) ?? 0,
         offers: offers.get(id) ?? 0,
-        daysOnMarket:
-          typeof listedAt === "number" ? daysOnMarket(listedAt, now) : null,
+        daysOnMarket: daysOnMarketSince(p.listedOnMarketAt, now),
         spend: spend.get(id) ?? {},
       };
     });

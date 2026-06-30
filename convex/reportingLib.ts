@@ -57,6 +57,29 @@ export function daysOnMarket(startTs: number, endTs: number): number {
   return Math.max(0, Math.floor((endTs - startTs) / (24 * 60 * 60 * 1000)));
 }
 
+// Any genuine "date listed on market" is a millisecond epoch timestamp in the
+// trillions (e.g. ~1.78e12 in 2026). Values below this floor are not real
+// listing dates: a 0/epoch fallback, or a seconds-scale value (~1.7e9) from a
+// units bug. Jan 1 2000 in ms — comfortably below any real listing date, well
+// above seconds-scale garbage.
+const MIN_LISTING_MS = 946684800000;
+
+/**
+ * Whole days a property has been on the market, measured from its "date listed
+ * on market" timestamp to `now`. Returns null when the date is missing or is
+ * not a plausible millisecond timestamp, so callers can render a placeholder
+ * (e.g. "—") instead of a garbage figure. A future listing date reports 0.
+ */
+export function daysOnMarketSince(
+  listedAt: number | null | undefined,
+  now: number
+): number | null {
+  if (typeof listedAt !== "number" || !Number.isFinite(listedAt)) return null;
+  if (listedAt < MIN_LISTING_MS) return null;
+  if (listedAt > now) return 0;
+  return daysOnMarket(listedAt, now);
+}
+
 // ── Task (activity) reporting ────────────────────────────────────────
 
 export interface TaskLike {
