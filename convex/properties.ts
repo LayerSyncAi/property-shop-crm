@@ -67,7 +67,7 @@ export const list = query({
     priceMin: v.optional(v.number()),
     priceMax: v.optional(v.number()),
     q: v.optional(v.string()),
-    createdByUserId: v.optional(v.id("users")),
+    ownerUserId: v.optional(v.id("users")),
     sortBy: v.optional(
       v.union(v.literal("created_asc"), v.literal("created_desc"))
     ),
@@ -106,7 +106,7 @@ export const list = query({
       if (args.q && !property.title.toLowerCase().includes(args.q.toLowerCase())) {
         return false;
       }
-      if (args.createdByUserId && property.createdByUserId !== args.createdByUserId) {
+      if (args.ownerUserId && !(property.ownerUserIds ?? []).includes(args.ownerUserId)) {
         return false;
       }
       return true;
