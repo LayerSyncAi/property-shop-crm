@@ -6,6 +6,7 @@ import {
   conversionRate,
   inWindow,
   daysOnMarket,
+  daysOnMarketSince,
   addToCurrencyMap,
   computeTaskMetrics,
   type TaskLike,
@@ -115,6 +116,38 @@ describe("daysOnMarket", () => {
     const day = 24 * 60 * 60 * 1000;
     expect(daysOnMarket(0, 10 * day)).toBe(10);
     expect(daysOnMarket(10 * day, 0)).toBe(0);
+  });
+
+  it("floors partial days rather than rounding up", () => {
+    const day = 24 * 60 * 60 * 1000;
+    expect(daysOnMarket(0, 10 * day + day / 2)).toBe(10);
+    expect(daysOnMarket(0, day - 1)).toBe(0);
+  });
+});
+
+describe("daysOnMarketSince", () => {
+  const now = Date.UTC(2026, 5, 30, 12, 0, 0); // 2026-06-30, the report's "today"
+
+  it("computes whole days from a real listing date to today", () => {
+    // Worked example: a property listed on 2026-06-01 is 29 days on market.
+    const listed = Date.UTC(2026, 5, 1, 12, 0, 0);
+    expect(daysOnMarketSince(listed, now)).toBe(29);
+  });
+
+  it("returns null for a missing date instead of a garbage number", () => {
+    expect(daysOnMarketSince(undefined, now)).toBeNull();
+    expect(daysOnMarketSince(null, now)).toBeNull();
+  });
+
+  it("rejects epoch/seconds-scale values rather than reporting ~20k days", () => {
+    expect(daysOnMarketSince(0, now)).toBeNull();
+    expect(daysOnMarketSince(1.75e9, now)).toBeNull(); // seconds, not ms
+    expect(daysOnMarketSince(NaN, now)).toBeNull();
+  });
+
+  it("reports 0 for a future listing date", () => {
+    const future = Date.UTC(2026, 6, 15, 12, 0, 0);
+    expect(daysOnMarketSince(future, now)).toBe(0);
   });
 });
 
