@@ -5,6 +5,7 @@ import { Id } from "./_generated/dataModel";
 import { checkRateLimit } from "./rateLimit";
 import { computeAndStoreScore } from "./leadScoring";
 import { COMMISSION_RATE, computeCommissionSplit } from "./commissionLib";
+import { canonicalizeAreas } from "./lib/locations";
 
 const leadArgs = {
   contactId: v.id("contacts"),
@@ -80,7 +81,7 @@ export const create = mutation({
       budgetCurrency: args.budgetCurrency,
       budgetMin: args.budgetMin,
       budgetMax: args.budgetMax,
-      preferredAreas: args.preferredAreas,
+      preferredAreas: canonicalizeAreas(args.preferredAreas),
       notes: args.notes,
       stageId: args.stageId,
       ownerUserId: ownerId,
@@ -461,7 +462,7 @@ export const update = mutation({
     if (args.budgetCurrency !== undefined) updated.budgetCurrency = args.budgetCurrency;
     if (args.budgetMin !== undefined) updated.budgetMin = args.budgetMin;
     if (args.budgetMax !== undefined) updated.budgetMax = args.budgetMax;
-    if (args.preferredAreas) updated.preferredAreas = args.preferredAreas;
+    if (args.preferredAreas) updated.preferredAreas = canonicalizeAreas(args.preferredAreas);
     await ctx.db.patch(args.leadId, updated);
   },
 });
@@ -1057,7 +1058,7 @@ export const createWithProperties = mutation({
           budgetCurrency: args.budgetCurrency,
           budgetMin: args.budgetMin,
           budgetMax: args.budgetMax,
-          preferredAreas: args.preferredAreas,
+          preferredAreas: canonicalizeAreas(args.preferredAreas),
           notes: args.notes,
           stageId: args.stageId,
           ownerUserId: ownerId,
@@ -1095,7 +1096,7 @@ export const createWithProperties = mutation({
         budgetCurrency: args.budgetCurrency,
         budgetMin: args.budgetMin,
         budgetMax: args.budgetMax,
-        preferredAreas: args.preferredAreas,
+        preferredAreas: canonicalizeAreas(args.preferredAreas),
         notes: args.notes,
         stageId: args.stageId,
         ownerUserId: ownerId,
