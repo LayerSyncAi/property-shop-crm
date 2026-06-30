@@ -34,6 +34,18 @@ export function normalizeOwnership(ownerUserIds?: string[]): {
   return { ownershipType: "multiple", ownerUserIds: unique };
 }
 
+/**
+ * Resolve a single listing's ownership during bulk import: use its own
+ * per-row assignment when present (even an empty array => company), otherwise
+ * fall back to the batch default. Then normalise into an ownership shape.
+ */
+export function resolveListingOwnership(
+  assignment: string[] | undefined,
+  batchDefault: string[]
+): { ownershipType: OwnershipType; ownerUserIds: string[] } {
+  return normalizeOwnership(assignment ?? batchDefault);
+}
+
 /** True when the property has no ownership metadata yet (pre-migration). */
 export function isUnmigrated(property: OwnershipInput): boolean {
   return (

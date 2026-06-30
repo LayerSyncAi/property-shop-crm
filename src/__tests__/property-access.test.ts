@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   normalizeOwnership,
+  resolveListingOwnership,
   canManagePropertyPure,
   canAccessPropertyPrivatePure,
   isUnmigrated,
@@ -37,6 +38,46 @@ describe("normalizeOwnership", () => {
       ownershipType: "multiple",
       ownerUserIds: ["a", "b"],
     });
+  });
+});
+
+describe("resolveListingOwnership (bulk import per-row vs default)", () => {
+  it("no per-row assignment falls back to the batch default", () => {
+    expect(resolveListingOwnership(undefined, [])).toEqual({
+      ownershipType: "company",
+      ownerUserIds: [],
+    });
+    expect(resolveListingOwnership(undefined, ["a"])).toEqual({
+      ownershipType: "agent",
+      ownerUserIds: ["a"],
+    });
+    expect(resolveListingOwnership(undefined, ["a", "b"])).toEqual({
+      ownershipType: "multiple",
+      ownerUserIds: ["a", "b"],
+    });
+  });
+
+  it("a per-row assignment overrides the default", () => {
+    // Row pinned to agents X+Y while the batch default is company.
+    expect(resolveListingOwnership(["x", "y"], [])).toEqual({
+      ownershipType: "multiple",
+      ownerUserIds: ["x", "y"],
+    });
+    // Row pinned to company while the batch default is an agent.
+    expect(resolveListingOwnership([], ["a"])).toEqual({
+      ownershipType: "company",
+      ownerUserIds: [],
+    });
+  });
+
+  it("mixed batch: A->X, B->X+Y, C->company in one pass", () => {
+    const batchDefault: string[] = [];
+    const A = resolveListingOwnership(["X"], batchDefault);
+    const B = resolveListingOwnership(["X", "Y"], batchDefault);
+    const C = resolveListingOwnership(undefined, batchDefault);
+    expect(A.ownerUserIds).toEqual(["X"]);
+    expect(B.ownerUserIds).toEqual(["X", "Y"]);
+    expect(C.ownershipType).toBe("company");
   });
 });
 
