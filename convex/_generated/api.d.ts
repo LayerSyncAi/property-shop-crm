@@ -11,6 +11,8 @@
 import type * as activities from "../activities.js";
 import type * as activityReminders from "../activityReminders.js";
 import type * as auth from "../auth.js";
+import type * as authRepair from "../authRepair.js";
+import type * as commissionLib from "../commissionLib.js";
 import type * as commissions from "../commissions.js";
 import type * as contacts from "../contacts.js";
 import type * as copilotChats from "../copilotChats.js";
@@ -56,6 +58,8 @@ declare const fullApi: ApiFromModules<{
   activities: typeof activities;
   activityReminders: typeof activityReminders;
   auth: typeof auth;
+  authRepair: typeof authRepair;
+  commissionLib: typeof commissionLib;
   commissions: typeof commissions;
   contacts: typeof contacts;
   copilotChats: typeof copilotChats;
