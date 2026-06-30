@@ -11,6 +11,8 @@
 import type * as activities from "../activities.js";
 import type * as activityReminders from "../activityReminders.js";
 import type * as auth from "../auth.js";
+import type * as authRepair from "../authRepair.js";
+import type * as commissionLib from "../commissionLib.js";
 import type * as commissions from "../commissions.js";
 import type * as contacts from "../contacts.js";
 import type * as copilotChats from "../copilotChats.js";
@@ -25,6 +27,7 @@ import type * as leadImport from "../leadImport.js";
 import type * as leadMerge from "../leadMerge.js";
 import type * as leadScoring from "../leadScoring.js";
 import type * as leads from "../leads.js";
+import type * as legal from "../legal.js";
 import type * as lib_calendar from "../lib/calendar.js";
 import type * as locations from "../locations.js";
 import type * as logs from "../logs.js";
@@ -55,6 +58,8 @@ declare const fullApi: ApiFromModules<{
   activities: typeof activities;
   activityReminders: typeof activityReminders;
   auth: typeof auth;
+  authRepair: typeof authRepair;
+  commissionLib: typeof commissionLib;
   commissions: typeof commissions;
   contacts: typeof contacts;
   copilotChats: typeof copilotChats;
@@ -69,6 +74,7 @@ declare const fullApi: ApiFromModules<{
   leadMerge: typeof leadMerge;
   leadScoring: typeof leadScoring;
   leads: typeof leads;
+  legal: typeof legal;
   "lib/calendar": typeof lib_calendar;
   locations: typeof locations;
   logs: typeof logs;
