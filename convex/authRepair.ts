@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { Scrypt } from "lucia";
+import { rebuildPasswordAccount } from "./lib/authReconcile";
 
 /**
  * One-off repair utilities for accounts whose `users` row was deleted directly
@@ -97,59 +98,13 @@ export const repairUserAuthInternal = internalMutation({
       );
     }
 
-    // Every password account currently tied to this email (orphans + duplicates).
-    const accounts = await ctx.db
-      .query("authAccounts")
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("provider"), "password"),
-          q.eq(q.field("providerAccountId"), email)
-        )
-      )
-      .collect();
-
-    // Clean sessions for the live user AND every (possibly dead) userId those
-    // accounts referenced, so no stale session survives the repair.
-    const userIdsToClear = new Set<string>([user._id]);
-    for (const acct of accounts) userIdsToClear.add(acct.userId);
-
-    // Delete the accounts and their dependent verification codes.
-    let deletedAccounts = 0;
-    for (const acct of accounts) {
-      const codes = await ctx.db
-        .query("authVerificationCodes")
-        .filter((q) => q.eq(q.field("accountId"), acct._id))
-        .collect();
-      for (const code of codes) await ctx.db.delete(code._id);
-      await ctx.db.delete(acct._id);
-      deletedAccounts++;
-    }
-
-    // Delete sessions (and their refresh tokens) for each referenced userId.
-    let deletedSessions = 0;
-    for (const uid of userIdsToClear) {
-      const sessions = await ctx.db
-        .query("authSessions")
-        .filter((q) => q.eq(q.field("userId"), uid))
-        .collect();
-      for (const session of sessions) {
-        const tokens = await ctx.db
-          .query("authRefreshTokens")
-          .filter((q) => q.eq(q.field("sessionId"), session._id))
-          .collect();
-        for (const token of tokens) await ctx.db.delete(token._id);
-        await ctx.db.delete(session._id);
-        deletedSessions++;
-      }
-    }
-
-    // Recreate exactly one clean password account for the live user.
-    await ctx.db.insert("authAccounts", {
-      userId: user._id,
-      provider: "password",
-      providerAccountId: email,
-      secret: args.passwordHash,
-    });
+    // Purge every password account tied to this email (orphans + duplicates)
+    // and their sessions, then rebuild a single clean one for the live user.
+    // Shared with the admin create / reset flows so the logic never diverges.
+    const { deletedAccounts, deletedSessions } = await rebuildPasswordAccount(
+      ctx,
+      { email, liveUserId: user._id, passwordHash: args.passwordHash }
+    );
 
     // Force a password change on first login and clear any stale reset tokens.
     const now = Date.now();
