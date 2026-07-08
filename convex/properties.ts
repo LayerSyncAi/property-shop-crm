@@ -82,9 +82,20 @@ export const list = query({
       .withIndex("by_org", (q) => q.eq("orgId", user.orgId))
       .collect();
 
+    // Properties are org-shared for normal agents (the sharing model depends on
+    // it). Only an ADMIN who has toggled into Agent Mode narrows to the
+    // properties they own or created — their "assigned properties" view.
+    const restrictToOwn = user.role === "admin" && !!user.agentMode;
+
     const filtered = properties.filter((property) => {
       // Exclude drafts from the list
       if (property.isDraft) return false;
+      if (restrictToOwn) {
+        const owns =
+          (property.ownerUserIds ?? []).includes(user._id) ||
+          property.createdByUserId === user._id;
+        if (!owns) return false;
+      }
       if (args.location && !property.location.toLowerCase().includes(args.location.toLowerCase())) {
         return false;
       }
