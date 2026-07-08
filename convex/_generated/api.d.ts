@@ -47,6 +47,7 @@ import type * as reports from "../reports.js";
 import type * as stages from "../stages.js";
 import type * as storage from "../storage.js";
 import type * as users from "../users.js";
+import type * as viewingForms from "../viewingForms.js";
 
 import type {
   ApiFromModules,
@@ -94,6 +95,7 @@ declare const fullApi: ApiFromModules<{
   stages: typeof stages;
   storage: typeof storage;
   users: typeof users;
+  viewingForms: typeof viewingForms;
 }>;
 
 /**

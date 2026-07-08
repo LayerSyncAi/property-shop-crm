@@ -28,6 +28,10 @@ export default defineSchema({
     resetPasswordOnNextLogin: v.optional(v.boolean()),
     passwordUpdatedAt: v.optional(v.number()),
     showOnboardingInterface: v.optional(v.boolean()),
+    // Admin/Agent view toggle: when true, an admin user is treated as a plain
+    // agent for data VISIBILITY (their own leads/tasks/etc. only) and admin-only
+    // UI is hidden. It never changes their real `role` or hard permission gates.
+    agentMode: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -579,6 +583,50 @@ export default defineSchema({
   })
     .index("by_normalized_phone", ["normalizedPhone"])
     .index("by_name", ["name"])
+    .index("by_org", ["orgId"]),
+  // Viewing forms: a signed record proving an agent introduced a client to a
+  // property during a viewing. Supports commission claims and internal audit.
+  // Modelled on the Property Shop paper form but designed to be global. Links
+  // (all optional) tie the form back to a property, contact, and/or lead so it
+  // surfaces on each of those records; agentUserId is the negotiator who
+  // conducted the viewing. Signatures are stored as image files (_storage).
+  viewingForms: defineTable({
+    // Links back to CRM records — all optional so a form can be raised ad-hoc
+    // and later associated, and so it can attach to several records at once.
+    propertyId: v.optional(v.id("properties")),
+    contactId: v.optional(v.id("contacts")),
+    leadId: v.optional(v.id("leads")),
+    // The property negotiator / agent who conducted the viewing.
+    agentUserId: v.id("users"),
+    // Form fields (mirroring the physical viewing form template)
+    viewingDate: v.string(), // "YYYY-MM-DD"
+    viewingTime: v.optional(v.string()), // "HH:mm"
+    propertyAddress: v.string(),
+    clientName: v.string(),
+    clientCompany: v.optional(v.string()),
+    clientIdNumber: v.optional(v.string()),
+    clientSpouseName: v.optional(v.string()),
+    clientPhone: v.optional(v.string()),
+    clientEmail: v.optional(v.string()),
+    // Signatures — stored as PNG images in file storage.
+    clientSignatureId: v.optional(v.id("_storage")),
+    negotiatorName: v.string(),
+    negotiatorSignatureId: v.optional(v.id("_storage")),
+    // Seller / caretaker who was present (optional).
+    sellerName: v.optional(v.string()),
+    sellerSignatureId: v.optional(v.id("_storage")),
+    // draft: still being completed. completed: signed and locked for audit.
+    status: v.union(v.literal("draft"), v.literal("completed")),
+    completedAt: v.optional(v.number()),
+    createdByUserId: v.id("users"),
+    orgId: v.optional(v.id("organizations")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_property", ["propertyId"])
+    .index("by_contact", ["contactId"])
+    .index("by_lead", ["leadId"])
+    .index("by_agent", ["agentUserId"])
     .index("by_org", ["orgId"]),
   // Marketing spend records, used by the reporting module for property ROI and
   // per-channel return-on-ad-spend. Spend can be attributed to a specific property

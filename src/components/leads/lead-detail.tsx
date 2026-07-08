@@ -33,8 +33,11 @@ const PropertyComparison = lazy(() =>
 const DocumentManager = lazy(() =>
   import("../documents/document-manager").then((m) => ({ default: m.DocumentManager }))
 );
+const ViewingFormsList = lazy(() =>
+  import("../viewings/viewing-forms-list").then((m) => ({ default: m.ViewingFormsList }))
+);
 
-const tabs = ["Timeline", "Documents", "Matched Properties", "Suggested", "Notes"] as const;
+const tabs = ["Timeline", "Documents", "Viewings", "Matched Properties", "Suggested", "Notes"] as const;
 
 const matchCardContainerVariants = {
   hidden: {},
@@ -473,6 +476,27 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
           <motion.div key="documents" variants={tabContentVariants} initial="initial" animate="animate" exit="exit">
             <Suspense fallback={<div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
               <DocumentManager leadId={leadId} folders={["lead_documentation", "id_copies", "proof_of_funds", "contracts"]} />
+            </Suspense>
+          </motion.div>
+        )}
+
+        {activeTab === "Viewings" && (
+          <motion.div key="viewings" variants={tabContentVariants} initial="initial" animate="animate" exit="exit">
+            <Suspense fallback={<div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+              <ViewingFormsList
+                leadId={leadId}
+                prefill={
+                  leadData?.lead
+                    ? {
+                        contactId: leadData.lead.contactId,
+                        clientName: leadData.lead.fullName,
+                        clientPhone: leadData.lead.phone ?? undefined,
+                        clientEmail: leadData.lead.email ?? undefined,
+                        agentUserId: leadData.lead.ownerUserId,
+                      }
+                    : undefined
+                }
+              />
             </Suspense>
           </motion.div>
         )}
