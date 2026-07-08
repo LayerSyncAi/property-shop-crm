@@ -6,6 +6,7 @@ import {
   canAccessPropertyPrivate,
   canManageProperty,
 } from "./helpers";
+import { ownsPropertyForAgentMode } from "./viewingFormLib";
 import { recordAudit } from "./logs";
 import { Id } from "./_generated/dataModel";
 import { normalizeOwnership as normalizeOwnershipPure } from "./propertyAccessLib";
@@ -90,11 +91,8 @@ export const list = query({
     const filtered = properties.filter((property) => {
       // Exclude drafts from the list
       if (property.isDraft) return false;
-      if (restrictToOwn) {
-        const owns =
-          (property.ownerUserIds ?? []).includes(user._id) ||
-          property.createdByUserId === user._id;
-        if (!owns) return false;
+      if (restrictToOwn && !ownsPropertyForAgentMode(property, user._id)) {
+        return false;
       }
       if (args.location && !property.location.toLowerCase().includes(args.location.toLowerCase())) {
         return false;

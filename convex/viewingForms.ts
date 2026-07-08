@@ -1,11 +1,11 @@
 import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
+import { getCurrentUserWithOrg, assertOrgAccess } from "./helpers";
 import {
-  getCurrentUserWithOrg,
-  assertOrgAccess,
-  isEffectiveAdmin,
-} from "./helpers";
+  canSeeViewingForm,
+  canEditViewingForm,
+} from "./viewingFormLib";
 import { recordAudit } from "./logs";
 
 /**
@@ -37,13 +37,12 @@ const signerFields = {
 
 /** Whether `user` may see this viewing form (org already checked). */
 function canSeeForm(form: Doc<"viewingForms">, user: Doc<"users">): boolean {
-  if (isEffectiveAdmin(user)) return true;
-  return form.createdByUserId === user._id || form.agentUserId === user._id;
+  return canSeeViewingForm(form, user);
 }
 
 /** Whether `user` may edit/delete this viewing form. Real admins always may. */
 function canEditForm(form: Doc<"viewingForms">, user: Doc<"users">): boolean {
-  return user.role === "admin" || form.createdByUserId === user._id;
+  return canEditViewingForm(form, user);
 }
 
 /** Resolve the storage URLs for a form's three signature slots. */

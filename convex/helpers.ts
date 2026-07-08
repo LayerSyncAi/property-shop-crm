@@ -61,13 +61,11 @@ export async function getCurrentUserWithOrg(ctx: QueryCtx | MutationCtx) {
  * permission gates (requireAdmin, property management/private access) — those
  * always use the real `role`. Use this everywhere a query decides "all org
  * records vs. only mine", and keep using `user.role === "admin"` for gates.
+ *
+ * The implementation lives in the dependency-free `viewingFormLib` so it can be
+ * unit-tested without the Convex runtime.
  */
-export function isEffectiveAdmin(user: {
-  role: "admin" | "agent";
-  agentMode?: boolean;
-}): boolean {
-  return user.role === "admin" && !user.agentMode;
-}
+export { isEffectiveAdmin } from "./viewingFormLib";
 
 export async function requireAdmin(ctx: QueryCtx | MutationCtx) {
   const user = await getCurrentUserWithOrg(ctx);

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { FormField } from "@/components/ui/form-field";
 import { SignatureField, type SignatureValue } from "./signature-pad";
+import { validateViewingForm } from "../../../convex/viewingFormLib";
 import { viewingToasts } from "@/lib/toast";
 
 export interface ViewingFormPrefill {
@@ -140,15 +141,11 @@ export function ViewingFormModal({
     sellerSignatureId: sellerSig?.storageId as Id<"_storage"> | undefined,
   });
 
-  const validate = (requireSignature: boolean): string | null => {
-    if (!clientName.trim()) return "Client name is required";
-    if (!propertyAddress.trim()) return "Property address is required";
-    if (requireSignature && !clientSig) return "The client must sign before completing the form";
-    return null;
-  };
-
   const save = async (complete: boolean) => {
-    const validationError = validate(complete);
+    const validationError = validateViewingForm(
+      { clientName, propertyAddress, hasClientSignature: !!clientSig },
+      { requireSignature: complete }
+    );
     if (validationError) {
       setError(validationError);
       return;
