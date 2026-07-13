@@ -11,16 +11,17 @@ if (!fs.existsSync(iconsDir)) {
   fs.mkdirSync(iconsDir, { recursive: true });
 }
 
-const sourceImage = path.join(publicDir, 'SyncRM logo.png');
+const sourceImage = path.join(publicDir, 'property-shop-logo.png');
 
 // Standard PWA icon sizes
 const sizes = [72, 96, 128, 144, 152, 180, 192, 384, 512];
 
-// Brand background color from globals.css
-const BG = { r: 241, g: 245, b: 255, alpha: 1 };
+// Property Shop brand background (navy). Used to fill the safe-zone padding on
+// the maskable / apple-touch icons so it blends with the navy source icon.
+const BG = { r: 12, g: 30, b: 57, alpha: 1 };
 
 async function generateIcons() {
-  console.log('Generating PWA icons from SyncRM logo...');
+  console.log('Generating PWA icons from the Property Shop logo...');
 
   for (const size of sizes) {
     await sharp(sourceImage)
