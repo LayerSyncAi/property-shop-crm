@@ -129,11 +129,6 @@ export function Topbar({ userName, userEmail, orgName, userTimezone, isRealAdmin
           Live
         </span>
       </div>
-      {orgName && (
-        <div className="hidden flex-1 items-center justify-center sm:flex">
-          <span className="text-sm font-medium text-text-muted">{orgName}</span>
-        </div>
-      )}
       <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
         {/* Admin/Agent view toggle — only for users who are really admins. */}
         {isRealAdmin && (
