@@ -24,6 +24,7 @@ import { ImageUpload, ImageItem, serializeImages, deserializeImages } from "@/co
 import { LocationTypeahead } from "@/components/ui/location-typeahead";
 import { propertyToasts } from "@/lib/toast";
 import { DocumentManager } from "@/components/documents/document-manager";
+import { ViewingFormsList } from "@/components/viewings/viewing-forms-list";
 import { PropertyShare } from "@/components/properties/property-share";
 import { PropertyAccess } from "@/components/properties/property-access";
 import { ErrorBoundary } from "@/components/common/error-boundary";
@@ -33,7 +34,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus, Eye, Trash2, Plus, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
-const propertyTabs = ["Details", "Marketing", "Sharing", "Documentation", "Gallery"] as const;
+const propertyTabs = ["Details", "Marketing", "Sharing", "Viewings", "Documentation", "Gallery"] as const;
 type PropertyTab = (typeof propertyTabs)[number];
 
 const listVariants = {
@@ -1409,6 +1410,23 @@ export default function PropertiesPage() {
                   propertyId={selectedProperty._id}
                   currentUserId={currentUser._id}
                 />
+              </motion.div>
+            )}
+
+            {propertyTab === "Viewings" && selectedProperty && (
+              <motion.div
+                key="viewings"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } }}
+                exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
+                className="space-y-6"
+              >
+                <ErrorBoundary sectionName="Viewings">
+                  <ViewingFormsList
+                    propertyId={selectedProperty._id}
+                    prefill={{ propertyAddress: selectedProperty.location }}
+                  />
+                </ErrorBoundary>
               </motion.div>
             )}
 

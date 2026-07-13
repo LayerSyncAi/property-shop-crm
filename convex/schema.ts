@@ -614,4 +614,42 @@ export default defineSchema({
   })
     .index("by_org", ["orgId"])
     .index("by_property", ["propertyId"]),
+  viewingForms: defineTable({
+    // Links back to CRM records — all optional so a form can be raised ad-hoc
+    // and later associated, and so it can attach to several records at once.
+    propertyId: v.optional(v.id("properties")),
+    contactId: v.optional(v.id("contacts")),
+    leadId: v.optional(v.id("leads")),
+    // The property negotiator / agent who conducted the viewing.
+    agentUserId: v.id("users"),
+    // Form fields (mirroring the physical viewing form template)
+    viewingDate: v.string(), // "YYYY-MM-DD"
+    viewingTime: v.optional(v.string()), // "HH:mm"
+    propertyAddress: v.string(),
+    clientName: v.string(),
+    clientCompany: v.optional(v.string()),
+    clientIdNumber: v.optional(v.string()),
+    clientSpouseName: v.optional(v.string()),
+    clientPhone: v.optional(v.string()),
+    clientEmail: v.optional(v.string()),
+    // Signatures — stored as PNG images in file storage.
+    clientSignatureId: v.optional(v.id("_storage")),
+    negotiatorName: v.string(),
+    negotiatorSignatureId: v.optional(v.id("_storage")),
+    // Seller / caretaker who was present (optional).
+    sellerName: v.optional(v.string()),
+    sellerSignatureId: v.optional(v.id("_storage")),
+    // draft: still being completed. completed: signed and locked for audit.
+    status: v.union(v.literal("draft"), v.literal("completed")),
+    completedAt: v.optional(v.number()),
+    createdByUserId: v.id("users"),
+    orgId: v.optional(v.id("organizations")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_property", ["propertyId"])
+    .index("by_contact", ["contactId"])
+    .index("by_lead", ["leadId"])
+    .index("by_agent", ["agentUserId"])
+    .index("by_org", ["orgId"]),
 });

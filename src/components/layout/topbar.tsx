@@ -30,6 +30,7 @@ const titleMap: Record<string, string> = {
   "/app/contacts/segments": "Contact Segmentation",
   "/app/contacts": "Contacts",
   "/app/properties": "Properties",
+  "/app/viewings": "Viewings",
   "/app/tasks": "Tasks",
   "/app/admin/users": "Users",
   "/app/admin/roles": "User Roles",
