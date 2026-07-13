@@ -526,6 +526,38 @@ export const propertyBookToasts = {
 };
 
 export const viewingToasts = {
+  created: () =>
+    animatedToast.success("Viewing form saved", {
+      description: "The viewing form has been created.",
+    }),
+
+  updated: () =>
+    animatedToast.success("Viewing form updated", {
+      description: "Your changes have been saved.",
+    }),
+
+  completed: (clientName?: string) =>
+    animatedToast.success("Viewing form completed", {
+      description: clientName
+        ? `The signed form for ${clientName} has been stored.`
+        : "The signed form has been stored.",
+    }),
+
+  deleted: () =>
+    animatedToast.success("Viewing form deleted", {
+      description: "The viewing form has been removed.",
+    }),
+
+  saveFailed: (detail?: string) =>
+    animatedToast.error("Failed to save viewing form", {
+      description: detail || "Something went wrong. Please try again.",
+    }),
+
+  deleteFailed: (detail?: string) =>
+    animatedToast.error("Failed to delete viewing form", {
+      description: detail || "Something went wrong. Please try again.",
+    }),
+
   viewModeChanged: (mode: "admin" | "agent") =>
     animatedToast.info(mode === "admin" ? "Admin Mode" : "Agent Mode", {
       description:
