@@ -54,6 +54,19 @@ export async function getCurrentUserWithOrg(ctx: QueryCtx | MutationCtx) {
   return user as typeof user & { orgId: Id<"organizations"> };
 }
 
+/**
+ * Effective-admin check for DATA VISIBILITY. An admin who has toggled into
+ * "Agent Mode" (users.agentMode === true) is treated as a normal agent so they
+ * see only their own records. This intentionally does NOT affect hard
+ * permission gates (requireAdmin, property management/private access) — those
+ * always use the real `role`. Use this everywhere a query decides "all org
+ * records vs. only mine", and keep using `user.role === "admin"` for gates.
+ *
+ * The implementation lives in the dependency-free `viewingFormLib` so it can be
+ * unit-tested without the Convex runtime.
+ */
+export { isEffectiveAdmin } from "./viewingFormLib";
+
 export async function requireAdmin(ctx: QueryCtx | MutationCtx) {
   const user = await getCurrentUserWithOrg(ctx);
   if (user.role !== "admin") {

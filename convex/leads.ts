@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { getCurrentUserWithOrg, assertOrgAccess } from "./helpers";
+import { getCurrentUserWithOrg, assertOrgAccess, isEffectiveAdmin } from "./helpers";
 import { Id } from "./_generated/dataModel";
 import { checkRateLimit } from "./rateLimit";
 import { computeAndStoreScore } from "./leadScoring";
@@ -108,7 +108,7 @@ export const list = query({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserWithOrg(ctx);
-    const isAdmin = user.role === "admin";
+    const isAdmin = isEffectiveAdmin(user);
 
     // Use Convex searchIndex when text search is provided (server-side search on fullName)
     let results;
@@ -297,7 +297,7 @@ export const listByStage = query({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserWithOrg(ctx);
-    const isAdmin = user.role === "admin";
+    const isAdmin = isEffectiveAdmin(user);
 
     // Fetch all stages for this org
     const stages = await ctx.db
@@ -1114,7 +1114,7 @@ export const statsSummary = query({
   args: { ownerUserId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
     const user = await getCurrentUserWithOrg(ctx);
-    const isAdmin = user.role === "admin";
+    const isAdmin = isEffectiveAdmin(user);
 
     let scoped = await ctx.db
       .query("leads")
@@ -1139,7 +1139,7 @@ export const dashboardStats = query({
   args: { ownerUserId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
     const user = await getCurrentUserWithOrg(ctx);
-    const isAdmin = user.role === "admin";
+    const isAdmin = isEffectiveAdmin(user);
 
     let scoped = await ctx.db
       .query("leads")
@@ -1210,7 +1210,7 @@ export const dashboardScoreStats = query({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentUserWithOrg(ctx);
-    const isAdmin = user.role === "admin";
+    const isAdmin = isEffectiveAdmin(user);
 
     let scoped = await ctx.db
       .query("leads")

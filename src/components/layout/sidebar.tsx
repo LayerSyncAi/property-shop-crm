@@ -14,6 +14,7 @@ import {
   ChevronRight,
   DollarSign,
   Download,
+  FileSignature,
   LayoutDashboard,
   ScrollText,
   Search,
@@ -34,6 +35,7 @@ const navItems = [
   { label: "Leads", href: "/app/leads", icon: Waypoints },
   { label: "Contacts", href: "/app/contacts", icon: Users },
   { label: "Properties", href: "/app/properties", icon: Building2 },
+  { label: "Viewings", href: "/app/viewings", icon: FileSignature },
   { label: "Tasks", href: "/app/tasks", icon: ClipboardList },
   { label: "Reports", href: "/app/reports", icon: BarChart3 },
 ];
