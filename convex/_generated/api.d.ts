@@ -12,7 +12,10 @@ import type * as activities from "../activities.js";
 import type * as activityReminders from "../activityReminders.js";
 import type * as auth from "../auth.js";
 import type * as authRepair from "../authRepair.js";
+<<<<<<< HEAD
 import type * as commissionLib from "../commissionLib.js";
+=======
+>>>>>>> upstream/main
 import type * as commissions from "../commissions.js";
 import type * as contacts from "../contacts.js";
 import type * as copilotChats from "../copilotChats.js";
@@ -41,6 +44,8 @@ import type * as propertyBook_parser from "../propertyBook/parser.js";
 import type * as propertyBook_refresh from "../propertyBook/refresh.js";
 import type * as propertyBook_scraper from "../propertyBook/scraper.js";
 import type * as propertyShares from "../propertyShares.js";
+import type * as push from "../push.js";
+import type * as pushSender from "../pushSender.js";
 import type * as rateLimit from "../rateLimit.js";
 import type * as reportingLib from "../reportingLib.js";
 import type * as reports from "../reports.js";
@@ -60,7 +65,10 @@ declare const fullApi: ApiFromModules<{
   activityReminders: typeof activityReminders;
   auth: typeof auth;
   authRepair: typeof authRepair;
+<<<<<<< HEAD
   commissionLib: typeof commissionLib;
+=======
+>>>>>>> upstream/main
   commissions: typeof commissions;
   contacts: typeof contacts;
   copilotChats: typeof copilotChats;
@@ -89,6 +97,8 @@ declare const fullApi: ApiFromModules<{
   "propertyBook/refresh": typeof propertyBook_refresh;
   "propertyBook/scraper": typeof propertyBook_scraper;
   propertyShares: typeof propertyShares;
+  push: typeof push;
+  pushSender: typeof pushSender;
   rateLimit: typeof rateLimit;
   reportingLib: typeof reportingLib;
   reports: typeof reports;

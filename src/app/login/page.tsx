@@ -150,6 +150,7 @@ export default function LoginPage() {
 
       setSubmitState("success");
       didAttemptForward = true;
+<<<<<<< HEAD
 
       // Show the success state briefly, then hand off to the dashboard with a
       // full-document navigation (window.location) rather than router.replace().
@@ -168,6 +169,8 @@ export default function LoginPage() {
       //
       // Doing the full-document load ourselves makes first login land
       // deterministically: it IS the manual refresh, performed for the user.
+=======
+>>>>>>> upstream/main
       await new Promise((resolve) => setTimeout(resolve, 600));
       window.location.assign("/app/dashboard");
     } catch (err) {

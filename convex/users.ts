@@ -5,10 +5,18 @@ import { getCurrentUser, requireAdmin, getCurrentUserOptional, getCurrentUserWit
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Scrypt } from "lucia";
 import { recordAudit } from "./logs";
+<<<<<<< HEAD
 import { rebuildPasswordAccount } from "./lib/authReconcile";
+=======
+import { rebuildPasswordAccount, getTempPassword } from "./lib/authReconcile";
+>>>>>>> upstream/main
 
-/** Default temporary password for admin-created users */
-const DEFAULT_TEMP_PASSWORD = "12345678";
+/**
+ * Temporary password for admin-created / reset users. Configurable per
+ * deployment via AUTH_TEMP_PASSWORD (see getTempPassword); always paired with a
+ * forced reset on next login. No client-specific literal.
+ */
+const DEFAULT_TEMP_PASSWORD = getTempPassword();
 
 export const getMe = query({
   handler: async (ctx) => {

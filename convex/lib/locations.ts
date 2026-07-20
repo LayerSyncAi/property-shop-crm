@@ -2,16 +2,24 @@
  * Shared, dependency-free location utilities for preferred-area suggestions
  * and matching.
  *
+<<<<<<< HEAD
  * This module is the single source of truth for:
  *  - the curated Zimbabwe area dataset used to seed suggestions, and
  *  - the normalization / matching primitives used everywhere a preferred area
  *    is compared against a property location.
+=======
+ * This module holds the normalization / matching primitives used everywhere a
+ * preferred area is compared against a property location. The curated dataset
+ * itself is white-label configuration and lives in ./areaSeed (empty by default,
+ * swappable per deployment — see docs/preferred-area-suggestions.md).
+>>>>>>> upstream/main
  *
  * It is imported by both Convex functions (relative `./lib/locations`) and the
  * Next.js frontend (relative `../../../convex/lib/locations`). Keep it free of
  * any Convex server imports so it stays usable on both sides and in tests.
  *
  * Design decision (see docs/preferred-area-suggestions.md): we ship a
+<<<<<<< HEAD
  * self-hosted dataset rather than calling Google Places. It is offline, free,
  * deterministic, and — unlike Places — lets us reconcile hand-typed variants
  * (e.g. "Mt Pleasant" -> "Mount Pleasant") against the free-text `location`
@@ -188,6 +196,17 @@ export const ZW_AREAS: ZwArea[] = [
 export const ZW_AREA_NAMES: string[] = Array.from(
   new Set(ZW_AREAS.map((a) => a.name))
 ).sort((a, b) => a.localeCompare(b));
+=======
+ * self-hosted, injectable dataset rather than calling a geocoding API. It is
+ * offline, free, deterministic, and — unlike Places — lets us reconcile
+ * hand-typed variants against the free-text `location` strings stored on
+ * properties.
+ */
+
+import { CURATED_AREAS, type AreaEntry } from "./areaSeed";
+
+export type { AreaEntry };
+>>>>>>> upstream/main
 
 /**
  * Word-level abbreviation expansions applied during normalization so that
@@ -208,7 +227,11 @@ const ABBREVIATIONS: Record<string, string> = {
 /**
  * Normalize an area / location string to a stable comparison key:
  * lowercase, punctuation stripped, whitespace collapsed, and known
+<<<<<<< HEAD
  * abbreviations expanded word-by-word.
+=======
+ * abbreviations expanded word-by-word. Dataset-independent.
+>>>>>>> upstream/main
  */
 export function normalizeArea(raw: string): string {
   if (!raw) return "";
@@ -224,6 +247,7 @@ export function normalizeArea(raw: string): string {
     .trim();
 }
 
+<<<<<<< HEAD
 // normalized canonical name -> display name
 const NORM_TO_DISPLAY = new Map<string, string>();
 // normalized alias -> normalized canonical name
@@ -250,6 +274,8 @@ function canonicalKey(raw: string): string {
   return ALIAS_TO_CANON.get(n) ?? n;
 }
 
+=======
+>>>>>>> upstream/main
 function titleCase(normalized: string): string {
   return normalized
     .split(" ")
@@ -258,12 +284,102 @@ function titleCase(normalized: string): string {
     .join(" ");
 }
 
+<<<<<<< HEAD
+=======
+export interface AreaTools {
+  /** Deduplicated, alphabetically sorted list of canonical area names. */
+  areaNames: string[];
+  /** Canonicalize an area for storage (snap known aliases; title-case others). */
+  canonicalizeArea(raw: string): string;
+  /** Canonicalize a list, dropping empties / case-insensitive duplicates. */
+  canonicalizeAreas(areas: string[]): string[];
+  /** Decide whether a preferred `area` matches a property `location`. */
+  areaMatchesLocation(area: string, location: string): boolean;
+}
+
+/**
+ * Build the alias-aware area tools for a given curated dataset. The generic
+ * upstream binds these to the (empty) configured seed below; tests and
+ * market-specific code can build tools for any dataset.
+ */
+export function createAreaTools(areas: AreaEntry[]): AreaTools {
+  // normalized canonical name -> display name
+  const normToDisplay = new Map<string, string>();
+  // normalized alias -> normalized canonical name
+  const aliasToCanon = new Map<string, string>();
+
+  for (const area of areas) {
+    const canonNorm = normalizeArea(area.name);
+    if (canonNorm) normToDisplay.set(canonNorm, area.name);
+    for (const alias of area.aliases ?? []) {
+      const aliasNorm = normalizeArea(alias);
+      if (aliasNorm) aliasToCanon.set(aliasNorm, canonNorm);
+    }
+  }
+
+  /**
+   * Resolve a raw string to its normalized canonical key — applying alias
+   * mapping when the normalized form is a known variant. Returns the plain
+   * normalized form for unknown areas (still useful for matching).
+   */
+  function canonicalKey(raw: string): string {
+    const n = normalizeArea(raw);
+    if (!n) return "";
+    if (normToDisplay.has(n)) return n;
+    return aliasToCanon.get(n) ?? n;
+  }
+
+  function canonicalizeArea(raw: string): string {
+    if (!raw || !raw.trim()) return "";
+    const key = canonicalKey(raw);
+    const display = normToDisplay.get(key);
+    if (display) return display;
+    return titleCase(key) || raw.trim();
+  }
+
+  function canonicalizeAreas(list: string[]): string[] {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const raw of list) {
+      const canonical = canonicalizeArea(raw);
+      if (!canonical) continue;
+      const dedupeKey = canonical.toLowerCase();
+      if (seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+      out.push(canonical);
+    }
+    return out;
+  }
+
+  function areaMatchesLocation(area: string, location: string): boolean {
+    const a = canonicalKey(area);
+    const l = normalizeArea(location);
+    if (!a || !l) return false;
+    if (l.includes(a) || a.includes(l)) return true;
+    // Resolve whole-string aliases on the location side too (e.g. "CBD").
+    const lc = canonicalKey(location);
+    if (lc !== l && (lc.includes(a) || a.includes(lc))) return true;
+    return false;
+  }
+
+  const areaNames = Array.from(new Set(areas.map((a) => a.name))).sort((a, b) =>
+    a.localeCompare(b)
+  );
+
+  return { areaNames, canonicalizeArea, canonicalizeAreas, areaMatchesLocation };
+}
+
+// Default tools bound to the deployment's configured seed (empty upstream).
+const defaultTools = createAreaTools(CURATED_AREAS);
+
+>>>>>>> upstream/main
 /**
  * Canonicalize an area for *storage*. Known suburbs / aliases snap to the
  * official display name; unknown free-text areas are cleaned and title-cased
  * so they are stored consistently and remain matchable. Never throws and
  * never drops a non-empty input (falls back to the trimmed original).
  */
+<<<<<<< HEAD
 export function canonicalizeArea(raw: string): string {
   if (!raw || !raw.trim()) return "";
   const key = canonicalKey(raw);
@@ -271,11 +387,15 @@ export function canonicalizeArea(raw: string): string {
   if (display) return display;
   return titleCase(key) || raw.trim();
 }
+=======
+export const canonicalizeArea = defaultTools.canonicalizeArea;
+>>>>>>> upstream/main
 
 /**
  * Canonicalize a list of areas: trim, canonicalize, and drop empties /
  * case-insensitive duplicates while preserving order.
  */
+<<<<<<< HEAD
 export function canonicalizeAreas(areas: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -289,10 +409,14 @@ export function canonicalizeAreas(areas: string[]): string[] {
   }
   return out;
 }
+=======
+export const canonicalizeAreas = defaultTools.canonicalizeAreas;
+>>>>>>> upstream/main
 
 /**
  * The single shared primitive for deciding whether a preferred `area` matches
  * a property `location`. Both sides are normalized (abbreviations expanded)
+<<<<<<< HEAD
  * and alias-resolved before a two-way containment check, so "Mt Pleasant",
  * "Mount Pleasant", and a property at "12 Mount Pleasant, Harare" all match.
  */
@@ -306,3 +430,14 @@ export function areaMatchesLocation(area: string, location: string): boolean {
   if (lc !== l && (lc.includes(a) || a.includes(lc))) return true;
   return false;
 }
+=======
+ * and alias-resolved before a two-way containment check.
+ */
+export const areaMatchesLocation = defaultTools.areaMatchesLocation;
+
+/**
+ * Deduplicated, alphabetically sorted canonical area names for the configured
+ * seed, used to seed the per-org suggestion list. Empty in the generic upstream.
+ */
+export const CURATED_AREA_NAMES: string[] = defaultTools.areaNames;
+>>>>>>> upstream/main

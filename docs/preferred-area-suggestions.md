@@ -43,9 +43,34 @@ for discovery, then pass the result through the same `canonicalizeArea` /
 `areaMatchesLocation` layer documented here. Nothing in the current design
 precludes it.
 
+<<<<<<< HEAD
 The dataset lives in [`convex/lib/locations.ts`](../convex/lib/locations.ts)
 (`ZW_AREAS`). To expand coverage, add entries there — that is the single
 maintenance surface.
+=======
+### White-label seed
+
+The matching/normalization plumbing lives in
+[`convex/lib/locations.ts`](../convex/lib/locations.ts) and is dataset-agnostic.
+The curated dataset itself is white-label configuration in
+[`convex/lib/areaSeed.ts`](../convex/lib/areaSeed.ts) (`CURATED_AREAS`), which
+the generic upstream ships **empty** — the plumbing still works (it falls back
+to normalized, title-cased substring matching), there are simply no pre-loaded
+aliases or default suggestions.
+
+To populate it for a specific market, edit `CURATED_AREAS`, or re-export a
+bundled reference dataset. A Zimbabwe reference seed ships in
+[`convex/lib/areaSeed.zimbabwe.ts`](../convex/lib/areaSeed.zimbabwe.ts); enable
+it with:
+
+```ts
+// convex/lib/areaSeed.ts
+import { ZIMBABWE_AREAS } from "./areaSeed.zimbabwe";
+export const CURATED_AREAS = ZIMBABWE_AREAS;
+```
+
+That single file is the maintenance surface for the dataset.
+>>>>>>> upstream/main
 
 ## Decision 2 — how free-text variants reconcile for matching
 
