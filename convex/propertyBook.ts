@@ -193,9 +193,20 @@ export const getAgencyListingUrls = action({
   }> => {
     await ctx.runQuery(internal.propertyBook.assertAdminAccess, {});
     assertNotDisabled();
+    // Skip listings already imported for this org+agency so re-running discovery
+    // advances past them to the next fresh listings (sliding window).
+    const imported = await ctx.runQuery(
+      internal.propertyBook.listImportedAgencyRefs,
+      { slug: args.slug }
+    );
     return await ctx.runAction(
       internal.propertyBook.scraper.collectAgencyUrls,
-      { slug: args.slug, maxListings: args.maxListings }
+      {
+        slug: args.slug,
+        maxListings: args.maxListings,
+        excludeRefCodes: imported.refCodes,
+        excludeSourceUrls: imported.sourceUrls,
+      }
     );
   },
 });
@@ -321,6 +332,34 @@ export const assertAdminAccess = internalQuery({
   args: {},
   handler: async (ctx) => {
     await requireAdmin(ctx);
+  },
+});
+
+/**
+ * The PropertyBook ref codes + source URLs already imported for the caller's
+ * org and a given agency. Used by discovery to skip listings already in the CRM
+ * so a re-run advances to the next fresh listings instead of re-collecting the
+ * same first N.
+ */
+export const listImportedAgencyRefs = internalQuery({
+  args: { slug: v.string() },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ refCodes: string[]; sourceUrls: string[] }> => {
+    const user = await getCurrentUserWithOrg(ctx);
+    const props = await ctx.db
+      .query("properties")
+      .withIndex("by_org", (q) => q.eq("orgId", user.orgId))
+      .collect();
+    const refCodes: string[] = [];
+    const sourceUrls: string[] = [];
+    for (const p of props) {
+      if (!p.pbRefCode || p.pbAgencySlug !== args.slug) continue;
+      refCodes.push(p.pbRefCode);
+      if (p.pbSourceUrl) sourceUrls.push(p.pbSourceUrl);
+    }
+    return { refCodes, sourceUrls };
   },
 });
 

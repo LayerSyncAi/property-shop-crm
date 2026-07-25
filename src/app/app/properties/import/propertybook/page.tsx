@@ -47,6 +47,13 @@ const MAX_BATCH_SIZE = 25;
 const BATCH_SIZE_OPTIONS = [5, 10, 25] as const;
 
 type BatchSize = (typeof BATCH_SIZE_OPTIONS)[number];
+
+// How many listings to scrape from an agency per "Discover" run. Distinct from
+// BATCH_SIZE_OPTIONS above (which chunks the INSERT of already-previewed
+// listings). Backend hard-caps at 100.
+const FETCH_SIZE_OPTIONS = [25, 50, 75, 100] as const;
+const DEFAULT_FETCH_SIZE = 50;
+type FetchSize = (typeof FETCH_SIZE_OPTIONS)[number];
 type Step =
   | "picking_agency"
   | "previewing"
@@ -159,6 +166,7 @@ export default function PropertyBookImportPage() {
   const [listings, setListings] = React.useState<PreviewListing[]>([]);
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [batchSize, setBatchSize] = React.useState<BatchSize>(25);
+  const [fetchSize, setFetchSize] = React.useState<FetchSize>(DEFAULT_FETCH_SIZE);
   const [error, setError] = React.useState<string>("");
   const [progress, setProgress] = React.useState<{
     current: number;
@@ -313,7 +321,7 @@ export default function PropertyBookImportPage() {
       try {
         const discovery = (await getAgencyListingUrls({
           slug: agency.slug,
-          maxListings: 50,
+          maxListings: fetchSize,
         })) as { agency: { slug: string; name: string }; urls: string[] };
         urls = discovery.urls;
       } catch (e: unknown) {
@@ -325,7 +333,11 @@ export default function PropertyBookImportPage() {
       }
 
       if (urls.length === 0) {
-        setError(`No listings found for ${agency.name} on PropertyBook.`);
+        // Discovery already excludes listings imported for this org+agency, so
+        // an empty result usually means there's nothing new left to pull.
+        setError(
+          `No new listings to import for ${agency.name} — everything currently listed has already been imported.`
+        );
         setStep("picking_agency");
         return;
       }
@@ -372,7 +384,7 @@ export default function PropertyBookImportPage() {
       setSelected(new Set(collected.map((l) => l.pbRefCode)));
       setStep("selecting");
     },
-    [getAgencyListingUrls, fetchOneListing]
+    [getAgencyListingUrls, fetchOneListing, fetchSize]
   );
 
   const toggle = (refCode: string) => {
@@ -582,6 +594,31 @@ export default function PropertyBookImportPage() {
                       {agenciesLoading ? "Loading…" : "Refresh"}
                     </Button>
                   </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-3 rounded-[10px] border border-border-strong bg-gray-50 px-4 py-3">
+                  <span className="text-xs font-medium text-text-muted">
+                    Properties to fetch per run:
+                  </span>
+                  {FETCH_SIZE_OPTIONS.map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => setFetchSize(size)}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                        fetchSize === size
+                          ? "border-primary-600 bg-primary-600 text-white"
+                          : "border-border-strong bg-white text-text-muted hover:border-primary-600/60"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                  <span className="ml-auto text-[11px] text-text-muted">
+                    Larger runs pull more at once but take longer to return —
+                    each listing is fetched one-by-one to stay polite to
+                    PropertyBook. Already-imported listings are skipped, so a
+                    re-run continues where the last one left off.
+                  </span>
                 </div>
               </CardHeader>
               <CardContent>
