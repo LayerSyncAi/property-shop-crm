@@ -15,6 +15,7 @@ import {
   ListingType,
   uniqueStrings,
 } from "./parser";
+import { pickNewUrls } from "./discovery";
 
 const PB_BASE = "https://www.propertybook.co.zw";
 const USER_AGENT = "SyncRM-Importer/1.0 (+https://syncrm.app)";
@@ -324,18 +325,29 @@ export const collectAgencyUrls = internalAction({
   args: {
     slug: v.string(),
     maxListings: v.optional(v.number()),
+    // Already-imported listings for this org+agency. Discovery skips these so a
+    // re-run advances to the next fresh listings instead of re-collecting the
+    // same first N. Matched by exact source URL or by URL-derived ref code.
+    excludeRefCodes: v.optional(v.array(v.string())),
+    excludeSourceUrls: v.optional(v.array(v.string())),
   },
   handler: async (
     _ctx,
-    { slug, maxListings }
+    { slug, maxListings, excludeRefCodes, excludeSourceUrls }
   ): Promise<{
     agency: { slug: string; name: string };
     urls: string[];
   }> => {
     const cap = Math.max(1, Math.min(100, maxListings ?? 50));
     const collected: string[] = [];
+    const seen = new Set<string>();
 
-    for (let page = 1; page <= 15; page++) {
+    // Page ceiling scales with how much we need to skip: excluded listings
+    // consume pages, so sliding the window past many imported pages needs more
+    // scans than a fresh pull. Still bounded, and the "empty page" break below
+    // stops early once the agency's real listings are exhausted.
+    const maxPages = 40;
+    for (let page = 1; page <= maxPages; page++) {
       const url = `${PB_BASE}/listed-agencies/${slug}${page === 1 ? "" : `?page=${page}`}`;
       let html: string;
       try {
@@ -344,15 +356,21 @@ export const collectAgencyUrls = internalAction({
         break;
       }
       const links = parseListingLinks(html);
-      let added = 0;
-      for (const l of links) {
-        if (collected.includes(l)) continue;
+      // A page with no listing links at all means the agency is exhausted — stop.
+      // (A page whose listings are ALL already imported still has links, so we
+      // must keep paging rather than mistaking "all excluded" for "the end".)
+      if (links.length === 0) break;
+      const picked = pickNewUrls(links, {
+        excludeRefCodes,
+        excludeSourceUrls,
+        remaining: cap - collected.length,
+        seen,
+      });
+      for (const l of picked) {
+        seen.add(l);
         collected.push(l);
-        added++;
-        if (collected.length >= cap) break;
       }
       if (collected.length >= cap) break;
-      if (added === 0) break;
       await sleep(AGENCY_PAGE_DELAY_MS);
     }
 
