@@ -255,6 +255,7 @@ export const Sidebar = memo(function Sidebar({ isAdmin, collapsed, onToggle, org
           )}
         </div>
       </div>
+<<<<<<< HEAD
       <div
         className={cn(
           "flex flex-1 flex-col [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin]",
@@ -263,6 +264,13 @@ export const Sidebar = memo(function Sidebar({ isAdmin, collapsed, onToggle, org
           collapsed ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"
         )}
       >
+=======
+      {/* Scrollable region: when the expandable panels grow taller than the
+          viewport, this area scrolls instead of overflowing off-screen. Scroll
+          is only enabled when expanded — overflow-y:auto forces overflow-x to
+          clip, which would cut off the collapsed-mode hover tooltips. */}
+      <div className={cn("flex min-h-0 flex-1 flex-col", !collapsed && "sidebar-scroll overflow-y-auto")}>
+>>>>>>> upstream/main
       <nav className="flex-1 space-y-1" data-tour="sidebar-nav">
         {navItems.map((item) => (
           <NavItem
