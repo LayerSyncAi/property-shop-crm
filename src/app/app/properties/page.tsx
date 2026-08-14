@@ -32,7 +32,7 @@ import { PropertyMarketingTab } from "@/components/properties/property-marketing
 import { PropertyBookBadge } from "@/components/properties/property-book-badge";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Eye, Trash2, Plus, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { UserPlus, Eye, Trash2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Megaphone } from "lucide-react";
 
 const propertyTabs = ["Details", "Marketing", "Sharing", "Viewings", "Documentation", "Gallery"] as const;
 type PropertyTab = (typeof propertyTabs)[number];
@@ -1059,24 +1059,37 @@ export default function PropertiesPage() {
         description="Review the listing details and make updates as needed."
         onClose={closeModal}
         footer={
-          propertyTab === "Details" ? (
-            <div className="flex justify-end gap-2">
-              <Button variant="secondary" onClick={closeModal} disabled={isSaving}>
-                Cancel
-              </Button>
-              {(isAdmin || selectedProperty?.createdByUserId === currentUser?._id) && (
-                <Button onClick={handleSave} disabled={isSaving}>
-                  {isSaving ? "Saving..." : "Save changes"}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {/* Marketing collateral for this listing, seeded from its photos
+                and details. Available on every tab because it is a jumping-off
+                point rather than part of editing the record. */}
+            {selectedProperty ? (
+              <Link href={`/app/syncmedia/new?propertyId=${selectedProperty._id}`}>
+                <Button variant="secondary">
+                  <Megaphone className="h-4 w-4" /> Create brochure
                 </Button>
-              )}
-            </div>
-          ) : (
-            <div className="flex justify-end">
+              </Link>
+            ) : (
+              <span />
+            )}
+
+            {propertyTab === "Details" ? (
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={closeModal} disabled={isSaving}>
+                  Cancel
+                </Button>
+                {(isAdmin || selectedProperty?.createdByUserId === currentUser?._id) && (
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? "Saving..." : "Save changes"}
+                  </Button>
+                )}
+              </div>
+            ) : (
               <Button variant="secondary" onClick={closeModal}>
                 Close
               </Button>
-            </div>
-          )
+            )}
+          </div>
         }
       >
         <div className="space-y-5">

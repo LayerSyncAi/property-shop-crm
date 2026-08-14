@@ -12,6 +12,7 @@ import type * as activities from "../activities.js";
 import type * as activityReminders from "../activityReminders.js";
 import type * as auth from "../auth.js";
 import type * as authRepair from "../authRepair.js";
+import type * as branding from "../branding.js";
 import type * as commissions from "../commissions.js";
 import type * as contacts from "../contacts.js";
 import type * as copilotChats from "../copilotChats.js";
@@ -47,6 +48,7 @@ import type * as reportingLib from "../reportingLib.js";
 import type * as reports from "../reports.js";
 import type * as stages from "../stages.js";
 import type * as storage from "../storage.js";
+import type * as syncmedia from "../syncmedia.js";
 import type * as users from "../users.js";
 import type * as viewingForms from "../viewingForms.js";
 
@@ -61,6 +63,7 @@ declare const fullApi: ApiFromModules<{
   activityReminders: typeof activityReminders;
   auth: typeof auth;
   authRepair: typeof authRepair;
+  branding: typeof branding;
   commissions: typeof commissions;
   contacts: typeof contacts;
   copilotChats: typeof copilotChats;
@@ -96,6 +99,7 @@ declare const fullApi: ApiFromModules<{
   reports: typeof reports;
   stages: typeof stages;
   storage: typeof storage;
+  syncmedia: typeof syncmedia;
   users: typeof users;
   viewingForms: typeof viewingForms;
 }>;

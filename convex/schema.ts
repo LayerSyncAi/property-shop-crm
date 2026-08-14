@@ -658,4 +658,80 @@ export default defineSchema({
     .index("by_lead", ["leadId"])
     .index("by_agent", ["agentUserId"])
     .index("by_org", ["orgId"]),
+
+  // --- SyncMedia -----------------------------------------------------------
+  // The organisation's marketing brand kit: one row per org, edited by admins
+  // and read by every agent's brochures. Distinct from src/config/brand.ts,
+  // which white-labels the *app* at build time — this is per-tenant data that
+  // an admin can change without a redeploy.
+  orgBranding: defineTable({
+    orgId: v.id("organizations"),
+    // A Convex storage id or an absolute https URL, the same convention the
+    // brochure photos use, so one resolver handles both.
+    logoRef: v.optional(v.string()),
+    // Optional light-on-dark variant, used where the logo sits on the accent.
+    logoOnDarkRef: v.optional(v.string()),
+    // The admin picks an accent and a paper style; the remaining six theme
+    // tokens are derived from those two (see src/lib/syncmedia/theme.ts).
+    // Asking anyone for eight hex codes is a form nobody completes.
+    accent: v.optional(v.string()),
+    pageStyle: v.optional(
+      v.union(v.literal("light"), v.literal("cream"), v.literal("dark"))
+    ),
+    // Defaults offered to agents in the studio; each brochure still carries its
+    // own copy, so changing these never rewrites brochures already made.
+    contactPhone: v.optional(v.string()),
+    contactEmail: v.optional(v.string()),
+    website: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_org", ["orgId"]),
+
+  // Brochure drafts. Private to the agent who made them: every read scopes to
+  // (orgId, ownerUserId), so no id from the client can reach another agent's row.
+  brochures: defineTable({
+    orgId: v.id("organizations"),
+    ownerUserId: v.id("users"),
+    // Absent when the brochure is for a property that isn't on the system yet.
+    propertyId: v.optional(v.id("properties")),
+    // Plain strings rather than unions: these name entries in a frontend
+    // presentation registry that churns faster than the database, and every
+    // lookup falls back to a default, so an unknown value is ignored on read
+    // rather than being a schema migration.
+    formatKey: v.string(),
+    templateId: v.string(),
+    themeId: v.string(),
+    // Refs only — a storage id or an absolute URL, never a resolved display URL.
+    photos: v.array(v.string()),
+    eyebrow: v.string(),
+    title: v.string(),
+    location: v.string(),
+    price: v.string(),
+    priceLabel: v.string(),
+    features: v.array(v.string()),
+    reference: v.string(),
+    agentName: v.string(),
+    agentPhone: v.string(),
+    agentEmail: v.string(),
+    showLogo: v.boolean(),
+    whatsappContact: v.boolean(),
+    // Manual position tweaks on top of the template's automatic layout, one
+    // entry per adjusted block. `format` is part of the key because the same
+    // block needs different corrections on a 1080x1350 post and a 1200x630
+    // banner. Empty for any brochure nobody has hand-adjusted, which is most.
+    nudges: v.optional(
+      v.array(
+        v.object({
+          format: v.string(),
+          slot: v.string(),
+          x: v.number(),
+          y: v.number(),
+        })
+      )
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_org_owner", ["orgId", "ownerUserId"])
+    .index("by_owner_property", ["ownerUserId", "propertyId"]),
 });
