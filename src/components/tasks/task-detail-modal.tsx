@@ -13,11 +13,12 @@ import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/textarea";
 import { activityToasts } from "@/lib/toast";
+import { activityTypeLabel, type ActivityType } from "@/lib/activity-types";
 
 interface TaskActivity {
   _id: Id<"activities">;
   leadId?: Id<"leads">;
-  type: "call" | "whatsapp" | "email" | "meeting" | "viewing" | "note";
+  type: ActivityType;
   title: string;
   description: string;
   scheduledAt?: number;
@@ -122,17 +123,7 @@ export function TaskDetailModal({ open, onClose, task, onTaskUpdated, onTaskComp
 
   if (!task) return null;
 
-  const getActivityTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      call: "Call",
-      whatsapp: "WhatsApp",
-      email: "Email",
-      meeting: "Meeting",
-      viewing: "Viewing",
-      note: "Note",
-    };
-    return labels[type] || type;
-  };
+  const getActivityTypeLabel = (type: string) => activityTypeLabel(type);
 
   return (
     <Modal

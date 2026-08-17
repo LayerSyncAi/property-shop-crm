@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FlipCalendar } from "@/components/ui/flip-calendar";
 import { DueDateRing } from "@/components/ui/due-date-ring";
 import { detectBrowserTimezone } from "@/lib/timezones";
+import { ACTIVITY_TYPE_OPTIONS, type ActivityType } from "@/lib/activity-types";
 
 const timelineContainerVariants = {
   hidden: {},
@@ -133,7 +134,7 @@ interface ActivityTimelineProps {
   leadId: Id<"leads">;
   activities: Activity[] | undefined;
   onCreateActivity: (data: {
-    type: "call" | "whatsapp" | "email" | "meeting" | "viewing" | "note";
+    type: ActivityType;
     title: string;
     description: string;
     scheduledAt?: number;
@@ -150,7 +151,7 @@ export const ActivityTimeline = React.memo(function ActivityTimeline({
   onMarkComplete,
   onDeleteActivity,
 }: ActivityTimelineProps) {
-  const [activityType, setActivityType] = useState<"call" | "whatsapp" | "email" | "meeting" | "viewing" | "note">("call");
+  const [activityType, setActivityType] = useState<ActivityType>("call");
   const [activityTitle, setActivityTitle] = useState("");
   const [activityDescription, setActivityDescription] = useState("");
   const [activityScheduledAt, setActivityScheduledAt] = useState<Date | null>(null);
@@ -250,14 +251,7 @@ export const ActivityTimeline = React.memo(function ActivityTimeline({
                   <StaggeredDropDown
                     value={activityType}
                     onChange={(val) => setActivityType(val as typeof activityType)}
-                    options={[
-                      { value: "call", label: "Call" },
-                      { value: "whatsapp", label: "WhatsApp" },
-                      { value: "email", label: "Email" },
-                      { value: "meeting", label: "Meeting" },
-                      { value: "viewing", label: "Viewing" },
-                      { value: "note", label: "Note" },
-                    ]}
+                    options={ACTIVITY_TYPE_OPTIONS}
                   />
                 </div>
                 <div className="space-y-2">

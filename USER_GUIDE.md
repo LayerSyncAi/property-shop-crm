@@ -953,7 +953,31 @@ spend and the leads it produced line up in the Lead Sources report.
 | Email | Mail | Email exchanges |
 | Meeting | Calendar | In-person or virtual meetings |
 | Viewing | Eye | Property viewing appointments |
+| Follow-up | Phone | Chasing a client after earlier contact |
+| Paperwork | Signature | Contracts, mandates, ID copies, admin |
 | Note | Note | Internal notes and observations |
+
+The type you pick drives the **Tasks by type** breakdown in Reports, so
+choosing Follow-up or Paperwork instead of Note makes the report describe the
+work rather than just counting it.
+
+### Task context and outcomes
+
+A task can be linked to a **lead**, a **property**, and a **contact**. Tasks
+created from a lead inherit the lead and its contact automatically; standalone
+tasks let you pick a property and contact when you create them. Completing a
+task requires a short note ("left voicemail", "viewing rescheduled").
+
+Reports → Tasks uses all of this:
+
+- **Tasks by type** — how much of the work was calls, viewings, follow-ups or
+  paperwork.
+- **On-time rate** — completed on or before the due date, as a share of
+  completed tasks that had a due date. Tasks with no due date are excluded
+  rather than counted either way. This is separate from **Overdue**, which
+  counts work still not done and already past due.
+- **Completed task log** — every task completed in the period with what it
+  related to and the note left on completion, exportable to CSV and PDF.
 
 ---
 
