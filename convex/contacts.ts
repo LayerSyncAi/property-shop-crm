@@ -1,20 +1,21 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserWithOrg, assertOrgAccess, isEffectiveAdmin } from "./helpers";
-import { Id } from "./_generated/dataModel";
+import { Doc, Id } from "./_generated/dataModel";
 import { areaMatchesLocation, canonicalizeAreas } from "./lib/locations";
+import { isBuyerTenantContact, isOwnerContact } from "./lib/contactRoles";
 
-function normalizePhone(phone: string) {
+export function normalizePhone(phone: string) {
   return phone.replace(/\D/g, "");
 }
 
-async function canAccessContact(
+export async function canAccessContact(
   ctx: any,
   contactId: Id<"contacts">,
   userId: Id<"users">,
   isAdmin: boolean,
   userOrgId: Id<"organizations">
-) {
+): Promise<Doc<"contacts"> | null> {
   const contact = await ctx.db.get(contactId);
   if (!contact) return null;
   if (contact.orgId && contact.orgId !== userOrgId) return null;
@@ -43,6 +44,21 @@ const preferenceArgs = {
   minBathrooms: v.optional(v.number()),
 };
 
+/** Seller/landlord role on a contact. Unset means "not a property owner". */
+export const ownerTypeValidator = v.union(
+  v.literal("seller"),
+  v.literal("landlord"),
+  v.literal("both")
+);
+
+/** Which side of the business a list query wants back. */
+export const contactRoleFilter = v.union(
+  v.literal("all"),
+  v.literal("buyer_tenant"),
+  v.literal("owner")
+);
+
+
 export const create = mutation({
   args: {
     name: v.string(),
@@ -52,6 +68,8 @@ export const create = mutation({
     notes: v.optional(v.string()),
     preferredAreas: v.optional(v.array(v.string())),
     ownerUserIds: v.optional(v.array(v.id("users"))),
+    ownerType: v.optional(ownerTypeValidator),
+    isBuyerTenant: v.optional(v.boolean()),
     ...preferenceArgs,
   },
   handler: async (ctx, args) => {
@@ -82,6 +100,10 @@ export const create = mutation({
       preferredPropertyTypes: args.preferredPropertyTypes,
       minBedrooms: args.minBedrooms,
       minBathrooms: args.minBathrooms,
+      ownerType: args.ownerType,
+      // Contacts are buyers/tenants unless the caller says otherwise, so the
+      // existing create paths keep their behaviour without passing the flag.
+      isBuyerTenant: args.isBuyerTenant ?? true,
       ownerUserIds: owners,
       createdByUserId: user._id,
       orgId: user.orgId,
@@ -95,11 +117,16 @@ export const list = query({
   args: {
     q: v.optional(v.string()),
     ownerUserId: v.optional(v.id("users")),
+    // Which side of the business to return. Defaults to buyers/tenants so the
+    // Contacts screens keep showing what they always did once sellers and
+    // landlords start living in the same table.
+    role: v.optional(contactRoleFilter),
     page: v.optional(v.number()),
     pageSize: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserWithOrg(ctx);
+    const role = args.role ?? "buyer_tenant";
 
     const contacts = await ctx.db
       .query("contacts")
@@ -114,6 +141,9 @@ export const list = query({
 
     const isAdmin = isEffectiveAdmin(user);
     const filtered = contacts.filter((contact) => {
+      if (role === "buyer_tenant" && !isBuyerTenantContact(contact)) return false;
+      if (role === "owner" && !isOwnerContact(contact)) return false;
+
       if (!isAdmin) {
         if (!contact.ownerUserIds.includes(user._id)) {
           return false;
@@ -397,6 +427,8 @@ export const update = mutation({
     notes: v.optional(v.string()),
     preferredAreas: v.optional(v.array(v.string())),
     ownerUserIds: v.optional(v.array(v.id("users"))),
+    ownerType: v.optional(v.union(ownerTypeValidator, v.null())),
+    isBuyerTenant: v.optional(v.boolean()),
     ...preferenceArgs,
   },
   handler: async (ctx, args) => {
@@ -430,6 +462,12 @@ export const update = mutation({
     if (args.preferredPropertyTypes !== undefined) updates.preferredPropertyTypes = args.preferredPropertyTypes;
     if (args.minBedrooms !== undefined) updates.minBedrooms = args.minBedrooms;
     if (args.minBathrooms !== undefined) updates.minBathrooms = args.minBathrooms;
+    // null clears the owner role (removes them from Owners) without deleting a
+    // record that may still be an active buyer/tenant.
+    if (args.ownerType !== undefined) {
+      updates.ownerType = args.ownerType ?? undefined;
+    }
+    if (args.isBuyerTenant !== undefined) updates.isBuyerTenant = args.isBuyerTenant;
 
     if (user.role === "admin" && args.ownerUserIds !== undefined) {
       if (args.ownerUserIds.length === 0) {

@@ -7,20 +7,11 @@ import { checkRateLimit } from "./rateLimit";
 import { computeAndStoreScore } from "./leadScoring";
 import { COMMISSION_RATE, computeCommissionSplit } from "./commissionLib";
 import { canonicalizeAreas } from "./lib/locations";
+import { leadSourceValidator, LEGACY_PORTAL_SOURCE } from "./lib/leadSources";
 
 const leadArgs = {
   contactId: v.id("contacts"),
-  source: v.union(
-    v.literal("walk_in"),
-    v.literal("referral"),
-    v.literal("facebook"),
-    v.literal("instagram"),
-    v.literal("tiktok"),
-    v.literal("whatsapp"),
-    v.literal("website"),
-    v.literal("property_portal"),
-    v.literal("other")
-  ),
+  source: leadSourceValidator,
   interestType: v.union(v.literal("rent"), v.literal("buy")),
   budgetCurrency: v.optional(v.string()),
   budgetMin: v.optional(v.number()),
@@ -446,19 +437,7 @@ export const getById = query({
 export const update = mutation({
   args: {
     leadId: v.id("leads"),
-    source: v.optional(
-      v.union(
-        v.literal("walk_in"),
-        v.literal("referral"),
-        v.literal("facebook"),
-        v.literal("instagram"),
-        v.literal("tiktok"),
-        v.literal("whatsapp"),
-        v.literal("website"),
-        v.literal("property_portal"),
-        v.literal("other")
-      )
-    ),
+    source: v.optional(leadSourceValidator),
     interestType: v.optional(v.union(v.literal("rent"), v.literal("buy"))),
     budgetCurrency: v.optional(v.string()),
     budgetMin: v.optional(v.number()),
@@ -472,7 +451,12 @@ export const update = mutation({
       throw new Error("Lead not found");
     }
     const updated: Record<string, unknown> = { updatedAt: Date.now() };
-    if (args.source) updated.source = args.source;
+    if (args.source) {
+      updated.source = args.source;
+      // Naming the real source resolves the review flag set by the
+      // flagLegacyPortalLeads migration.
+      if (args.source !== LEGACY_PORTAL_SOURCE) updated.sourceNeedsReview = undefined;
+    }
     if (args.interestType) updated.interestType = args.interestType;
     if (args.budgetCurrency !== undefined) updated.budgetCurrency = args.budgetCurrency;
     if (args.budgetMin !== undefined) updated.budgetMin = args.budgetMin;
@@ -1453,6 +1437,86 @@ export const bulkCloseAsLost = mutation({
     }
 
     return { closedCount };
+  },
+});
+
+// ── Lead source review ───────────────────────────────────────────────
+// Leads that still carry the retired generic "property_portal" source, so an
+// agent can reassign them to the real platform. Role-scoped the same way the
+// main leads list is: admins see the whole org, agents see only their own.
+export const listNeedsSourceReview = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUserWithOrg(ctx);
+    const isAdmin = isEffectiveAdmin(user);
+
+    const leads = await ctx.db
+      .query("leads")
+      .withIndex("by_org", (q) => q.eq("orgId", user.orgId))
+      .collect();
+
+    const flagged = leads.filter(
+      (l) =>
+        l.sourceNeedsReview === true &&
+        !l.isArchived &&
+        (isAdmin || l.ownerUserId === user._id)
+    );
+
+    const owners = await ctx.db
+      .query("users")
+      .withIndex("by_org", (q) => q.eq("orgId", user.orgId))
+      .collect();
+    const ownerMap = new Map(owners.map((u) => [u._id, u]));
+
+    const items = flagged
+      .map((l) => {
+        const owner = ownerMap.get(l.ownerUserId);
+        return {
+          _id: l._id,
+          fullName: l.fullName,
+          phone: l.phone,
+          email: l.email,
+          source: l.source,
+          interestType: l.interestType,
+          createdAt: l.createdAt,
+          ownerName:
+            owner?.fullName || owner?.name || owner?.email || "Unassigned",
+        };
+      })
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    return { items, isAdmin };
+  },
+});
+
+// Reassign the source on several leads at once and clear their review flag.
+// Skips leads the caller can't access rather than failing the whole batch.
+export const bulkSetSource = mutation({
+  args: {
+    leadIds: v.array(v.id("leads")),
+    source: leadSourceValidator,
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserWithOrg(ctx);
+    const now = Date.now();
+
+    let updatedCount = 0;
+    for (const leadId of args.leadIds) {
+      const lead = await assertLeadAccess(ctx, leadId, user._id, user.role === "admin", user.orgId);
+      if (!lead) continue;
+
+      await ctx.db.patch(leadId, {
+        source: args.source,
+        // Reassigning to a real platform resolves the review; picking the
+        // generic bucket again leaves it flagged.
+        sourceNeedsReview:
+          args.source === LEGACY_PORTAL_SOURCE ? true : undefined,
+        updatedAt: now,
+      });
+      updatedCount++;
+    }
+
+    return { updatedCount };
   },
 });
 

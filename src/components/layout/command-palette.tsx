@@ -17,6 +17,8 @@ import {
   CornerDownLeft,
   SlidersHorizontal,
   Megaphone,
+  AlertTriangle,
+  KeyRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,6 +36,7 @@ const baseCommands: Command[] = [
   { id: "nav-dashboard", label: "Dashboard", group: "Go to", icon: LayoutDashboard, href: "/app/dashboard", keywords: "home overview pipeline" },
   { id: "nav-leads", label: "Leads", group: "Go to", icon: Waypoints, href: "/app/leads", keywords: "pipeline kanban" },
   { id: "nav-contacts", label: "Contacts", group: "Go to", icon: Users, href: "/app/contacts", keywords: "people" },
+  { id: "nav-owners", label: "Owners", group: "Go to", icon: KeyRound, href: "/app/owners", keywords: "sellers landlords vendors property owners" },
   { id: "nav-properties", label: "Properties", group: "Go to", icon: Building2, href: "/app/properties", keywords: "listings inventory" },
   { id: "nav-syncmedia", label: "SyncMedia", group: "Go to", icon: Megaphone, href: "/app/syncmedia", keywords: "brochure flyer marketing social poster" },
   { id: "nav-tasks", label: "Tasks", group: "Go to", icon: ClipboardList, href: "/app/tasks", keywords: "activities todo" },
@@ -45,6 +48,7 @@ const baseCommands: Command[] = [
   { id: "act-segments", label: "Contact segmentation", group: "Tools", icon: SlidersHorizontal, href: "/app/contacts/segments", keywords: "segment filter" },
   { id: "act-import", label: "Import leads", group: "Tools", icon: Upload, href: "/app/leads/import", keywords: "csv upload" },
   { id: "act-export", label: "Export leads", group: "Tools", icon: Download, href: "/app/leads/export", keywords: "csv download" },
+  { id: "act-source-review", label: "Lead source review", group: "Tools", icon: AlertTriangle, href: "/app/leads/source-review", keywords: "property portal propertybook reassign source" },
 ];
 
 const groupOrder: Command["group"][] = ["Go to", "Create", "Tools"];

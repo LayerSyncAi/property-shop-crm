@@ -21,6 +21,11 @@ interface PropertyAccessProps {
 }
 
 /**
+ * Which AGENTS may see a property's private data — its owning agent(s) and any
+ * explicitly authorised collaborators. Not to be confused with the property
+ * OWNER (the seller/landlord), which lives in <PropertyOwners /> on the Owner
+ * tab.
+ *
  * Ownership + collaborator panel for a property. Rendered in the property
  * detail modal. Owners and admins manage collaborators; admins (and owners)
  * can also reassign ownership. All actions are enforced server-side too.
@@ -136,7 +141,7 @@ export function PropertyAccess({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-primary" />
-            <Label className="m-0">Ownership</Label>
+            <Label className="m-0">Agent ownership</Label>
           </div>
           {isAdmin && !reassigning && (
             <Button
