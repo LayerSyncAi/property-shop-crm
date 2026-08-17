@@ -94,6 +94,16 @@ export const leadToasts = {
     animatedToast.error("Failed to save notes", {
       description: detail || "Something went wrong. Please try again.",
     }),
+
+  sourceReassigned: (count: number, sourceLabel: string) =>
+    animatedToast.success("Source updated", {
+      description: `${count} ${count === 1 ? "lead" : "leads"} reassigned to ${sourceLabel}.`,
+    }),
+
+  sourceReassignFailed: (detail?: string) =>
+    animatedToast.error("Failed to update source", {
+      description: detail || "Something went wrong. Please try again.",
+    }),
 };
 
 // ── Activities ────────────────────────────────────────────

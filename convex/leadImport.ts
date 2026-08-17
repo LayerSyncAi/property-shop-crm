@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { getCurrentUserWithOrg } from "./helpers";
 import { checkRateLimit } from "./rateLimit";
 import { canonicalizeAreas } from "./lib/locations";
+import { LEAD_SOURCE_VALUES, LEGACY_PORTAL_SOURCE } from "./lib/leadSources";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -14,9 +15,7 @@ function normalizePhone(phone: string): string {
   return hasPlus ? "+" + digits : digits;
 }
 
-const sourceValues = [
-  "walk_in", "referral", "facebook", "instagram", "tiktok", "whatsapp", "website", "property_portal", "other",
-] as const;
+const sourceValues = LEAD_SOURCE_VALUES;
 
 const interestValues = ["rent", "buy"] as const;
 
@@ -228,6 +227,11 @@ export const bulkImport = mutation({
         const source = sourceValues.includes(row.source as any)
           ? (row.source as (typeof sourceValues)[number])
           : "other";
+        // A CSV can still carry the retired generic portal bucket. Accept it
+        // rather than losing the row, but flag it for reassignment to the real
+        // platform — same treatment the migration gives historical leads.
+        const sourceNeedsReview =
+          source === LEGACY_PORTAL_SOURCE ? true : undefined;
         const interestType = interestValues.includes(row.interestType as any)
           ? (row.interestType as (typeof interestValues)[number])
           : "buy";
@@ -265,6 +269,7 @@ export const bulkImport = mutation({
               normalizedPhone: normalizedPhoneVal,
               email: row.email?.trim() || duplicateLead.email,
               source,
+              sourceNeedsReview,
               interestType,
               budgetCurrency: row.budgetCurrency || duplicateLead.budgetCurrency,
               budgetMin: row.budgetMin ?? duplicateLead.budgetMin,
@@ -299,6 +304,7 @@ export const bulkImport = mutation({
           normalizedPhone: normalizedPhoneVal,
           email: row.email?.trim(),
           source,
+          sourceNeedsReview,
           interestType,
           budgetCurrency: row.budgetCurrency || undefined,
           budgetMin: row.budgetMin,

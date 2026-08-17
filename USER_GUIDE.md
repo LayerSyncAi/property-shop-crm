@@ -925,10 +925,24 @@ SynCRM aims to be the **most intuitive and collaborative real estate CRM** avail
 | Walk-in | Client visited the office in person |
 | Referral | Referred by another client or contact |
 | Facebook | Lead from Facebook ads or posts |
+| Instagram | Lead from Instagram |
+| TikTok | Lead from TikTok |
 | WhatsApp | Inquiry via WhatsApp |
 | Website | Lead from your website |
-| Property Portal | Lead from a property listing portal |
+| PropertyBook | Lead from a propertybook.co.zw listing |
+| Property.co.zw | Lead from a property.co.zw listing |
 | Other | Any other source |
+
+**Other portal (retired).** Leads used to be recorded against a single generic
+"Property Portal" source, which hid which platform they actually came from. That
+option can no longer be chosen for new leads — pick **PropertyBook** or
+**Property.co.zw** instead. Existing leads keep their value (shown as "Other
+portal") and are listed under **Lead Source Review**
+(`/app/leads/source-review`), where you can reassign them one at a time or in
+bulk. A banner on the Leads page links there while any remain.
+
+Because these source values match the marketing spend channels, per-portal
+spend and the leads it produced line up in the Lead Sources report.
 
 ### Activity Types
 

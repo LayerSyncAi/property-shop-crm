@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
+import { leadSourceValidator } from "./lib/leadSources";
 
 export default defineSchema({
   ...authTables,
@@ -83,17 +84,11 @@ export default defineSchema({
     phone: v.optional(v.string()),
     normalizedPhone: v.optional(v.string()),
     email: v.optional(v.string()),
-    source: v.union(
-      v.literal("walk_in"),
-      v.literal("referral"),
-      v.literal("facebook"),
-      v.literal("instagram"),
-      v.literal("tiktok"),
-      v.literal("whatsapp"),
-      v.literal("website"),
-      v.literal("property_portal"),
-      v.literal("other")
-    ),
+    source: leadSourceValidator,
+    // Set by the flagLegacyPortalLeads migration on leads still carrying the
+    // generic "property_portal" source, so an agent can reassign them to the
+    // real platform. Cleared as soon as the source is changed.
+    sourceNeedsReview: v.optional(v.boolean()),
     interestType: v.union(v.literal("rent"), v.literal("buy")),
     budgetCurrency: v.optional(v.string()),
     budgetMin: v.optional(v.number()),
