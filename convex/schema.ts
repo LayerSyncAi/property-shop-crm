@@ -569,7 +569,23 @@ export default defineSchema({
     ),
     minBedrooms: v.optional(v.number()),
     minBathrooms: v.optional(v.number()),
+    // --- Roles -------------------------------------------------------------
+    // A person can be a buyer/tenant, a property owner (seller/landlord), or
+    // both — the same human often is. Storing this as two role flags on one
+    // contact keeps a single record per person, so phone dedupe, agent
+    // assignment and the activity timeline work across both sides of the
+    // business instead of being duplicated.
+    //
+    // `ownerType` set  => appears in Owners (/app/owners).
+    // `isBuyerTenant`  => appears in Contacts. Legacy rows predate the field
+    //                     and are undefined, which MUST read as true; the
+    //                     backfillContactRoles migration makes that explicit.
+    ownerType: v.optional(
+      v.union(v.literal("seller"), v.literal("landlord"), v.literal("both"))
+    ),
+    isBuyerTenant: v.optional(v.boolean()),
     // Multiple owners can see this contact - agents only see contacts they own
+    // (NB: "owner" here means the assigned agent, not the property owner above)
     ownerUserIds: v.array(v.id("users")),
     createdByUserId: v.id("users"),
     orgId: v.optional(v.id("organizations")),
@@ -578,6 +594,26 @@ export default defineSchema({
   })
     .index("by_normalized_phone", ["normalizedPhone"])
     .index("by_name", ["name"])
+    .index("by_org", ["orgId"])
+    .index("by_org_owner_type", ["orgId", "ownerType"]),
+  // Links a property to the client who owns it (its seller or landlord), as
+  // distinct from `properties.ownerUserIds`, which is the agent who owns the
+  // record. A property can have several owners (joint sellers) and an owner can
+  // hold several properties, so this is a join table — same shape as
+  // propertyCollaborators above.
+  propertyOwners: defineTable({
+    propertyId: v.id("properties"),
+    contactId: v.id("contacts"),
+    // The role in THIS relationship. An owner whose contact-level ownerType is
+    // "both" is still either selling or letting a given property.
+    role: v.union(v.literal("seller"), v.literal("landlord")),
+    linkedByUserId: v.id("users"),
+    linkedAt: v.number(),
+    orgId: v.optional(v.id("organizations")),
+  })
+    .index("by_property", ["propertyId"])
+    .index("by_contact", ["contactId"])
+    .index("by_property_contact", ["propertyId", "contactId"])
     .index("by_org", ["orgId"]),
   // Web Push (PWA) subscriptions. One row per browser/device endpoint a user
   // has granted notification permission on. A user can have many (phone,

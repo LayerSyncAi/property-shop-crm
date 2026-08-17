@@ -312,6 +312,9 @@ export const taskActivityLog = query({
           propertyTitle: property?.title ?? null,
           contactId: a.contactId ?? null,
           contactName: contact?.name ?? null,
+          // Sellers/landlords are contacts carrying an owner role, so the log
+          // can say "Owner: …" rather than mislabelling them as a contact.
+          contactOwnerType: contact?.ownerType ?? null,
         };
       })
     );
