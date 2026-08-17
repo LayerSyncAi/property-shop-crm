@@ -67,6 +67,8 @@ const ACTIVITY_ICON: Record<string, typeof Phone> = {
   email: Mail,
   meeting: User,
   viewing: FileSignature,
+  follow_up: Phone,
+  paperwork: FileSignature,
   note: Clock,
 };
 

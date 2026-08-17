@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserWithOrg, assertOrgAccess, isEffectiveAdmin } from "./helpers";
 import { Id } from "./_generated/dataModel";
+import { activityTypeValidator } from "./lib/activityTypes";
 
 async function canAccessLead(ctx: any, leadId: any, userId: any, isAdmin: boolean, userOrgId: Id<"organizations">) {
   const lead = await ctx.db.get(leadId);
@@ -16,19 +17,13 @@ async function canAccessLead(ctx: any, leadId: any, userId: any, isAdmin: boolea
 export const createForLead = mutation({
   args: {
     leadId: v.id("leads"),
-    type: v.union(
-      v.literal("call"),
-      v.literal("whatsapp"),
-      v.literal("email"),
-      v.literal("meeting"),
-      v.literal("viewing"),
-      v.literal("note")
-    ),
+    type: activityTypeValidator,
     title: v.string(),
     description: v.string(),
     scheduledAt: v.optional(v.number()),
     scheduledTimezone: v.optional(v.string()),
     assignedToUserId: v.optional(v.id("users")),
+    propertyId: v.optional(v.id("properties")),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserWithOrg(ctx);
@@ -44,6 +39,10 @@ export const createForLead = mutation({
 
     const activityId = await ctx.db.insert("activities", {
       leadId: args.leadId,
+      // Inherit the lead's contact so the task carries context even when the
+      // caller only knows the lead.
+      contactId: lead.contactId,
+      propertyId: args.propertyId,
       type: args.type,
       title: args.title,
       description: args.description,
@@ -75,19 +74,14 @@ export const createForLead = mutation({
 
 export const createStandalone = mutation({
   args: {
-    type: v.union(
-      v.literal("call"),
-      v.literal("whatsapp"),
-      v.literal("email"),
-      v.literal("meeting"),
-      v.literal("viewing"),
-      v.literal("note")
-    ),
+    type: activityTypeValidator,
     title: v.string(),
     description: v.string(),
     scheduledAt: v.optional(v.number()),
     scheduledTimezone: v.optional(v.string()),
     assignedToUserId: v.optional(v.id("users")),
+    propertyId: v.optional(v.id("properties")),
+    contactId: v.optional(v.id("contacts")),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserWithOrg(ctx);
@@ -100,6 +94,8 @@ export const createStandalone = mutation({
 
     return ctx.db.insert("activities", {
       leadId: undefined,
+      propertyId: args.propertyId,
+      contactId: args.contactId,
       type: args.type,
       title: args.title,
       description: args.description,
@@ -223,15 +219,7 @@ export const listTodosScheduledBetween = query({
 export const listAllTasks = query({
   args: {
     status: v.optional(v.union(v.literal("todo"), v.literal("completed"), v.literal("all"))),
-    type: v.optional(v.union(
-      v.literal("call"),
-      v.literal("whatsapp"),
-      v.literal("email"),
-      v.literal("meeting"),
-      v.literal("viewing"),
-      v.literal("note"),
-      v.literal("all")
-    )),
+    type: v.optional(v.union(activityTypeValidator, v.literal("all"))),
     page: v.optional(v.number()),
     pageSize: v.optional(v.number()),
   },
@@ -261,24 +249,34 @@ export const listAllTasks = query({
       filtered = filtered.filter(a => a.type === typeFilter);
     }
 
-    // Batch fetch leads and users
+    // Batch fetch the linked records so each row can show its context.
     const leadIds = [...new Set(filtered.map(a => a.leadId).filter(Boolean))] as Id<"leads">[];
+    const propertyIds = [...new Set(filtered.map(a => a.propertyId).filter(Boolean))] as Id<"properties">[];
+    const contactIds = [...new Set(filtered.map(a => a.contactId).filter(Boolean))] as Id<"contacts">[];
     const userIds = [...new Set(filtered.map(a => a.assignedToUserId))];
 
-    const [leadDocs, userDocs] = await Promise.all([
+    const [leadDocs, propertyDocs, contactDocs, userDocs] = await Promise.all([
       Promise.all(leadIds.map(id => ctx.db.get(id))),
+      Promise.all(propertyIds.map(id => ctx.db.get(id))),
+      Promise.all(contactIds.map(id => ctx.db.get(id))),
       Promise.all(userIds.map(id => ctx.db.get(id))),
     ]);
 
     const leadMap = new Map(leadDocs.filter(Boolean).map(l => [l!._id, l!]));
+    const propertyMap = new Map(propertyDocs.filter(Boolean).map(p => [p!._id, p!]));
+    const contactMap = new Map(contactDocs.filter(Boolean).map(c => [c!._id, c!]));
     const userMap = new Map(userDocs.filter(Boolean).map(u => [u!._id, u!]));
 
     const enrichedActivities = filtered.map((activity) => {
       const lead = activity.leadId ? leadMap.get(activity.leadId) : null;
+      const property = activity.propertyId ? propertyMap.get(activity.propertyId) : null;
+      const contact = activity.contactId ? contactMap.get(activity.contactId) : null;
       const assignedTo = userMap.get(activity.assignedToUserId);
       return {
         ...activity,
         lead: lead ? { _id: lead._id, fullName: lead.fullName, phone: lead.phone } : null,
+        property: property ? { _id: property._id, title: property.title } : null,
+        contact: contact ? { _id: contact._id, name: contact.name } : null,
         assignedTo: assignedTo ? {
           _id: assignedTo._id,
           fullName: assignedTo.fullName,
@@ -361,14 +359,9 @@ export const update = mutation({
     description: v.optional(v.string()),
     scheduledAt: v.optional(v.number()),
     scheduledTimezone: v.optional(v.string()),
-    type: v.optional(v.union(
-      v.literal("call"),
-      v.literal("whatsapp"),
-      v.literal("email"),
-      v.literal("meeting"),
-      v.literal("viewing"),
-      v.literal("note")
-    )),
+    type: v.optional(activityTypeValidator),
+    propertyId: v.optional(v.id("properties")),
+    contactId: v.optional(v.id("contacts")),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserWithOrg(ctx);
@@ -398,6 +391,8 @@ export const update = mutation({
       updates.reminderSentAt = undefined;
     }
     if (args.type !== undefined) updates.type = args.type;
+    if (args.propertyId !== undefined) updates.propertyId = args.propertyId;
+    if (args.contactId !== undefined) updates.contactId = args.contactId;
 
     await ctx.db.patch(args.activityId, updates);
   },

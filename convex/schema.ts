@@ -2,6 +2,7 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
 import { leadSourceValidator } from "./lib/leadSources";
+import { activityTypeValidator } from "./lib/activityTypes";
 
 export default defineSchema({
   ...authTables,
@@ -377,14 +378,12 @@ export default defineSchema({
     .index("by_org", ["orgId"]),
   activities: defineTable({
     leadId: v.optional(v.id("leads")),
-    type: v.union(
-      v.literal("call"),
-      v.literal("whatsapp"),
-      v.literal("email"),
-      v.literal("meeting"),
-      v.literal("viewing"),
-      v.literal("note")
-    ),
+    // Optional links giving a task its context, so completed work reads as an
+    // activity log ("viewing at 12 Oak Ave for the Moyo lead") rather than a
+    // bare title. All optional: a task can stand alone.
+    propertyId: v.optional(v.id("properties")),
+    contactId: v.optional(v.id("contacts")),
+    type: activityTypeValidator,
     title: v.string(),
     description: v.string(),
     scheduledAt: v.optional(v.number()),
@@ -418,6 +417,8 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_type", ["type"])
     .index("by_lead", ["leadId"])
+    .index("by_property", ["propertyId"])
+    .index("by_contact", ["contactId"])
     .index("by_org", ["orgId"])
     .index("by_next_reminder", ["nextReminderAt"]),
   activityReminders: defineTable({
