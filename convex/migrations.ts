@@ -58,6 +58,50 @@ export const backfillPropertyOwnership = internalMutation({
 });
 
 /**
+ * Make the contact role flags explicit on pre-existing contacts.
+ *
+ * Run from the CLI / dashboard:
+ *   npx convex run migrations:backfillContactRoles
+ *   # repeat until it reports { isDone: true } for very large tables
+ *
+ * Every contact that existed before the Owners module was a buyer/tenant, so
+ * they get `isBuyerTenant: true` and no `ownerType`. The queries treat an unset
+ * flag as true anyway; this backfill exists so the field is explicit rather
+ * than implied, and so "buyer/tenant" can be filtered on directly.
+ *
+ * Idempotent: a contact that already has either role flag is skipped.
+ */
+export const backfillContactRoles = internalMutation({
+  args: {
+    batchSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = Math.min(Math.max(args.batchSize ?? 200, 1), 500);
+
+    const all = await ctx.db.query("contacts").collect();
+    const pending = all.filter(
+      (c) => c.isBuyerTenant === undefined && c.ownerType === undefined
+    );
+
+    let updated = 0;
+    for (const contact of pending) {
+      if (updated >= batchSize) break;
+      await ctx.db.patch(contact._id, { isBuyerTenant: true });
+      updated++;
+    }
+
+    const remaining = pending.length - updated;
+    return {
+      scanned: all.length,
+      pending: pending.length,
+      updated,
+      remaining,
+      isDone: remaining === 0,
+    };
+  },
+});
+
+/**
  * Flag leads still carrying the retired generic "property_portal" source so an
  * agent can reassign them to the real platform (PropertyBook / Property.co.zw).
  *

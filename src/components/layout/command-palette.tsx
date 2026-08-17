@@ -17,6 +17,7 @@ import {
   CornerDownLeft,
   SlidersHorizontal,
   AlertTriangle,
+  KeyRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ const baseCommands: Command[] = [
   { id: "nav-dashboard", label: "Dashboard", group: "Go to", icon: LayoutDashboard, href: "/app/dashboard", keywords: "home overview pipeline" },
   { id: "nav-leads", label: "Leads", group: "Go to", icon: Waypoints, href: "/app/leads", keywords: "pipeline kanban" },
   { id: "nav-contacts", label: "Contacts", group: "Go to", icon: Users, href: "/app/contacts", keywords: "people" },
+  { id: "nav-owners", label: "Owners", group: "Go to", icon: KeyRound, href: "/app/owners", keywords: "sellers landlords vendors property owners" },
   { id: "nav-properties", label: "Properties", group: "Go to", icon: Building2, href: "/app/properties", keywords: "listings inventory" },
   { id: "nav-tasks", label: "Tasks", group: "Go to", icon: ClipboardList, href: "/app/tasks", keywords: "activities todo" },
   { id: "nav-reports", label: "Reports", group: "Go to", icon: BarChart3, href: "/app/reports", keywords: "analytics revenue leaderboard" },

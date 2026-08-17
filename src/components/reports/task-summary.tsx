@@ -78,7 +78,9 @@ export function TaskSummarySection({
     if (item.leadName) parts.push(`Lead: ${item.leadName}`);
     if (item.propertyTitle) parts.push(`Property: ${item.propertyTitle}`);
     if (item.contactName && item.contactName !== item.leadName) {
-      parts.push(`Contact: ${item.contactName}`);
+      parts.push(
+        `${item.contactOwnerType ? "Owner" : "Contact"}: ${item.contactName}`
+      );
     }
     return parts.length ? parts.join(" · ") : "—";
   };

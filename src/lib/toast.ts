@@ -179,6 +179,47 @@ export const contactToasts = {
     }),
 };
 
+// ── Owners (sellers & landlords) ──────────────────────────
+
+export const ownerToasts = {
+  created: (name: string) =>
+    animatedToast.success("Owner added", {
+      description: `${name} has been added to Owners.`,
+    }),
+
+  promoted: (name: string) =>
+    animatedToast.info("Existing contact updated", {
+      description: `${name} was already on file and is now marked as an owner.`,
+    }),
+
+  updated: (name: string) =>
+    animatedToast.success("Owner updated", {
+      description: `${name}'s details have been saved.`,
+    }),
+
+  removed: (name: string, deletedContact: boolean) =>
+    animatedToast.success("Owner removed", {
+      description: deletedContact
+        ? `${name} has been deleted.`
+        : `${name} is no longer an owner but remains a contact.`,
+    }),
+
+  linked: (name: string) =>
+    animatedToast.success("Owner linked", {
+      description: `${name} is now linked to this property.`,
+    }),
+
+  unlinked: () =>
+    animatedToast.success("Owner unlinked", {
+      description: "The owner remains on file and can be linked again.",
+    }),
+
+  failed: (detail?: string) =>
+    animatedToast.error("Owner action failed", {
+      description: detail || "Something went wrong. Please try again.",
+    }),
+};
+
 // ── Properties ────────────────────────────────────────────
 
 export const propertyToasts = {

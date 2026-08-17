@@ -178,7 +178,8 @@ export default function TasksPage() {
 
   const contactsResult = useQuery(
     api.contacts.list,
-    showCreateModal ? {} : "skip"
+    // "all": a task can just as easily relate to a seller/landlord as a buyer.
+    showCreateModal ? { role: "all" as const } : "skip"
   );
   const contactOptions = useMemo(() => {
     const items = contactsResult?.items ?? [];

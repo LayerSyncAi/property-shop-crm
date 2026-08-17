@@ -11,17 +11,18 @@
 3. [Dashboard](#3-dashboard)
 4. [Leads Management](#4-leads-management)
 5. [Contacts](#5-contacts)
-6. [Properties](#6-properties)
-7. [Tasks & Activities](#7-tasks--activities)
-8. [Lead Import & Export](#8-lead-import--export)
-9. [Property Sharing & Collaboration](#9-property-sharing--collaboration)
-10. [Document Management](#10-document-management)
-11. [Administration (Admin Only)](#11-administration-admin-only)
-12. [Commission Tracking](#12-commission-tracking)
-13. [Lead Scoring](#13-lead-scoring)
-14. [Duplicate Detection & Lead Merge](#14-duplicate-detection--lead-merge)
-15. [Tips & Best Practices](#15-tips--best-practices)
-16. [Vision & Roadmap](#16-vision--roadmap)
+6. [Owners (Sellers & Landlords)](#6-owners-sellers--landlords)
+7. [Properties](#7-properties)
+8. [Tasks & Activities](#8-tasks--activities)
+9. [Lead Import & Export](#9-lead-import--export)
+10. [Property Sharing & Collaboration](#10-property-sharing--collaboration)
+11. [Document Management](#11-document-management)
+12. [Administration (Admin Only)](#12-administration-admin-only)
+13. [Commission Tracking](#13-commission-tracking)
+14. [Lead Scoring](#14-lead-scoring)
+15. [Duplicate Detection & Lead Merge](#15-duplicate-detection--lead-merge)
+16. [Tips & Best Practices](#16-tips--best-practices)
+17. [Vision & Roadmap](#17-vision--roadmap)
 
 ---
 
@@ -90,7 +91,7 @@ Click **"Forgot password?"** on the login page. Enter your email address and a p
 First-time users see an interactive guided tour powered by React Joyride. The tour walks you through:
 
 1. **Welcome screen** — introduction to SynCRM
-2. **Main navigation** — Dashboard, Leads, Contacts, Properties, Tasks
+2. **Main navigation** — Dashboard, Leads, Contacts, Owners, Properties, Tasks
 3. **Dashboard** — your pipeline overview at a glance
 4. **Leads** — where you manage opportunities
 5. **Contacts** — your address book
@@ -108,7 +109,7 @@ The sidebar is your command center with these main sections:
 
 | Section | Items | Visibility |
 |---------|-------|------------|
-| **Main** | Dashboard, Leads, Contacts, Properties, Tasks | All users |
+| **Main** | Dashboard, Leads, Contacts, Owners, Properties, Tasks | All users |
 | **Import / Export** | Lead Import, Lead Export | All users |
 | **Admin** | Users, Roles, Stages, Lead Scoring, Commissions | Admin only |
 
@@ -318,7 +319,8 @@ Displays all contacts with:
 
 - **Name** and **Phone**
 - **Email** and **Company** (if provided)
-- **Owner(s)** — contacts can be shared across agents
+- **Assigned agent(s)** — contacts can be shared across agents
+- **Role** — buyers/tenants by default; switch the filter to see owners
 - **Actions** — edit and delete
 
 **Visibility rules:**
@@ -346,7 +348,81 @@ Click the trash icon to delete. A confirmation dialog prevents accidental deleti
 
 ---
 
-## 6. Properties
+## 6. Owners (Sellers & Landlords)
+
+**Path:** `/app/owners`
+
+Owners are the clients whose property you represent — the sellers and landlords
+on the supply side of the business, as against the buyers and tenants in
+Contacts.
+
+> **Two different "owners".** Throughout the app, *Owner* on this page means the
+> **client** who owns a property. The agent who owns a record is labelled
+> **assigned agent** (on Contacts and Owners) or **agent ownership** (on a
+> property's Documentation tab). They are unrelated.
+
+### 6.1 One person, two roles
+
+An owner is a contact carrying a **seller / landlord / both** role, not a
+separate record. A landlord who is also house-hunting is therefore **one
+person** in the system: they appear in both Owners and Contacts, share one
+activity timeline, and are caught by the same duplicate detection.
+
+- Contacts defaults to **Buyers & tenants**; use the **Role** filter to show
+  Owners or Everyone.
+- Owners shows only contacts with an owner role.
+- An owner who is also a buyer/tenant is badged as such in both lists.
+
+### 6.2 Owners List
+
+Shows name, type, phone, email, **how many properties they hold**, and the
+assigned agent. Search by name, phone, email or company, and filter by type.
+Visibility follows the same rules as Contacts: agents see the owners assigned to
+them, admins see the whole organization.
+
+### 6.3 Creating an Owner
+
+Click **"+ New Owner"** and provide:
+
+- **Name** (required)
+- **Type** (required) — Seller, Landlord, or Both
+- **Phone** and/or **Email** — at least one is required
+- **Company** (optional) — for corporate landlords
+- **Notes** (optional)
+
+If the phone number already belongs to a contact, that person is **marked as an
+owner** instead of a second record being created, and you are told so.
+
+### 6.4 Removing an Owner
+
+Removing an owner always unlinks them from their properties. What happens to the
+record depends on who they are:
+
+- **Owner only** — the record is deleted.
+- **Also a buyer/tenant** — only the owner role is removed. Their contact
+  record, leads and history are kept.
+
+### 6.5 Owners on a Property
+
+Each property has an **Owner** tab showing the seller or landlord it belongs to.
+Owner information sits alongside the mandate, so the tab follows the same access
+rules as Documents: admins, the owning agent(s), and explicit collaborators.
+
+From the tab you can:
+
+- **New owner** — quick-add a name and contact and link them in one step, the
+  same pattern as creating a contact from a lead. The role defaults from the
+  listing (rental → landlord, sale → seller).
+- **Link existing** — search Owners and attach someone already on file.
+- **Unlink** — break the property link. The owner record itself is kept.
+
+A property can have several owners (joint sellers), and an owner can hold
+several properties — their full portfolio is listed on their detail page. The
+linked owner is also shown at a glance on the property's Details tab.
+
+---
+
+## 7. Properties
 
 **Path:** `/app/properties`
 
@@ -413,7 +489,7 @@ Available → Under Offer → Sold / Let
 
 ---
 
-## 7. Tasks & Activities
+## 8. Tasks & Activities
 
 **Path:** `/app/tasks`
 
@@ -467,7 +543,7 @@ Reminders are delivered via email and are deduped to prevent spam.
 
 ---
 
-## 8. Lead Import & Export
+## 9. Lead Import & Export
 
 ### 8.1 Lead Import (CSV)
 
@@ -508,7 +584,7 @@ Exported data respects role-based access — agents only export their own leads,
 
 ---
 
-## 9. Property Sharing & Collaboration
+## 10. Property Sharing & Collaboration
 
 Property sharing is a core collaboration feature that enables two agents to work together on a deal.
 
@@ -544,7 +620,7 @@ When a shared deal closes, the commission split is automatically calculated base
 
 ---
 
-## 10. Document Management
+## 11. Document Management
 
 Documents can be attached to both **leads** and **properties**.
 
@@ -575,7 +651,7 @@ Documents are scoped to the organization — only team members can access them.
 
 ---
 
-## 11. Administration (Admin Only)
+## 12. Administration (Admin Only)
 
 The admin section is only visible to users with the **admin** role.
 
@@ -675,17 +751,17 @@ Stages can be deleted if no leads are currently in that stage. The system preven
 
 **Path:** `/app/admin/lead-scoring`
 
-See full details in [section 13](#13-lead-scoring).
+See full details in [section 14](#14-lead-scoring).
 
 ### 11.5 Commission Configuration
 
 **Path:** `/app/admin/commissions`
 
-See full details in [section 12](#12-commission-tracking).
+See full details in [section 13](#13-commission-tracking).
 
 ---
 
-## 12. Commission Tracking
+## 13. Commission Tracking
 
 **Path:** `/app/admin/commissions` (Admin only)
 
@@ -729,7 +805,7 @@ Admins can review and update commission statuses. The commission records page sh
 
 ---
 
-## 13. Lead Scoring
+## 14. Lead Scoring
 
 **Path:** `/app/admin/lead-scoring` (Admin only)
 
@@ -774,7 +850,7 @@ Select any lead from the dropdown to see a **real-time score breakdown**. As you
 
 ---
 
-## 14. Duplicate Detection & Lead Merge
+## 15. Duplicate Detection & Lead Merge
 
 ### 14.1 Duplicate Detection
 
@@ -813,7 +889,7 @@ Archived leads no longer appear in the leads list, exports, or dashboards.
 
 ---
 
-## 15. Tips & Best Practices
+## 16. Tips & Best Practices
 
 ### For Agents
 
@@ -839,7 +915,7 @@ Archived leads no longer appear in the leads list, exports, or dashboards.
 
 ---
 
-## 16. Vision & Roadmap
+## 17. Vision & Roadmap
 
 ### The Vision
 
