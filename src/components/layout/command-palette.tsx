@@ -16,6 +16,7 @@ import {
   Download,
   CornerDownLeft,
   SlidersHorizontal,
+  AlertTriangle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ const baseCommands: Command[] = [
   { id: "act-segments", label: "Contact segmentation", group: "Tools", icon: SlidersHorizontal, href: "/app/contacts/segments", keywords: "segment filter" },
   { id: "act-import", label: "Import leads", group: "Tools", icon: Upload, href: "/app/leads/import", keywords: "csv upload" },
   { id: "act-export", label: "Export leads", group: "Tools", icon: Download, href: "/app/leads/export", keywords: "csv download" },
+  { id: "act-source-review", label: "Lead source review", group: "Tools", icon: AlertTriangle, href: "/app/leads/source-review", keywords: "property portal propertybook reassign source" },
 ];
 
 const groupOrder: Command["group"][] = ["Go to", "Create", "Tools"];

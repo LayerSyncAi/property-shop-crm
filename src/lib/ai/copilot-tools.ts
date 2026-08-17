@@ -61,6 +61,8 @@ function sanitizeItems(items: unknown[]): unknown[] {
   );
 }
 
+// Excludes the retired "property_portal" bucket: the assistant should always
+// name the real platform when it creates a lead.
 const leadSourceSchema = z.enum([
   "walk_in",
   "referral",
@@ -69,7 +71,8 @@ const leadSourceSchema = z.enum([
   "tiktok",
   "whatsapp",
   "website",
-  "property_portal",
+  "propertybook",
+  "property_co_zw",
   "other",
 ]);
 

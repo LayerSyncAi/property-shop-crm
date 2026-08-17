@@ -1,5 +1,6 @@
 import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { LEGACY_PORTAL_SOURCE } from "./lib/leadSources";
 
 /**
  * Backfill the ownership model onto pre-existing properties.
@@ -42,6 +43,51 @@ export const backfillPropertyOwnership = internalMutation({
       }
 
       await ctx.db.patch(property._id, { ownershipType, ownerUserIds });
+      updated++;
+    }
+
+    const remaining = pending.length - updated;
+    return {
+      scanned: all.length,
+      pending: pending.length,
+      updated,
+      remaining,
+      isDone: remaining === 0,
+    };
+  },
+});
+
+/**
+ * Flag leads still carrying the retired generic "property_portal" source so an
+ * agent can reassign them to the real platform (PropertyBook / Property.co.zw).
+ *
+ * Run from the CLI / dashboard:
+ *   npx convex run migrations:flagLegacyPortalLeads
+ *   # repeat until it reports { isDone: true } for very large tables
+ *
+ * The source itself is deliberately NOT rewritten: guessing between portals
+ * would invent data, and the brief asks for the distinction to be surfaced
+ * rather than silently lost. Reassignment happens in /app/leads/source-review.
+ *
+ * Idempotent: a lead that already has `sourceNeedsReview` is skipped, so the
+ * job is safe to re-run.
+ */
+export const flagLegacyPortalLeads = internalMutation({
+  args: {
+    batchSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = Math.min(Math.max(args.batchSize ?? 200, 1), 500);
+
+    const all = await ctx.db.query("leads").collect();
+    const pending = all.filter(
+      (l) => l.source === LEGACY_PORTAL_SOURCE && l.sourceNeedsReview === undefined
+    );
+
+    let updated = 0;
+    for (const lead of pending) {
+      if (updated >= batchSize) break;
+      await ctx.db.patch(lead._id, { sourceNeedsReview: true });
       updated++;
     }
 
