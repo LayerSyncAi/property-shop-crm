@@ -84,9 +84,16 @@ export function daysOnMarketSince(
 
 export interface TaskLike {
   status: "todo" | "completed";
+  type?: string;
   createdAt: number;
   completedAt?: number;
   scheduledAt?: number;
+}
+
+/** Per-type activity within the reporting window. */
+export interface TaskTypeCounts {
+  created: number;
+  completed: number;
 }
 
 export interface TaskMetrics {
@@ -100,13 +107,33 @@ export interface TaskMetrics {
   overdue: number;
   /** completed ÷ (completed + pending + overdue), as a percentage. */
   completionRate: number;
+  /** Window-bounded created/completed counts keyed by task type. */
+  byType: Record<string, TaskTypeCounts>;
+  /** Completed in-window on or before their due date. */
+  completedOnTime: number;
+  /** Completed in-window after their due date. */
+  completedLate: number;
+  /** Completed in-window but never had a due date, so punctuality is unknown. */
+  completedNoDueDate: number;
+  /**
+   * completedOnTime ÷ (completedOnTime + completedLate), as a percentage.
+   * Tasks with no due date are excluded from the denominator — counting them
+   * either way would move the rate on work that was never actually due.
+   */
+  onTimeRate: number;
 }
 
 /**
  * Summarise a set of tasks for reporting. `created` and `completed` are
  * window-bounded (period activity); `pending` and `overdue` are a point-in-time
  * snapshot of the open backlog relative to `now` (overdue is inherently
- * now-relative). Pure and Convex-free for direct unit testing.
+ * now-relative).
+ *
+ * `overdue` and `completedLate` answer different questions: `overdue` is work
+ * still not done and already past due; `completedLate` is work that got done
+ * but missed its date.
+ *
+ * Pure and Convex-free for direct unit testing.
  */
 export function computeTaskMetrics(
   tasks: TaskLike[],
@@ -118,10 +145,36 @@ export function computeTaskMetrics(
   let completed = 0;
   let pending = 0;
   let overdue = 0;
+  let completedOnTime = 0;
+  let completedLate = 0;
+  let completedNoDueDate = 0;
+  const byType: Record<string, TaskTypeCounts> = {};
+
+  const typeBucket = (type: string | undefined): TaskTypeCounts => {
+    const key = type ?? "other";
+    let b = byType[key];
+    if (!b) {
+      b = { created: 0, completed: 0 };
+      byType[key] = b;
+    }
+    return b;
+  };
+
   for (const t of tasks) {
-    if (inWindow(t.createdAt, start, end)) created++;
+    if (inWindow(t.createdAt, start, end)) {
+      created++;
+      typeBucket(t.type).created++;
+    }
     if (t.status === "completed" && inWindow(t.completedAt, start, end)) {
       completed++;
+      typeBucket(t.type).completed++;
+      if (typeof t.scheduledAt !== "number") {
+        completedNoDueDate++;
+      } else if ((t.completedAt as number) <= t.scheduledAt) {
+        completedOnTime++;
+      } else {
+        completedLate++;
+      }
     }
     if (t.status === "todo") {
       if (typeof t.scheduledAt === "number" && t.scheduledAt < now) {
@@ -137,6 +190,11 @@ export function computeTaskMetrics(
     pending,
     overdue,
     completionRate: conversionRate(completed, completed + pending + overdue),
+    byType,
+    completedOnTime,
+    completedLate,
+    completedNoDueDate,
+    onTimeRate: conversionRate(completedOnTime, completedOnTime + completedLate),
   };
 }
 

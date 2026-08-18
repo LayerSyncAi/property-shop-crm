@@ -24,6 +24,7 @@ import { ImageUpload, ImageItem, serializeImages, deserializeImages } from "@/co
 import { LocationTypeahead } from "@/components/ui/location-typeahead";
 import { propertyToasts } from "@/lib/toast";
 import { DocumentManager } from "@/components/documents/document-manager";
+import { PropertyOwners } from "@/components/properties/property-owners";
 import { ViewingFormsList } from "@/components/viewings/viewing-forms-list";
 import { PropertyShare } from "@/components/properties/property-share";
 import { PropertyAccess } from "@/components/properties/property-access";
@@ -34,7 +35,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus, Eye, Trash2, Plus, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
-const propertyTabs = ["Details", "Marketing", "Sharing", "Viewings", "Documentation", "Gallery"] as const;
+const propertyTabs = ["Details", "Owner", "Marketing", "Sharing", "Viewings", "Documentation", "Gallery"] as const;
 type PropertyTab = (typeof propertyTabs)[number];
 
 const listVariants = {
@@ -315,6 +316,13 @@ export default function PropertiesPage() {
   // Full detail for the selected property: ownership + access flags.
   const selectedDetail = useQuery(
     api.properties.getById,
+    selectedProperty ? { propertyId: selectedProperty._id } : "skip"
+  );
+
+  // The seller/landlord this listing belongs to, shown at a glance on the
+  // Details tab and managed on the Owner tab.
+  const propertyOwners = useQuery(
+    api.owners.listForProperty,
     selectedProperty ? { propertyId: selectedProperty._id } : "skip"
   );
   const [propertyTab, setPropertyTab] = React.useState<PropertyTab>("Details");
@@ -1084,7 +1092,9 @@ export default function PropertiesPage() {
           <div className="border-b border-border">
             <div className="flex gap-6 relative">
               {propertyTabs
-                .filter((tab) => tab !== "Documentation" || canViewPrivate)
+                .filter((tab) =>
+                  tab === "Documentation" || tab === "Owner" ? canViewPrivate : true
+                )
                 .map((tab) => (
                 <button
                   key={tab}
@@ -1353,9 +1363,11 @@ export default function PropertiesPage() {
                     />
                   </div>
 
-                  {/* Ownership (read-only here; managed in the Documentation tab) */}
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Owner</Label>
+                  {/* Which AGENT holds the record (read-only here; managed in
+                      the Documentation tab). Distinct from the property owner
+                      below, who is the client. */}
+                  <div className="space-y-2">
+                    <Label>Assigned agent</Label>
                     <div className="rounded-md border border-border-strong bg-surface-2/40 px-3 py-2 text-sm text-text">
                       {(() => {
                         const oType =
@@ -1368,6 +1380,25 @@ export default function PropertiesPage() {
                       })()}
                     </div>
                   </div>
+
+                  {/* The seller/landlord at a glance; managed in the Owner tab. */}
+                  {canViewPrivate && (
+                    <div className="space-y-2">
+                      <Label>Property owner</Label>
+                      <div className="rounded-md border border-border-strong bg-surface-2/40 px-3 py-2 text-sm text-text">
+                        {propertyOwners === undefined
+                          ? "…"
+                          : propertyOwners.length === 0
+                            ? "—"
+                            : propertyOwners
+                                .map(
+                                  (o) =>
+                                    `${o!.name} (${o!.role === "landlord" ? "Landlord" : "Seller"})`
+                                )
+                                .join(", ")}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -1380,6 +1411,31 @@ export default function PropertiesPage() {
                     readOnly={!canEditProperty}
                   />
                 </div>
+              </motion.div>
+            )}
+
+            {propertyTab === "Owner" && selectedProperty && (
+              <motion.div
+                key="owner"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } }}
+                exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
+                className="space-y-6"
+              >
+                {canViewPrivate ? (
+                  <ErrorBoundary sectionName="Property owner">
+                    <PropertyOwners
+                      propertyId={selectedProperty._id}
+                      listingType={selectedProperty.listingType}
+                      canManage={canManageProperty}
+                    />
+                  </ErrorBoundary>
+                ) : (
+                  <div className="rounded-lg border border-border bg-surface-2/30 p-6 text-center text-sm text-text-muted">
+                    You don&apos;t have access to this property&apos;s owner
+                    information.
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -1443,7 +1499,7 @@ export default function PropertiesPage() {
                     {/* Isolate each panel: if the ownership/collaborator data
                         can't load (e.g. backend not yet deployed), show an
                         inline message instead of crashing the whole page. */}
-                    <ErrorBoundary sectionName="Ownership & collaborators">
+                    <ErrorBoundary sectionName="Agent access">
                       <PropertyAccess
                         propertyId={selectedProperty._id}
                         canManage={canManageProperty}

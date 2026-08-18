@@ -263,6 +263,11 @@ export default function ContactsPage() {
   const [searchInput, setSearchInput] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [ownerFilter, setOwnerFilter] = React.useState<Id<"users"> | "">("");
+  // Sellers and landlords live in the same table under an owner role. Contacts
+  // shows buyers/tenants by default; this switches to owners or both.
+  const [roleFilter, setRoleFilter] = React.useState<
+    "buyer_tenant" | "owner" | "all"
+  >("buyer_tenant");
 
   // Debounce search
   React.useEffect(() => {
@@ -278,6 +283,7 @@ export default function ContactsPage() {
       ? {
           q: debouncedSearch || undefined,
           ownerUserId: ownerFilter || undefined,
+          role: roleFilter,
           page: pagination.page > 0 ? pagination.page : undefined,
           pageSize: pagination.pageSize !== 50 ? pagination.pageSize : undefined,
         }
@@ -614,7 +620,7 @@ export default function ContactsPage() {
       </div>
 
       <div className="rounded-[12px] border border-border-strong bg-card-bg p-4">
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-4">
           <div className="space-y-2">
             <Label>Search</Label>
             <Input
@@ -623,14 +629,29 @@ export default function ContactsPage() {
               onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
+          <div className="space-y-2">
+            <Label>Role</Label>
+            <StaggeredDropDown
+              value={roleFilter}
+              onChange={(val) => {
+                setRoleFilter(val as "buyer_tenant" | "owner" | "all");
+                pagination.resetPage();
+              }}
+              options={[
+                { value: "buyer_tenant", label: "Buyers & tenants" },
+                { value: "owner", label: "Owners" },
+                { value: "all", label: "Everyone" },
+              ]}
+            />
+          </div>
           {isAdmin && (
             <div className="space-y-2">
-              <Label>Owner</Label>
+              <Label>Assigned agent</Label>
               <StaggeredDropDown
                 value={ownerFilter}
                 onChange={(val) => setOwnerFilter(val as Id<"users"> | "")}
                 options={[
-                  { value: "", label: "All owners" },
+                  { value: "", label: "All agents" },
                   ...users.map((user) => ({ value: user._id, label: user.name })),
                 ]}
               />
@@ -652,7 +673,7 @@ export default function ContactsPage() {
             <TableHead>Phone</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Company</TableHead>
-            <TableHead>Owners</TableHead>
+            <TableHead>Assigned agents</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </tr>
         </thead>

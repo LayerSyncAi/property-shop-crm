@@ -34,6 +34,7 @@ import type * as logs from "../logs.js";
 import type * as marketing from "../marketing.js";
 import type * as matches from "../matches.js";
 import type * as organizations from "../organizations.js";
+import type * as owners from "../owners.js";
 import type * as passwordReset from "../passwordReset.js";
 import type * as properties from "../properties.js";
 import type * as propertyBook from "../propertyBook.js";
@@ -82,6 +83,7 @@ declare const fullApi: ApiFromModules<{
   marketing: typeof marketing;
   matches: typeof matches;
   organizations: typeof organizations;
+  owners: typeof owners;
   passwordReset: typeof passwordReset;
   properties: typeof properties;
   propertyBook: typeof propertyBook;

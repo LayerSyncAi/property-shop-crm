@@ -26,6 +26,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { FlipCalendar } from "@/components/ui/flip-calendar";
 import { activityToasts } from "@/lib/toast";
 import { detectBrowserTimezone } from "@/lib/timezones";
+import {
+  ACTIVITY_TYPE_OPTIONS,
+  activityTypeLabel,
+  type ActivityType as ActivityTypeValue,
+} from "@/lib/activity-types";
 
 function AnimatedCounter({ value }: { value: number }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -77,7 +82,7 @@ const TaskDetailModal = lazy(() =>
 );
 
 type TaskStatus = "todo" | "completed" | "all";
-type ActivityType = "call" | "whatsapp" | "email" | "meeting" | "viewing" | "note" | "all";
+type ActivityType = ActivityTypeValue | "all";
 
 const formatDateTime = (timestamp: number) => {
   return new Date(timestamp).toLocaleString("en-US", {
@@ -88,16 +93,7 @@ const formatDateTime = (timestamp: number) => {
   });
 };
 
-const activityTypeLabels: Record<string, string> = {
-  call: "Call",
-  whatsapp: "WhatsApp",
-  email: "Email",
-  meeting: "Meeting",
-  viewing: "Viewing",
-  note: "Note",
-};
-
-const getActivityTypeLabel = (type: string) => activityTypeLabels[type] || type;
+const getActivityTypeLabel = (type: string) => activityTypeLabel(type);
 
 const isTaskOverdue = (task: { status: string; scheduledAt?: number }) =>
   task.status === "todo" && !!task.scheduledAt && task.scheduledAt < Date.now();
@@ -122,7 +118,7 @@ function CelebrationCheck() {
 interface TaskActivity {
   _id: Id<"activities">;
   leadId?: Id<"leads">;
-  type: "call" | "whatsapp" | "email" | "meeting" | "viewing" | "note";
+  type: ActivityTypeValue;
   title: string;
   description: string;
   scheduledAt?: number;
@@ -134,6 +130,8 @@ interface TaskActivity {
   createdAt: number;
   updatedAt?: number;
   lead: { _id: Id<"leads">; fullName: string; phone?: string } | null;
+  property: { _id: Id<"properties">; title: string } | null;
+  contact: { _id: Id<"contacts">; name: string } | null;
   assignedTo: { _id: Id<"users">; fullName?: string; name?: string; email?: string } | null;
 }
 
@@ -154,17 +152,53 @@ export default function TasksPage() {
 
   // New task creation state
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newTaskType, setNewTaskType] = useState<"call" | "whatsapp" | "email" | "meeting" | "viewing" | "note">("meeting");
+  const [newTaskType, setNewTaskType] = useState<ActivityTypeValue>("meeting");
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTaskScheduledAt, setNewTaskScheduledAt] = useState<Date | null>(null);
+  // Optional context links, so a completed standalone task still says what it
+  // related to in the activity log.
+  const [newTaskPropertyId, setNewTaskPropertyId] = useState<string>("");
+  const [newTaskContactId, setNewTaskContactId] = useState<string>("");
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+
+  // Only fetched while the create modal is open — the lists are only used there.
+  const propertiesResult = useQuery(
+    api.properties.list,
+    showCreateModal ? {} : "skip"
+  );
+  const propertyOptions = useMemo(() => {
+    const raw = propertiesResult as { items?: { _id: string; title: string }[] } | undefined;
+    const items = raw?.items ?? [];
+    return [
+      { value: "", label: "No property" },
+      ...items.map((p) => ({ value: p._id, label: p.title })),
+    ];
+  }, [propertiesResult]);
+
+  const contactsResult = useQuery(
+    api.contacts.list,
+    // "all": a task can just as easily relate to a seller/landlord as a buyer.
+    showCreateModal ? { role: "all" as const } : "skip"
+  );
+  const contactOptions = useMemo(() => {
+    const items = contactsResult?.items ?? [];
+    return [
+      { value: "", label: "No contact" },
+      ...items.map((c: { _id: string; name: string }) => ({
+        value: c._id,
+        label: c.name,
+      })),
+    ];
+  }, [contactsResult]);
 
   const resetCreateForm = useCallback(() => {
     setNewTaskTitle("");
     setNewTaskDescription("");
     setNewTaskScheduledAt(null);
     setNewTaskType("meeting");
+    setNewTaskPropertyId("");
+    setNewTaskContactId("");
   }, []);
 
   const handleCreateTask = useCallback(async () => {
@@ -177,6 +211,12 @@ export default function TasksPage() {
         description: newTaskDescription.trim(),
         scheduledAt: newTaskScheduledAt ? newTaskScheduledAt.getTime() : undefined,
         scheduledTimezone: newTaskScheduledAt ? detectBrowserTimezone() : undefined,
+        propertyId: newTaskPropertyId
+          ? (newTaskPropertyId as Id<"properties">)
+          : undefined,
+        contactId: newTaskContactId
+          ? (newTaskContactId as Id<"contacts">)
+          : undefined,
       });
       activityToasts.created(newTaskTitle.trim());
       setShowCreateModal(false);
@@ -187,7 +227,7 @@ export default function TasksPage() {
     } finally {
       setIsCreatingTask(false);
     }
-  }, [createStandaloneTask, newTaskType, newTaskTitle, newTaskDescription, newTaskScheduledAt, resetCreateForm]);
+  }, [createStandaloneTask, newTaskType, newTaskTitle, newTaskDescription, newTaskScheduledAt, newTaskPropertyId, newTaskContactId, resetCreateForm]);
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -345,12 +385,7 @@ export default function TasksPage() {
               className="min-w-[140px]"
               options={[
                 { value: "all", label: "All Types" },
-                { value: "call", label: "Call" },
-                { value: "whatsapp", label: "WhatsApp" },
-                { value: "email", label: "Email" },
-                { value: "meeting", label: "Meeting" },
-                { value: "viewing", label: "Viewing" },
-                { value: "note", label: "Note" },
+                ...ACTIVITY_TYPE_OPTIONS,
               ]}
             />
           </div>
@@ -434,10 +469,20 @@ export default function TasksPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {task.lead ? (
+                  {task.lead || task.property || task.contact ? (
                     <div>
-                      <p className="font-medium">{task.lead.fullName}</p>
-                      {task.lead.phone && <p className="text-xs text-text-muted">{task.lead.phone}</p>}
+                      {task.lead && (
+                        <p className="font-medium">{task.lead.fullName}</p>
+                      )}
+                      {!task.lead && task.contact && (
+                        <p className="font-medium">{task.contact.name}</p>
+                      )}
+                      {task.property && (
+                        <p className="text-xs text-text-muted">{task.property.title}</p>
+                      )}
+                      {task.lead?.phone && !task.property && (
+                        <p className="text-xs text-text-muted">{task.lead.phone}</p>
+                      )}
                     </div>
                   ) : (
                     <Badge variant="secondary" className="text-xs">Standalone</Badge>
@@ -541,8 +586,15 @@ export default function TasksPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="info">{getActivityTypeLabel(task.type)}</Badge>
-                  {task.lead ? (
-                    <span className="text-xs text-text-muted">{task.lead.fullName}</span>
+                  {task.lead || task.property || task.contact ? (
+                    <span className="text-xs text-text-muted">
+                      {[
+                        task.lead?.fullName ?? task.contact?.name,
+                        task.property?.title,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
                   ) : (
                     <Badge variant="secondary" className="text-xs">Standalone</Badge>
                   )}
@@ -596,7 +648,7 @@ export default function TasksPage() {
       <Modal
         open={showCreateModal}
         title="New Task"
-        description="Create a standalone task not linked to any lead."
+        description="Create a task not linked to a lead. Link a property or contact so the task report shows what it related to."
         onClose={() => { setShowCreateModal(false); resetCreateForm(); }}
         footer={
           <div className="flex justify-end gap-2">
@@ -621,14 +673,7 @@ export default function TasksPage() {
               <StaggeredDropDown
                 value={newTaskType}
                 onChange={(val) => setNewTaskType(val as typeof newTaskType)}
-                options={[
-                  { value: "call", label: "Call" },
-                  { value: "whatsapp", label: "WhatsApp" },
-                  { value: "email", label: "Email" },
-                  { value: "meeting", label: "Meeting" },
-                  { value: "viewing", label: "Viewing" },
-                  { value: "note", label: "Note" },
-                ]}
+                options={ACTIVITY_TYPE_OPTIONS}
               />
             </div>
             <div className="space-y-2">
@@ -650,6 +695,26 @@ export default function TasksPage() {
               showTime
               placeholder="Schedule date/time (optional)"
             />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Related property</Label>
+              <StaggeredDropDown
+                value={newTaskPropertyId}
+                onChange={setNewTaskPropertyId}
+                options={propertyOptions}
+                searchable
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Related contact</Label>
+              <StaggeredDropDown
+                value={newTaskContactId}
+                onChange={setNewTaskContactId}
+                options={contactOptions}
+                searchable
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Description</Label>

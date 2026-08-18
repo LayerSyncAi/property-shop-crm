@@ -209,6 +209,83 @@ describe("computeTaskMetrics", () => {
       pending: 0,
       overdue: 0,
       completionRate: 0,
+      byType: {},
+      completedOnTime: 0,
+      completedLate: 0,
+      completedNoDueDate: 0,
+      onTimeRate: 0,
     });
+  });
+
+  it("breaks created and completed down by task type", () => {
+    const tasks: TaskLike[] = [
+      { status: "completed", type: "call", createdAt: 101 * day, completedAt: 105 * day },
+      { status: "todo", type: "call", createdAt: 102 * day },
+      { status: "completed", type: "viewing", createdAt: 103 * day, completedAt: 106 * day },
+      { status: "completed", type: "paperwork", createdAt: 104 * day, completedAt: 107 * day },
+    ];
+    const m = computeTaskMetrics(tasks, start, end, now);
+    expect(m.byType).toEqual({
+      call: { created: 2, completed: 1 },
+      viewing: { created: 1, completed: 1 },
+      paperwork: { created: 1, completed: 1 },
+    });
+  });
+
+  it("buckets tasks with no type under 'other'", () => {
+    const tasks: TaskLike[] = [
+      { status: "completed", createdAt: 101 * day, completedAt: 105 * day },
+    ];
+    const m = computeTaskMetrics(tasks, start, end, now);
+    expect(m.byType).toEqual({ other: { created: 1, completed: 1 } });
+  });
+
+  it("splits completed tasks into on-time and late against their due date", () => {
+    const tasks: TaskLike[] = [
+      // completed before its due date
+      { status: "completed", createdAt: 101 * day, scheduledAt: 106 * day, completedAt: 105 * day },
+      // completed exactly on its due date counts as on time
+      { status: "completed", createdAt: 101 * day, scheduledAt: 105 * day, completedAt: 105 * day },
+      // completed after its due date
+      { status: "completed", createdAt: 101 * day, scheduledAt: 103 * day, completedAt: 106 * day },
+    ];
+    const m = computeTaskMetrics(tasks, start, end, now);
+    expect(m.completedOnTime).toBe(2);
+    expect(m.completedLate).toBe(1);
+    expect(m.completedNoDueDate).toBe(0);
+    // 2 of 3 completed tasks that had a due date
+    expect(m.onTimeRate).toBe(66.7);
+  });
+
+  it("excludes tasks with no due date from the on-time rate", () => {
+    const tasks: TaskLike[] = [
+      { status: "completed", createdAt: 101 * day, scheduledAt: 106 * day, completedAt: 105 * day },
+      // no scheduledAt: punctuality is unknown, not on time
+      { status: "completed", createdAt: 101 * day, completedAt: 105 * day },
+      { status: "completed", createdAt: 101 * day, completedAt: 106 * day },
+    ];
+    const m = computeTaskMetrics(tasks, start, end, now);
+    expect(m.completedNoDueDate).toBe(2);
+    // denominator is the single task that actually had a due date
+    expect(m.onTimeRate).toBe(100);
+  });
+
+  it("counts an open past-due task as overdue, not as completed late", () => {
+    const tasks: TaskLike[] = [
+      { status: "todo", createdAt: 101 * day, scheduledAt: 105 * day },
+    ];
+    const m = computeTaskMetrics(tasks, start, end, now);
+    expect(m.overdue).toBe(1);
+    expect(m.completedLate).toBe(0);
+  });
+
+  it("ignores completions outside the window in the on-time figures", () => {
+    const tasks: TaskLike[] = [
+      { status: "completed", createdAt: 101 * day, scheduledAt: 103 * day, completedAt: 120 * day },
+    ];
+    const m = computeTaskMetrics(tasks, start, end, now);
+    expect(m.completed).toBe(0);
+    expect(m.completedLate).toBe(0);
+    expect(m.onTimeRate).toBe(0);
   });
 });

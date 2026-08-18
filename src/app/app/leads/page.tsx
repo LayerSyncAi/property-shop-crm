@@ -18,7 +18,7 @@ import { useRequireAuth } from "@/hooks/useAuth";
 import { leadToasts } from "@/lib/toast";
 import { Modal } from "@/components/ui/modal";
 import { Tooltip } from "@/components/ui/tooltip";
-import { Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, LayoutList, Columns3, Plus, Waypoints } from "lucide-react";
+import { Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, LayoutList, Columns3, Plus, Waypoints, AlertTriangle } from "lucide-react";
 import { ErrorBoundary } from "@/components/common/error-boundary";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -296,6 +296,10 @@ export default function LeadsPage() {
     pageSize: pagination.pageSize !== 50 ? pagination.pageSize : undefined,
   });
 
+  // Leads still carrying the retired generic "property_portal" source.
+  const sourceReview = useQuery(api.leads.listNeedsSourceReview, {});
+  const sourceReviewCount = sourceReview?.items.length ?? 0;
+
   // Kanban query (only active in kanban mode)
   const kanbanData = useQuery(
     api.leads.listByStage,
@@ -498,6 +502,33 @@ export default function LeadsPage() {
           </Link>
         </div>
       </motion.div>
+
+      {/* Leads still on the retired generic "Property portal" source. Shown
+          only while any remain, so it disappears once the backlog is cleared. */}
+      {sourceReviewCount > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 24, delay: 0.04 }}
+          className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-border-strong bg-card-bg p-4"
+        >
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            <p className="text-sm text-text-muted">
+              <span className="font-medium text-text">
+                {sourceReviewCount} lead{sourceReviewCount === 1 ? "" : "s"}
+              </span>{" "}
+              still use the old generic &ldquo;Property portal&rdquo; source.
+              Reassign them to see where they really came from.
+            </p>
+          </div>
+          <Link href="/app/leads/source-review">
+            <Button variant="secondary" className="h-9">
+              Review sources
+            </Button>
+          </Link>
+        </motion.div>
+      )}
 
       {/* #32: Filter panel entrance */}
       <motion.div

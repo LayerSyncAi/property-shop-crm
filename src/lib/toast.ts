@@ -94,6 +94,16 @@ export const leadToasts = {
     animatedToast.error("Failed to save notes", {
       description: detail || "Something went wrong. Please try again.",
     }),
+
+  sourceReassigned: (count: number, sourceLabel: string) =>
+    animatedToast.success("Source updated", {
+      description: `${count} ${count === 1 ? "lead" : "leads"} reassigned to ${sourceLabel}.`,
+    }),
+
+  sourceReassignFailed: (detail?: string) =>
+    animatedToast.error("Failed to update source", {
+      description: detail || "Something went wrong. Please try again.",
+    }),
 };
 
 // ── Activities ────────────────────────────────────────────
@@ -165,6 +175,47 @@ export const contactToasts = {
 
   deleteFailed: (detail?: string) =>
     animatedToast.error("Failed to delete contact", {
+      description: detail || "Something went wrong. Please try again.",
+    }),
+};
+
+// ── Owners (sellers & landlords) ──────────────────────────
+
+export const ownerToasts = {
+  created: (name: string) =>
+    animatedToast.success("Owner added", {
+      description: `${name} has been added to Owners.`,
+    }),
+
+  promoted: (name: string) =>
+    animatedToast.info("Existing contact updated", {
+      description: `${name} was already on file and is now marked as an owner.`,
+    }),
+
+  updated: (name: string) =>
+    animatedToast.success("Owner updated", {
+      description: `${name}'s details have been saved.`,
+    }),
+
+  removed: (name: string, deletedContact: boolean) =>
+    animatedToast.success("Owner removed", {
+      description: deletedContact
+        ? `${name} has been deleted.`
+        : `${name} is no longer an owner but remains a contact.`,
+    }),
+
+  linked: (name: string) =>
+    animatedToast.success("Owner linked", {
+      description: `${name} is now linked to this property.`,
+    }),
+
+  unlinked: () =>
+    animatedToast.success("Owner unlinked", {
+      description: "The owner remains on file and can be linked again.",
+    }),
+
+  failed: (detail?: string) =>
+    animatedToast.error("Owner action failed", {
       description: detail || "Something went wrong. Please try again.",
     }),
 };

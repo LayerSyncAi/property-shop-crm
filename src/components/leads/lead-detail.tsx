@@ -22,6 +22,7 @@ import { ActivityTimeline } from "@/components/leads/activity-timeline";
 import { PropertyViewModal } from "@/components/leads/property-view-modal";
 import { leadToasts, activityToasts, propertyToasts } from "@/lib/toast";
 import { leadSourceLabel } from "@/lib/lead-sources";
+import { type ActivityType } from "@/lib/activity-types";
 import { formatMoney } from "@/lib/currency";
 
 const PropertySuggestions = lazy(() =>
@@ -216,7 +217,7 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
   }, [updateNotes, leadId, notes]);
 
   const handleCreateActivity = useCallback(async (data: {
-    type: "call" | "whatsapp" | "email" | "meeting" | "viewing" | "note";
+    type: ActivityType;
     title: string;
     description: string;
     scheduledAt?: number;

@@ -21,7 +21,19 @@ const windowArgs = {
   ownerUserId: v.optional(v.id("users")),
 };
 
-const CONTACT_TYPES = new Set(["call", "whatsapp", "email", "meeting"]);
+// Activity types that count as reaching the client. "follow_up" is one of
+// these; "paperwork", "viewing" and "note" are work done, not contact made.
+const CONTACT_TYPES = new Set([
+  "call",
+  "whatsapp",
+  "email",
+  "meeting",
+  "follow_up",
+]);
+
+// Hard ceiling on activity-log rows returned to the client. Surfaced in the
+// response so the UI can say the list was capped rather than quietly truncate.
+const ACTIVITY_LOG_LIMIT = 500;
 
 function userLabel(u: Doc<"users"> | undefined): string {
   return u?.fullName || u?.name || u?.email || "Unknown";
@@ -240,6 +252,80 @@ export const taskSummary = query({
     byAgent.sort((a, b) => b.created - a.created || b.completed - a.completed);
 
     return { totals, byAgent, isAdmin };
+  },
+});
+
+// ── Task activity log ────────────────────────────────────────────────
+// Completed tasks in the window, each with the record it relates to and the
+// note the agent left on completion — so the task report reads as a log of what
+// was actually done, not just a count. Same role scoping as taskSummary.
+export const taskActivityLog = query({
+  args: windowArgs,
+  handler: async (ctx, args) => {
+    const { user, isAdmin, focusUserId } = await resolveScope(ctx, args);
+
+    const [activities, users] = await Promise.all([
+      ctx.db.query("activities").withIndex("by_org", (q) => q.eq("orgId", user.orgId)).collect(),
+      ctx.db.query("users").withIndex("by_org", (q) => q.eq("orgId", user.orgId)).collect(),
+    ]);
+    const userMap = new Map(users.map((u) => [u._id, u]));
+
+    const completed = activities
+      .filter(
+        (a) =>
+          a.status === "completed" &&
+          inWindow(a.completedAt, args.start, args.end) &&
+          (focusUserId ? a.assignedToUserId === focusUserId : true)
+      )
+      .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0));
+
+    const totalCount = completed.length;
+    const page = completed.slice(0, ACTIVITY_LOG_LIMIT);
+
+    // Resolve linked records for the returned page only — the whole result set
+    // could be far larger than the cap.
+    const items = await Promise.all(
+      page.map(async (a) => {
+        const [lead, property, contact] = await Promise.all([
+          a.leadId ? ctx.db.get(a.leadId) : null,
+          a.propertyId ? ctx.db.get(a.propertyId) : null,
+          a.contactId ? ctx.db.get(a.contactId) : null,
+        ]);
+
+        const dueAt = a.scheduledAt;
+        return {
+          _id: a._id,
+          title: a.title,
+          type: a.type,
+          completedAt: a.completedAt ?? 0,
+          dueAt,
+          // null when the task never had a due date: unknown, not on time.
+          onTime:
+            typeof dueAt === "number"
+              ? (a.completedAt ?? 0) <= dueAt
+              : null,
+          completionNotes: a.completionNotes ?? "",
+          agentName: userLabel(userMap.get(a.assignedToUserId)),
+          leadId: a.leadId ?? null,
+          leadName: lead?.fullName ?? null,
+          propertyId: a.propertyId ?? null,
+          propertyTitle: property?.title ?? null,
+          contactId: a.contactId ?? null,
+          contactName: contact?.name ?? null,
+          // Sellers/landlords are contacts carrying an owner role, so the log
+          // can say "Owner: …" rather than mislabelling them as a contact.
+          contactOwnerType: contact?.ownerType ?? null,
+        };
+      })
+    );
+
+    return {
+      items,
+      totalCount,
+      limit: ACTIVITY_LOG_LIMIT,
+      truncated: totalCount > ACTIVITY_LOG_LIMIT,
+      isAdmin,
+    };
   },
 });
 

@@ -1,6 +1,8 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
+import { leadSourceValidator } from "./lib/leadSources";
+import { activityTypeValidator } from "./lib/activityTypes";
 
 export default defineSchema({
   ...authTables,
@@ -84,17 +86,11 @@ export default defineSchema({
     phone: v.optional(v.string()),
     normalizedPhone: v.optional(v.string()),
     email: v.optional(v.string()),
-    source: v.union(
-      v.literal("walk_in"),
-      v.literal("referral"),
-      v.literal("facebook"),
-      v.literal("instagram"),
-      v.literal("tiktok"),
-      v.literal("whatsapp"),
-      v.literal("website"),
-      v.literal("property_portal"),
-      v.literal("other")
-    ),
+    source: leadSourceValidator,
+    // Set by the flagLegacyPortalLeads migration on leads still carrying the
+    // generic "property_portal" source, so an agent can reassign them to the
+    // real platform. Cleared as soon as the source is changed.
+    sourceNeedsReview: v.optional(v.boolean()),
     interestType: v.union(v.literal("rent"), v.literal("buy")),
     budgetCurrency: v.optional(v.string()),
     budgetMin: v.optional(v.number()),
@@ -382,14 +378,12 @@ export default defineSchema({
     .index("by_org", ["orgId"]),
   activities: defineTable({
     leadId: v.optional(v.id("leads")),
-    type: v.union(
-      v.literal("call"),
-      v.literal("whatsapp"),
-      v.literal("email"),
-      v.literal("meeting"),
-      v.literal("viewing"),
-      v.literal("note")
-    ),
+    // Optional links giving a task its context, so completed work reads as an
+    // activity log ("viewing at 12 Oak Ave for the Moyo lead") rather than a
+    // bare title. All optional: a task can stand alone.
+    propertyId: v.optional(v.id("properties")),
+    contactId: v.optional(v.id("contacts")),
+    type: activityTypeValidator,
     title: v.string(),
     description: v.string(),
     scheduledAt: v.optional(v.number()),
@@ -423,6 +417,8 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_type", ["type"])
     .index("by_lead", ["leadId"])
+    .index("by_property", ["propertyId"])
+    .index("by_contact", ["contactId"])
     .index("by_org", ["orgId"])
     .index("by_next_reminder", ["nextReminderAt"]),
   activityReminders: defineTable({
@@ -574,7 +570,23 @@ export default defineSchema({
     ),
     minBedrooms: v.optional(v.number()),
     minBathrooms: v.optional(v.number()),
+    // --- Roles -------------------------------------------------------------
+    // A person can be a buyer/tenant, a property owner (seller/landlord), or
+    // both — the same human often is. Storing this as two role flags on one
+    // contact keeps a single record per person, so phone dedupe, agent
+    // assignment and the activity timeline work across both sides of the
+    // business instead of being duplicated.
+    //
+    // `ownerType` set  => appears in Owners (/app/owners).
+    // `isBuyerTenant`  => appears in Contacts. Legacy rows predate the field
+    //                     and are undefined, which MUST read as true; the
+    //                     backfillContactRoles migration makes that explicit.
+    ownerType: v.optional(
+      v.union(v.literal("seller"), v.literal("landlord"), v.literal("both"))
+    ),
+    isBuyerTenant: v.optional(v.boolean()),
     // Multiple owners can see this contact - agents only see contacts they own
+    // (NB: "owner" here means the assigned agent, not the property owner above)
     ownerUserIds: v.array(v.id("users")),
     createdByUserId: v.id("users"),
     orgId: v.optional(v.id("organizations")),
@@ -583,6 +595,26 @@ export default defineSchema({
   })
     .index("by_normalized_phone", ["normalizedPhone"])
     .index("by_name", ["name"])
+    .index("by_org", ["orgId"])
+    .index("by_org_owner_type", ["orgId", "ownerType"]),
+  // Links a property to the client who owns it (its seller or landlord), as
+  // distinct from `properties.ownerUserIds`, which is the agent who owns the
+  // record. A property can have several owners (joint sellers) and an owner can
+  // hold several properties, so this is a join table — same shape as
+  // propertyCollaborators above.
+  propertyOwners: defineTable({
+    propertyId: v.id("properties"),
+    contactId: v.id("contacts"),
+    // The role in THIS relationship. An owner whose contact-level ownerType is
+    // "both" is still either selling or letting a given property.
+    role: v.union(v.literal("seller"), v.literal("landlord")),
+    linkedByUserId: v.id("users"),
+    linkedAt: v.number(),
+    orgId: v.optional(v.id("organizations")),
+  })
+    .index("by_property", ["propertyId"])
+    .index("by_contact", ["contactId"])
+    .index("by_property_contact", ["propertyId", "contactId"])
     .index("by_org", ["orgId"]),
   // Viewing forms: a signed record proving an agent introduced a client to a
   // property during a viewing. Supports commission claims and internal audit.
