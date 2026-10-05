@@ -30,9 +30,14 @@ export default defineSchema({
     resetPasswordOnNextLogin: v.optional(v.boolean()),
     passwordUpdatedAt: v.optional(v.number()),
     showOnboardingInterface: v.optional(v.boolean()),
+<<<<<<< HEAD
     // Admin/Agent view toggle: when true, an admin user is treated as a plain
     // agent for data VISIBILITY (their own leads/tasks/etc. only) and admin-only
     // UI is hidden. It never changes their real `role` or hard permission gates.
+=======
+    // View-mode preference: a real admin can toggle into "Agent Mode" to see
+    // only their own work. Visibility-only — never changes role or permissions.
+>>>>>>> upstream/main
     agentMode: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -615,6 +620,7 @@ export default defineSchema({
     .index("by_property", ["propertyId"])
     .index("by_contact", ["contactId"])
     .index("by_property_contact", ["propertyId", "contactId"])
+<<<<<<< HEAD
     .index("by_org", ["orgId"]),
   // Viewing forms: a signed record proving an agent introduced a client to a
   // property during a viewing. Supports commission claims and internal audit.
@@ -659,7 +665,28 @@ export default defineSchema({
     .index("by_contact", ["contactId"])
     .index("by_lead", ["leadId"])
     .index("by_agent", ["agentUserId"])
+=======
+>>>>>>> upstream/main
     .index("by_org", ["orgId"]),
+  // Web Push (PWA) subscriptions. One row per browser/device endpoint a user
+  // has granted notification permission on. A user can have many (phone,
+  // laptop, etc.). Pruned automatically when the push service returns 404/410
+  // (subscription expired/unsubscribed).
+  pushSubscriptions: defineTable({
+    userId: v.id("users"),
+    // The unique push service endpoint URL — the natural key for a subscription.
+    endpoint: v.string(),
+    // Encryption keys from the browser's PushSubscription (base64url).
+    p256dh: v.string(),
+    auth: v.string(),
+    // Best-effort device label for the settings UI / debugging.
+    userAgent: v.optional(v.string()),
+    orgId: v.optional(v.id("organizations")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_endpoint", ["endpoint"]),
   // Marketing spend records, used by the reporting module for property ROI and
   // per-channel return-on-ad-spend. Spend can be attributed to a specific property
   // (propertyId set) or to a channel generally (propertyId unset).
@@ -678,4 +705,118 @@ export default defineSchema({
   })
     .index("by_org", ["orgId"])
     .index("by_property", ["propertyId"]),
+  viewingForms: defineTable({
+    // Links back to CRM records — all optional so a form can be raised ad-hoc
+    // and later associated, and so it can attach to several records at once.
+    propertyId: v.optional(v.id("properties")),
+    contactId: v.optional(v.id("contacts")),
+    leadId: v.optional(v.id("leads")),
+    // The property negotiator / agent who conducted the viewing.
+    agentUserId: v.id("users"),
+    // Form fields (mirroring the physical viewing form template)
+    viewingDate: v.string(), // "YYYY-MM-DD"
+    viewingTime: v.optional(v.string()), // "HH:mm"
+    propertyAddress: v.string(),
+    clientName: v.string(),
+    clientCompany: v.optional(v.string()),
+    clientIdNumber: v.optional(v.string()),
+    clientSpouseName: v.optional(v.string()),
+    clientPhone: v.optional(v.string()),
+    clientEmail: v.optional(v.string()),
+    // Signatures — stored as PNG images in file storage.
+    clientSignatureId: v.optional(v.id("_storage")),
+    negotiatorName: v.string(),
+    negotiatorSignatureId: v.optional(v.id("_storage")),
+    // Seller / caretaker who was present (optional).
+    sellerName: v.optional(v.string()),
+    sellerSignatureId: v.optional(v.id("_storage")),
+    // draft: still being completed. completed: signed and locked for audit.
+    status: v.union(v.literal("draft"), v.literal("completed")),
+    completedAt: v.optional(v.number()),
+    createdByUserId: v.id("users"),
+    orgId: v.optional(v.id("organizations")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_property", ["propertyId"])
+    .index("by_contact", ["contactId"])
+    .index("by_lead", ["leadId"])
+    .index("by_agent", ["agentUserId"])
+    .index("by_org", ["orgId"]),
+
+  // --- SyncMedia -----------------------------------------------------------
+  // The organisation's marketing brand kit: one row per org, edited by admins
+  // and read by every agent's brochures. Distinct from src/config/brand.ts,
+  // which white-labels the *app* at build time — this is per-tenant data that
+  // an admin can change without a redeploy.
+  orgBranding: defineTable({
+    orgId: v.id("organizations"),
+    // A Convex storage id or an absolute https URL, the same convention the
+    // brochure photos use, so one resolver handles both.
+    logoRef: v.optional(v.string()),
+    // Optional light-on-dark variant, used where the logo sits on the accent.
+    logoOnDarkRef: v.optional(v.string()),
+    // The admin picks an accent and a paper style; the remaining six theme
+    // tokens are derived from those two (see src/lib/syncmedia/theme.ts).
+    // Asking anyone for eight hex codes is a form nobody completes.
+    accent: v.optional(v.string()),
+    pageStyle: v.optional(
+      v.union(v.literal("light"), v.literal("cream"), v.literal("dark"))
+    ),
+    // Defaults offered to agents in the studio; each brochure still carries its
+    // own copy, so changing these never rewrites brochures already made.
+    contactPhone: v.optional(v.string()),
+    contactEmail: v.optional(v.string()),
+    website: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_org", ["orgId"]),
+
+  // Brochure drafts. Private to the agent who made them: every read scopes to
+  // (orgId, ownerUserId), so no id from the client can reach another agent's row.
+  brochures: defineTable({
+    orgId: v.id("organizations"),
+    ownerUserId: v.id("users"),
+    // Absent when the brochure is for a property that isn't on the system yet.
+    propertyId: v.optional(v.id("properties")),
+    // Plain strings rather than unions: these name entries in a frontend
+    // presentation registry that churns faster than the database, and every
+    // lookup falls back to a default, so an unknown value is ignored on read
+    // rather than being a schema migration.
+    formatKey: v.string(),
+    templateId: v.string(),
+    themeId: v.string(),
+    // Refs only — a storage id or an absolute URL, never a resolved display URL.
+    photos: v.array(v.string()),
+    eyebrow: v.string(),
+    title: v.string(),
+    location: v.string(),
+    price: v.string(),
+    priceLabel: v.string(),
+    features: v.array(v.string()),
+    reference: v.string(),
+    agentName: v.string(),
+    agentPhone: v.string(),
+    agentEmail: v.string(),
+    showLogo: v.boolean(),
+    whatsappContact: v.boolean(),
+    // Manual position tweaks on top of the template's automatic layout, one
+    // entry per adjusted block. `format` is part of the key because the same
+    // block needs different corrections on a 1080x1350 post and a 1200x630
+    // banner. Empty for any brochure nobody has hand-adjusted, which is most.
+    nudges: v.optional(
+      v.array(
+        v.object({
+          format: v.string(),
+          slot: v.string(),
+          x: v.number(),
+          y: v.number(),
+        })
+      )
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_org_owner", ["orgId", "ownerUserId"])
+    .index("by_owner_property", ["ownerUserId", "propertyId"]),
 });

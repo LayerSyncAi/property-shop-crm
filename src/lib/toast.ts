@@ -576,7 +576,60 @@ export const propertyBookToasts = {
     }),
 };
 
+<<<<<<< HEAD
 // ── Viewing Forms ────────────────────────────────────────
+=======
+// ── SyncMedia ─────────────────────────────────────────────
+
+export const syncMediaToasts = {
+  downloaded: (kind: "PNG" | "PDF") =>
+    animatedToast.success(`Saved as ${kind}`, {
+      description: "Check your downloads folder.",
+    }),
+
+  // Photos that couldn't be fetched rasterise as blank holes, so this is
+  // surfaced rather than letting an agent post a brochure with gaps in it.
+  downloadedWithGaps: (failed: number) =>
+    animatedToast.warning("Saved, but some images are missing", {
+      description: `${failed} image${failed > 1 ? "s" : ""} could not be embedded and will be blank.`,
+    }),
+
+  downloadFailed: (detail?: string) =>
+    animatedToast.error("Export failed", {
+      description: detail || "Something went wrong. Please try again.",
+    }),
+
+  copied: () =>
+    animatedToast.success("Copied to clipboard", {
+      description: "Paste it straight into WhatsApp.",
+    }),
+
+  copyFailed: () =>
+    animatedToast.error("Could not copy", {
+      description: "Download it instead.",
+    }),
+
+  brandingSaved: () =>
+    animatedToast.success("Brand kit saved", {
+      description: "New brochures will use these settings.",
+    }),
+
+  brandingSaveFailed: (detail?: string) =>
+    animatedToast.error("Failed to save brand kit", {
+      description: detail || "Something went wrong. Please try again.",
+    }),
+
+  brochureDeleted: () =>
+    animatedToast.success("Brochure deleted", {
+      description: "The draft has been removed.",
+    }),
+
+  brochureDeleteFailed: (detail?: string) =>
+    animatedToast.error("Failed to delete brochure", {
+      description: detail || "Something went wrong. Please try again.",
+    }),
+};
+>>>>>>> upstream/main
 
 export const viewingToasts = {
   created: () =>

@@ -198,6 +198,124 @@ export function computeTaskMetrics(
   };
 }
 
+// ── Task (activity) reporting ────────────────────────────────────────
+
+export interface TaskLike {
+  status: "todo" | "completed";
+  type?: string;
+  createdAt: number;
+  completedAt?: number;
+  scheduledAt?: number;
+}
+
+/** Per-type activity within the reporting window. */
+export interface TaskTypeCounts {
+  created: number;
+  completed: number;
+}
+
+export interface TaskMetrics {
+  /** Tasks created within the [start, end] window. */
+  created: number;
+  /** Tasks completed (completedAt) within the window. */
+  completed: number;
+  /** Open todos not past their scheduled time: current backlog snapshot. */
+  pending: number;
+  /** Open todos whose scheduledAt is before `now`: current backlog snapshot. */
+  overdue: number;
+  /** completed ÷ (completed + pending + overdue), as a percentage. */
+  completionRate: number;
+  /** Window-bounded created/completed counts keyed by task type. */
+  byType: Record<string, TaskTypeCounts>;
+  /** Completed in-window on or before their due date. */
+  completedOnTime: number;
+  /** Completed in-window after their due date. */
+  completedLate: number;
+  /** Completed in-window but never had a due date, so punctuality is unknown. */
+  completedNoDueDate: number;
+  /**
+   * completedOnTime ÷ (completedOnTime + completedLate), as a percentage.
+   * Tasks with no due date are excluded from the denominator — counting them
+   * either way would move the rate on work that was never actually due.
+   */
+  onTimeRate: number;
+}
+
+/**
+ * Summarise a set of tasks for reporting. `created` and `completed` are
+ * window-bounded (period activity); `pending` and `overdue` are a point-in-time
+ * snapshot of the open backlog relative to `now` (overdue is inherently
+ * now-relative).
+ *
+ * `overdue` and `completedLate` answer different questions: `overdue` is work
+ * still not done and already past due; `completedLate` is work that got done
+ * but missed its date.
+ *
+ * Pure and Convex-free for direct unit testing.
+ */
+export function computeTaskMetrics(
+  tasks: TaskLike[],
+  start: number,
+  end: number,
+  now: number
+): TaskMetrics {
+  let created = 0;
+  let completed = 0;
+  let pending = 0;
+  let overdue = 0;
+  let completedOnTime = 0;
+  let completedLate = 0;
+  let completedNoDueDate = 0;
+  const byType: Record<string, TaskTypeCounts> = {};
+
+  const typeBucket = (type: string | undefined): TaskTypeCounts => {
+    const key = type ?? "other";
+    let b = byType[key];
+    if (!b) {
+      b = { created: 0, completed: 0 };
+      byType[key] = b;
+    }
+    return b;
+  };
+
+  for (const t of tasks) {
+    if (inWindow(t.createdAt, start, end)) {
+      created++;
+      typeBucket(t.type).created++;
+    }
+    if (t.status === "completed" && inWindow(t.completedAt, start, end)) {
+      completed++;
+      typeBucket(t.type).completed++;
+      if (typeof t.scheduledAt !== "number") {
+        completedNoDueDate++;
+      } else if ((t.completedAt as number) <= t.scheduledAt) {
+        completedOnTime++;
+      } else {
+        completedLate++;
+      }
+    }
+    if (t.status === "todo") {
+      if (typeof t.scheduledAt === "number" && t.scheduledAt < now) {
+        overdue++;
+      } else {
+        pending++;
+      }
+    }
+  }
+  return {
+    created,
+    completed,
+    pending,
+    overdue,
+    completionRate: conversionRate(completed, completed + pending + overdue),
+    byType,
+    completedOnTime,
+    completedLate,
+    completedNoDueDate,
+    onTimeRate: conversionRate(completedOnTime, completedOnTime + completedLate),
+  };
+}
+
 export type CurrencyMap = Record<string, number>;
 
 /** Accumulate an amount into a per-currency map (blank currency → "USD"). */

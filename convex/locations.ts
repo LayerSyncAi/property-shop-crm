@@ -1,10 +1,18 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserWithOrg, assertOrgAccess } from "./helpers";
+<<<<<<< HEAD
 import { ZW_AREA_NAMES, canonicalizeArea } from "./lib/locations";
 
 // Curated Zimbabwe area dataset (single source of truth in lib/locations.ts).
 const defaultLocations = ZW_AREA_NAMES;
+=======
+import { CURATED_AREA_NAMES, canonicalizeArea } from "./lib/locations";
+
+// Curated default areas from the configured white-label seed (empty upstream;
+// see convex/lib/areaSeed.ts). syncDefaults tops up orgs from this list.
+const defaultLocations = CURATED_AREA_NAMES;
+>>>>>>> upstream/main
 
 export const list = query({
   handler: async (ctx) => {

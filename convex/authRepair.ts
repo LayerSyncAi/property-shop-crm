@@ -2,7 +2,11 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { Scrypt } from "lucia";
+<<<<<<< HEAD
 import { rebuildPasswordAccount } from "./lib/authReconcile";
+=======
+import { rebuildPasswordAccount, getTempPassword } from "./lib/authReconcile";
+>>>>>>> upstream/main
 
 /**
  * One-off repair utilities for accounts whose `users` row was deleted directly
@@ -20,15 +24,26 @@ import { rebuildPasswordAccount } from "./lib/authReconcile";
  * reset only patches one of the two rows.
  *
  * These functions purge every password account for an email and rebuild a single
+<<<<<<< HEAD
  * clean one tied to the current live user, with the temp password "12345678".
+=======
+ * clean one tied to the current live user, with the deployment's configured temp
+ * password (AUTH_TEMP_PASSWORD; see getTempPassword) and a forced reset on next
+ * login.
+>>>>>>> upstream/main
  *
  * Run from the Convex dashboard (Functions tab):
  *   1. `authRepair:diagnoseUserAuth` with { email } to inspect the mess.
  *   2. `authRepair:repairUserAuth` with { emails: ["a@x.com", "b@x.com", ...] }.
  */
 
+<<<<<<< HEAD
 /** Default temp password issued to repaired accounts (matches admin-create flow). */
 const DEFAULT_TEMP_PASSWORD = "12345678";
+=======
+/** Temp password issued to repaired accounts (matches admin-create flow). */
+const DEFAULT_TEMP_PASSWORD = getTempPassword();
+>>>>>>> upstream/main
 
 /** Inspect every password auth account tied to an email, without changing anything. */
 export const diagnoseUserAuth = internalQuery({
