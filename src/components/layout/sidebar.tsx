@@ -17,6 +17,8 @@ import {
   FileSignature,
   KeyRound,
   LayoutDashboard,
+  Megaphone,
+  Palette,
   ScrollText,
   Search,
   Shield,
@@ -37,6 +39,10 @@ const navItems = [
   { label: "Contacts", href: "/app/contacts", icon: Users },
   { label: "Owners", href: "/app/owners", icon: KeyRound },
   { label: "Properties", href: "/app/properties", icon: Building2 },
+<<<<<<< HEAD
+=======
+  { label: "SyncMedia", href: "/app/syncmedia", icon: Megaphone },
+>>>>>>> upstream/main
   { label: "Viewings", href: "/app/viewings", icon: FileSignature },
   { label: "Tasks", href: "/app/tasks", icon: ClipboardList },
   { label: "Reports", href: "/app/reports", icon: BarChart3 },
@@ -55,6 +61,7 @@ const importExportItems = [
 const adminItems = [
   { label: "Users", href: "/app/admin/users", icon: UserCog },
   { label: "Roles", href: "/app/admin/roles", icon: Shield },
+  { label: "Branding", href: "/app/admin/branding", icon: Palette },
   { label: "Stages", href: "/app/admin/stages", icon: Waypoints },
   { label: "Lead Scoring", href: "/app/admin/lead-scoring", icon: Star },
   { label: "Commissions", href: "/app/admin/commissions", icon: DollarSign },
@@ -257,6 +264,7 @@ export const Sidebar = memo(function Sidebar({ isAdmin, collapsed, onToggle, org
           )}
         </div>
       </div>
+<<<<<<< HEAD
       <div
         className={cn(
           "flex flex-1 flex-col [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin]",
@@ -265,6 +273,13 @@ export const Sidebar = memo(function Sidebar({ isAdmin, collapsed, onToggle, org
           collapsed ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"
         )}
       >
+=======
+      {/* Scrollable region: when the expandable panels grow taller than the
+          viewport, this area scrolls instead of overflowing off-screen. Scroll
+          is only enabled when expanded — overflow-y:auto forces overflow-x to
+          clip, which would cut off the collapsed-mode hover tooltips. */}
+      <div className={cn("flex min-h-0 flex-1 flex-col", !collapsed && "sidebar-scroll overflow-y-auto")}>
+>>>>>>> upstream/main
       <nav className="flex-1 space-y-1" data-tour="sidebar-nav">
         {navItems.map((item) => (
           <NavItem

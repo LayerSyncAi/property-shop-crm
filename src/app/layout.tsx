@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
@@ -10,6 +10,16 @@ import { brand, brandThemeCss } from "@/config/brand";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+});
+
+// Display serif, used only inside SyncMedia brochure templates. Loaded at the
+// root so the face is ready before a brochure is rasterised — html2canvas
+// captures whatever metrics are current, so a font that arrives late would
+// shift every line of the exported PNG.
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
@@ -59,7 +69,7 @@ export default function RootLayout({
 }) {
   return (
     <ConvexAuthNextjsServerProvider>
-      <html lang="en" className={inter.variable}>
+      <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
         <body>
           {/* Brand colours: maps brand.ts values onto the --brand-* custom
               properties that globals.css reads. Inline so it applies at first
