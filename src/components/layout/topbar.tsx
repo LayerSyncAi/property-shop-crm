@@ -35,6 +35,7 @@ const titleMap: Record<string, string> = {
   "/app/admin/users": "Users",
   "/app/admin/roles": "User Roles",
   "/app/admin/stages": "Stages",
+  "/app/platform": "Platform",
 };
 
 export function Topbar({ userName, userEmail, orgName, userTimezone, isRealAdmin, agentMode, onMobileMenuOpen }: TopbarProps) {

@@ -8,6 +8,8 @@ import { computeAndStoreScore } from "./leadScoring";
 import { COMMISSION_RATE, computeCommissionSplit } from "./commissionLib";
 import { canonicalizeAreas } from "./lib/locations";
 import { leadSourceValidator, LEGACY_PORTAL_SOURCE } from "./lib/leadSources";
+import { buildLeadDetailsPatch } from "./leadEditLib";
+import { recordAudit } from "./logs";
 
 const leadArgs = {
   contactId: v.id("contacts"),
@@ -463,6 +465,98 @@ export const update = mutation({
     if (args.budgetMax !== undefined) updated.budgetMax = args.budgetMax;
     if (args.preferredAreas) updated.preferredAreas = canonicalizeAreas(args.preferredAreas);
     await ctx.db.patch(args.leadId, updated);
+  },
+});
+
+/**
+ * Edit a lead's details after creation. Name / phone / email are denormalised
+ * from the contact, so they are written to the lead, its contact and every
+ * sibling lead of that contact; preference fields stay on this lead only.
+ * Owner or admin may edit (same gate as `update`).
+ */
+export const updateDetails = mutation({
+  args: {
+    leadId: v.id("leads"),
+    fullName: v.optional(v.string()),
+    phone: v.optional(v.string()), // "" clears
+    email: v.optional(v.string()), // "" clears
+    source: v.optional(leadSourceValidator),
+    interestType: v.optional(v.union(v.literal("rent"), v.literal("buy"))),
+    budgetCurrency: v.optional(v.string()),
+    budgetMin: v.optional(v.union(v.number(), v.null())), // null clears
+    budgetMax: v.optional(v.union(v.number(), v.null())),
+    preferredAreas: v.optional(v.array(v.string())),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserWithOrg(ctx);
+    const lead = await assertLeadAccess(ctx, args.leadId, user._id, user.role === "admin", user.orgId);
+    if (!lead) {
+      throw new Error("Lead not found");
+    }
+
+    // Past the first stage a lead must stay contactable (see moveStage).
+    const stage = (await ctx.db.get(lead.stageId as Id<"pipelineStages">)) as { order: number } | null;
+    const requireContactInfo = !!stage && stage.order > 1;
+
+    const { leadId: _leadId, ...input } = args;
+    void _leadId;
+    const result = buildLeadDetailsPatch(lead, input, {
+      canonicalizeAreas,
+      requireContactInfo,
+    });
+    if (result.error) {
+      throw new Error(result.error);
+    }
+    if (result.changedFields.length === 0) {
+      return { changedFields: [] as string[] };
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(args.leadId, { ...result.leadPatch, updatedAt: now });
+
+    // Keep the contact and the other leads for this contact in step.
+    if (Object.keys(result.identityPatch).length > 0) {
+      const contact = await ctx.db.get(lead.contactId);
+      if (contact) {
+        const contactPatch: Record<string, unknown> = { updatedAt: now };
+        if (result.identityPatch.fullName !== undefined) contactPatch.name = result.identityPatch.fullName;
+        if ("phone" in result.identityPatch) {
+          contactPatch.phone = result.identityPatch.phone;
+          contactPatch.normalizedPhone = result.identityPatch.normalizedPhone;
+        }
+        if ("email" in result.identityPatch) contactPatch.email = result.identityPatch.email;
+        await ctx.db.patch(contact._id, contactPatch);
+      }
+      const siblings = await ctx.db
+        .query("leads")
+        .withIndex("by_contact", (q) => q.eq("contactId", lead.contactId))
+        .collect();
+      for (const sibling of siblings) {
+        if (sibling._id === lead._id) continue;
+        await ctx.db.patch(sibling._id, { ...result.identityPatch, updatedAt: now });
+      }
+    }
+
+    // Email, budget, areas and notes all feed the score.
+    await computeAndStoreScore(ctx, args.leadId, user.orgId);
+
+    await recordAudit(ctx, {
+      actorUserId: user._id,
+      actorLabel: user.fullName || user.name || user.email,
+      action: "lead.update",
+      category: "lead",
+      description: `Updated ${result.changedFields.join(", ")} on lead "${
+        (result.leadPatch.fullName as string | undefined) ?? lead.fullName
+      }"`,
+      targetType: "lead",
+      targetId: args.leadId,
+      targetLabel: (result.leadPatch.fullName as string | undefined) ?? lead.fullName,
+      metadata: { changedFields: result.changedFields },
+      orgId: user.orgId,
+    });
+
+    return { changedFields: result.changedFields };
   },
 });
 

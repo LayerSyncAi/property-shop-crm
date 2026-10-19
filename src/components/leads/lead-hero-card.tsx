@@ -119,7 +119,7 @@ export const LeadHeroCard = React.memo(function LeadHeroCard({
             )}
             <div className="flex flex-wrap gap-2 mt-2">
               <Button variant="secondary" className="h-9 px-3 text-xs" onClick={onViewDetails}>
-                View details
+                Edit details
               </Button>
             </div>
           </div>

@@ -20,10 +20,9 @@ import { DuplicateWarning } from "@/components/leads/duplicate-warning";
 import { LeadHeroCard } from "@/components/leads/lead-hero-card";
 import { ActivityTimeline } from "@/components/leads/activity-timeline";
 import { PropertyViewModal } from "@/components/leads/property-view-modal";
+import { LeadEditModal } from "@/components/leads/lead-edit-modal";
 import { leadToasts, activityToasts, propertyToasts } from "@/lib/toast";
-import { leadSourceLabel } from "@/lib/lead-sources";
 import { type ActivityType } from "@/lib/activity-types";
-import { formatMoney } from "@/lib/currency";
 
 const PropertySuggestions = lazy(() =>
   import("./property-suggestions").then((m) => ({ default: m.PropertySuggestions }))
@@ -623,55 +622,23 @@ export function LeadDetail({ leadId }: LeadDetailProps) {
         </div>
       </RightDrawer>
 
-      {/* Contact details modal */}
-      <Modal
+      {/* Edit lead details modal */}
+      <LeadEditModal
         open={contactDetailsOpen}
-        title={`Lead: ${lead.fullName}`}
-        description="Review the lead details."
+        lead={{
+          _id: leadId,
+          fullName: lead.fullName,
+          phone: lead.phone,
+          email: lead.email,
+          source: lead.source,
+          interestType: lead.interestType,
+          budgetCurrency: lead.budgetCurrency,
+          budgetMin: lead.budgetMin,
+          budgetMax: lead.budgetMax,
+          preferredAreas: lead.preferredAreas,
+        }}
         onClose={() => setContactDetailsOpen(false)}
-        footer={<div className="flex justify-end"><Button onClick={() => setContactDetailsOpen(false)}>Close</Button></div>}
-      >
-        <motion.div
-          className="grid gap-4 md:grid-cols-2"
-          initial="hidden"
-          animate="show"
-          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05 } } }}
-        >
-          {[
-            { label: "Name", value: lead.fullName },
-            { label: "Phone", value: lead.phone || "Not provided" },
-            { label: "Email", value: lead.email || "Not provided" },
-            { label: "Owner", value: owner?.fullName || owner?.name || owner?.email || "Unassigned" },
-            { label: "Interest", value: lead.interestType === "buy" ? "Buying" : "Renting" },
-            { label: "Source", value: leadSourceLabel(lead.source) },
-          ].map(({ label, value }) => (
-            <motion.div
-              key={label}
-              variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } } }}
-              className="space-y-2"
-            >
-              <Label>{label}</Label>
-              <Input value={value} readOnly />
-            </motion.div>
-          ))}
-          {lead.budgetMin !== undefined && (
-            <div className="space-y-2">
-              <Label>Budget Min</Label>
-              <Input value={formatMoney(lead.budgetMin, lead.budgetCurrency || "USD")} readOnly />
-            </div>
-          )}
-          {lead.budgetMax !== undefined && (
-            <div className="space-y-2">
-              <Label>Budget Max</Label>
-              <Input value={formatMoney(lead.budgetMax, lead.budgetCurrency || "USD")} readOnly />
-            </div>
-          )}
-          <div className="space-y-2 md:col-span-2">
-            <Label>Preferred Areas</Label>
-            <Input value={lead.preferredAreas.length > 0 ? lead.preferredAreas.join(", ") : "None specified"} readOnly />
-          </div>
-        </motion.div>
-      </Modal>
+      />
 
       {/* Property view modal */}
       <PropertyViewModal

@@ -8,6 +8,7 @@
 | Lead Export | `/app/leads/export` | All users |
 | Merge Leads | `/app/leads/merge` | Admin only |
 | Lead Scoring | `/app/admin/lead-scoring` | Admin only |
+| Platform (organisations overview, read-only org view, org deletion) | `/app/platform` | LayerSync platform admins only — see `docs/platform-admin.md` |
 
 The sidebar has two new sections:
 - **Import / Export** – visible to all users (Lead Import, Lead Export)
@@ -21,13 +22,14 @@ The sidebar has two new sections:
 
 1. Upload a CSV file (drag-and-drop or file browser).
 2. Map CSV columns to lead fields (auto-mapping by header name).
-3. Choose an import mode:
+3. Choose the **lead source for the batch** (required, e.g. PropertyBook / Property.co.zw). Optionally use the file's own Source column, with unrecognised values falling back to the batch source.
+4. Choose an import mode:
    - **Create only** – fails on duplicates
    - **Upsert by email/phone** – updates existing leads that match
    - **Skip duplicates** – silently skips matching rows
-4. Preview the first 20 rows with duplicate detection flags.
-5. Run the import. A summary shows created/updated/skipped/failed counts.
-6. Download an error CSV for failed rows.
+5. Preview the first 20 rows with duplicate detection flags and the resolved source.
+6. Run the import. A summary shows created/updated/skipped/failed counts.
+7. Download an error CSV for failed rows.
 
 **Duplicate detection during import:** rows are checked against existing leads using normalized email (trim + lowercase) and normalized phone (strip non-digit chars, keep leading `+`).
 

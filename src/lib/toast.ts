@@ -95,6 +95,16 @@ export const leadToasts = {
       description: detail || "Something went wrong. Please try again.",
     }),
 
+  detailsSaved: () =>
+    animatedToast.success("Lead updated", {
+      description: "The lead's details have been saved.",
+    }),
+
+  detailsSaveFailed: (detail?: string) =>
+    animatedToast.error("Failed to update lead", {
+      description: detail || "Something went wrong. Please try again.",
+    }),
+
   sourceReassigned: (count: number, sourceLabel: string) =>
     animatedToast.success("Source updated", {
       description: `${count} ${count === 1 ? "lead" : "leads"} reassigned to ${sourceLabel}.`,

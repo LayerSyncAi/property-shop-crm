@@ -250,10 +250,12 @@ export default function ContactsPage() {
   // curated areas (covers orgs seeded from the older, smaller dataset).
   React.useEffect(() => {
     if (currentUser && locations !== undefined) {
+      // Best-effort housekeeping; refused (harmlessly) in the read-only
+      // platform view, so never let the rejection surface.
       if (locations.length === 0) {
-        seedLocations();
+        seedLocations().catch(() => {});
       } else {
-        syncLocations();
+        syncLocations().catch(() => {});
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

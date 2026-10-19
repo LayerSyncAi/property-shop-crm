@@ -1,6 +1,16 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { getCurrentUser } from "./helpers";
+import { ConvexError } from "convex/values";
+import { getCurrentUser, PLATFORM_READ_ONLY_MESSAGE } from "./helpers";
+
+/** Uploads/deletes are unscoped, so platform staff are refused explicitly. */
+async function requireWritingUser(ctx: Parameters<typeof getCurrentUser>[0]) {
+  const user = await getCurrentUser(ctx);
+  if (user.isPlatformAdmin) {
+    throw new ConvexError(PLATFORM_READ_ONLY_MESSAGE);
+  }
+  return user;
+}
 
 /**
  * Generate an upload URL for file uploads.
@@ -9,7 +19,7 @@ import { getCurrentUser } from "./helpers";
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
-    await getCurrentUser(ctx);
+    await requireWritingUser(ctx);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -47,7 +57,7 @@ export const getUrls = query({
 export const deleteFile = mutation({
   args: { storageId: v.id("_storage") },
   handler: async (ctx, args) => {
-    await getCurrentUser(ctx);
+    await requireWritingUser(ctx);
     await ctx.storage.delete(args.storageId);
   },
 });

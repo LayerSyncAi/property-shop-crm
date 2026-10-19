@@ -206,7 +206,8 @@ export default function StagesPage() {
   // Seed default stages on mount if empty
   useEffect(() => {
     if (stages !== undefined && stages.length === 0) {
-      seedStages();
+      // Refused (harmlessly) in the read-only platform view.
+      seedStages().catch(() => {});
     }
   }, [stages, seedStages]);
 
