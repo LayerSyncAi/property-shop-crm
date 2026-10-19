@@ -10,6 +10,9 @@ export default defineSchema({
   organizations: defineTable({
     name: v.string(),
     slug: v.string(), // URL-friendly identifier
+    // Set when a platform admin starts a purge; the batched delete job then
+    // removes every row that belongs to the org and finally the org itself.
+    deletingAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -33,11 +36,17 @@ export default defineSchema({
     // View-mode preference: a real admin can toggle into "Agent Mode" to see
     // only their own work. Visibility-only — never changes role or permissions.
     agentMode: v.optional(v.boolean()),
+    // Platform (LayerSync) staff. A platform admin has NO orgId, so they never
+    // appear in any organisation's user list. They can open any organisation
+    // in a read-only view by setting platformViewOrgId (see helpers.ts).
+    isPlatformAdmin: v.optional(v.boolean()),
+    platformViewOrgId: v.optional(v.id("organizations")),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_email", ["email"])
-    .index("by_org", ["orgId"]),
+    .index("by_org", ["orgId"])
+    .index("by_platform_admin", ["isPlatformAdmin"]),
   // Auditable record of a user accepting a versioned legal document at sign-up.
   legalAcceptances: defineTable({
     userId: v.id("users"),

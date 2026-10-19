@@ -20,6 +20,7 @@ import {
   Palette,
   ScrollText,
   Search,
+  Server,
   Shield,
   SlidersHorizontal,
   Star,
@@ -64,8 +65,12 @@ const adminItems = [
   { label: "Logs", href: "/app/admin/logs", icon: ScrollText },
 ];
 
+const platformItem = { label: "Platform", href: "/app/platform", icon: Server };
+
 interface SidebarProps {
   isAdmin?: boolean;
+  /** LayerSync staff: shows the Platform section (organisations overview). */
+  isPlatformAdmin?: boolean;
   collapsed?: boolean;
   onToggle?: () => void;
   orgName?: string;
@@ -168,7 +173,7 @@ function NavItem({
   );
 }
 
-export const Sidebar = memo(function Sidebar({ isAdmin, collapsed, onToggle, orgName, mobileOpen, onMobileClose }: SidebarProps) {
+export const Sidebar = memo(function Sidebar({ isAdmin, isPlatformAdmin, collapsed, onToggle, orgName, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const [ioExpanded, setIoExpanded] = useState(false);
   const [contactToolsExpanded, setContactToolsExpanded] = useState(false);
@@ -429,6 +434,21 @@ export const Sidebar = memo(function Sidebar({ isAdmin, collapsed, onToggle, org
               </AnimatePresence>
             </>
           )}
+        </div>
+      ) : null}
+      {isPlatformAdmin ? (
+        <div className="mt-4 space-y-1 border-t border-white/20 pt-4">
+          {!collapsed && (
+            <span className="block px-3 pb-1 text-[11px] font-medium uppercase tracking-[0.14em] text-white/70">
+              LayerSync
+            </span>
+          )}
+          <NavItem
+            item={platformItem}
+            active={pathname.startsWith(platformItem.href)}
+            collapsed={collapsed}
+            pillId="nav-pill-platform"
+          />
         </div>
       ) : null}
       </div>

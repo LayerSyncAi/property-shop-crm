@@ -99,6 +99,9 @@ export const adminCreateUserInternal = internalMutation({
       .withIndex("by_email", (q) => q.eq("email", args.email))
       .unique();
     if (existing) {
+      if (existing.isPlatformAdmin) {
+        throw new Error("This email belongs to a platform (LayerSync) account and cannot join an organization");
+      }
       if (existing.orgId && existing.orgId !== args.orgId) {
         throw new Error("A user with this email already belongs to another organization");
       }
@@ -316,7 +319,8 @@ export const updateMyTimezone = mutation({
     timezone: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUserWithOrg(ctx);
+    // Own-row preference: no org needed (platform admins have none).
+    const user = await getCurrentUser(ctx);
     // Validate timezone string using Intl
     try {
       Intl.DateTimeFormat(undefined, { timeZone: args.timezone });
@@ -338,7 +342,8 @@ export const updateMyTimezone = mutation({
 export const setMyViewMode = mutation({
   args: { agentMode: v.boolean() },
   handler: async (ctx, args) => {
-    const user = await getCurrentUserWithOrg(ctx);
+    // Own-row preference: no org needed (platform admins have none).
+    const user = await getCurrentUser(ctx);
     await ctx.db.patch(user._id, {
       agentMode: args.agentMode,
       updatedAt: Date.now(),

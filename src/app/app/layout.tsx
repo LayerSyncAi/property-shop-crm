@@ -8,12 +8,13 @@ import { Topbar } from "@/components/layout/topbar";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { CommandPalette } from "@/components/layout/command-palette";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/common/error-boundary";
 import { StaticDataProvider } from "@/components/providers/static-data-provider";
+import { PlatformViewBanner } from "@/components/layout/platform-view-banner";
 
 const OnboardingTour = dynamic(
   () => import("@/components/onboarding/onboarding-tour").then((m) => m.OnboardingTour),
@@ -41,6 +42,15 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   }, []);
 
   const isForceChangePasswordPage = pathname === "/app/force-change-password";
+  const isPlatformPage = pathname.startsWith("/app/platform");
+
+  // Platform (LayerSync) staff have no organisation of their own. Until they
+  // open one in read-only view, only the Platform page can render — every
+  // other page subscribes to org-scoped queries that would throw.
+  const isPlatformAdmin = !!user?.isPlatformAdmin && !user?.orgId;
+  const inPlatformView = isPlatformAdmin && !!user?.platformViewOrgId;
+  const platformNoOrg = isPlatformAdmin && !user?.platformViewOrgId;
+  const exitViewOrg = useMutation(api.platform.exitViewOrg);
 
   // When the session is valid but getMe returns null, find out why so we can
   // show an accurate message (deactivated account vs. genuinely missing record).
@@ -62,6 +72,20 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       router.replace("/app/force-change-password");
     }
   }, [isLoading, user, isForceChangePasswordPage, router]);
+
+  // Platform admin with no organisation open → the Platform page is the only home.
+  useEffect(() => {
+    if (!isLoading && user && !user.resetPasswordOnNextLogin && platformNoOrg && !isPlatformPage) {
+      router.replace("/app/platform");
+    }
+  }, [isLoading, user, platformNoOrg, isPlatformPage, router]);
+
+  // The organisation being viewed was deleted underneath us → drop the view.
+  useEffect(() => {
+    if (!isLoading && inPlatformView && org === null) {
+      exitViewOrg().catch(() => {});
+    }
+  }, [isLoading, inPlatformView, org, exitViewOrg]);
 
   // Show loading state while auth session or user data is loading
   if (isLoading) {
@@ -162,7 +186,52 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   // Onboarding tour: show for users who haven't completed it yet
   // Default to true for users who don't have the field set (existing users)
-  const showOnboarding = user.showOnboardingInterface !== false && pathname === "/app/dashboard";
+  const showOnboarding =
+    !isPlatformAdmin && user.showOnboardingInterface !== false && pathname === "/app/dashboard";
+
+  // Minimal shell for platform staff with no organisation open: no
+  // StaticDataProvider / Copilot / command palette, all of which subscribe to
+  // org-scoped queries that throw without an org.
+  if (platformNoOrg) {
+    return (
+      <div className="min-h-screen bg-content-bg">
+        <ErrorBoundary sectionName="Sidebar">
+          <Sidebar
+            isAdmin={false}
+            isPlatformAdmin
+            collapsed={collapsed}
+            onToggle={() => setCollapsed((prev) => !prev)}
+            orgName="Platform"
+            mobileOpen={mobileOpen}
+            onMobileClose={() => setMobileOpen(false)}
+          />
+        </ErrorBoundary>
+        <div
+          className="transition-[margin] duration-200 max-md:!ml-0"
+          style={{
+            marginLeft: collapsed
+              ? "var(--sidebar-width-collapsed)"
+              : "var(--sidebar-width)",
+          }}
+        >
+          <Topbar
+            userName={userName}
+            userEmail={user.email || undefined}
+            orgName="LayerSync platform"
+            userTimezone={user.timezone || undefined}
+            isRealAdmin={false}
+            agentMode={false}
+            onMobileMenuOpen={() => setMobileOpen(true)}
+          />
+          <div className="px-3 py-4 pb-24 sm:px-6 sm:py-6 md:pb-6">
+            <ErrorBoundary sectionName="Page Content">
+              {isPlatformPage ? children : null}
+            </ErrorBoundary>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <StaticDataProvider>
@@ -173,6 +242,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <ErrorBoundary sectionName="Sidebar">
         <Sidebar
           isAdmin={isAdmin}
+          isPlatformAdmin={isPlatformAdmin}
           collapsed={collapsed}
           onToggle={() => setCollapsed((prev) => !prev)}
           orgName={org?.name}
@@ -188,7 +258,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             : "var(--sidebar-width)",
         }}
       >
-        <Topbar userName={userName} userEmail={user.email || undefined} orgName={org?.name} userTimezone={user.timezone || undefined} isRealAdmin={isRealAdmin} agentMode={agentMode} onMobileMenuOpen={() => setMobileOpen(true)} />
+        {inPlatformView && <PlatformViewBanner orgName={org?.name} />}
+        <Topbar userName={userName} userEmail={user.email || undefined} orgName={org?.name} userTimezone={user.timezone || undefined} isRealAdmin={isRealAdmin && !inPlatformView} agentMode={agentMode} onMobileMenuOpen={() => setMobileOpen(true)} />
         <div className="px-3 py-4 pb-24 sm:px-6 sm:py-6 md:pb-6">
           <ErrorBoundary sectionName="Page Content">
             {children}
@@ -197,7 +268,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </div>
       <BottomTabBar />
       <CommandPalette />
-      <CopilotPanel />
+      {!inPlatformView && <CopilotPanel />}
     </div>
     </StaticDataProvider>
   );
