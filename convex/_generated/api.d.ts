@@ -12,7 +12,11 @@ import type * as activities from "../activities.js";
 import type * as activityReminders from "../activityReminders.js";
 import type * as auth from "../auth.js";
 import type * as authRepair from "../authRepair.js";
+<<<<<<< HEAD
 import type * as commissionLib from "../commissionLib.js";
+=======
+import type * as branding from "../branding.js";
+>>>>>>> upstream/main
 import type * as commissions from "../commissions.js";
 import type * as contacts from "../contacts.js";
 import type * as copilotChats from "../copilotChats.js";
@@ -22,6 +26,7 @@ import type * as email from "../email.js";
 import type * as emailLayout from "../emailLayout.js";
 import type * as helpers from "../helpers.js";
 import type * as http from "../http.js";
+import type * as leadEditLib from "../leadEditLib.js";
 import type * as leadExport from "../leadExport.js";
 import type * as leadImport from "../leadImport.js";
 import type * as leadMerge from "../leadMerge.js";
@@ -36,17 +41,22 @@ import type * as matches from "../matches.js";
 import type * as organizations from "../organizations.js";
 import type * as owners from "../owners.js";
 import type * as passwordReset from "../passwordReset.js";
+import type * as platform from "../platform.js";
+import type * as platformLib from "../platformLib.js";
 import type * as properties from "../properties.js";
 import type * as propertyBook from "../propertyBook.js";
 import type * as propertyBook_parser from "../propertyBook/parser.js";
 import type * as propertyBook_refresh from "../propertyBook/refresh.js";
 import type * as propertyBook_scraper from "../propertyBook/scraper.js";
 import type * as propertyShares from "../propertyShares.js";
+import type * as push from "../push.js";
+import type * as pushSender from "../pushSender.js";
 import type * as rateLimit from "../rateLimit.js";
 import type * as reportingLib from "../reportingLib.js";
 import type * as reports from "../reports.js";
 import type * as stages from "../stages.js";
 import type * as storage from "../storage.js";
+import type * as syncmedia from "../syncmedia.js";
 import type * as users from "../users.js";
 import type * as viewingForms from "../viewingForms.js";
 
@@ -61,7 +71,11 @@ declare const fullApi: ApiFromModules<{
   activityReminders: typeof activityReminders;
   auth: typeof auth;
   authRepair: typeof authRepair;
+<<<<<<< HEAD
   commissionLib: typeof commissionLib;
+=======
+  branding: typeof branding;
+>>>>>>> upstream/main
   commissions: typeof commissions;
   contacts: typeof contacts;
   copilotChats: typeof copilotChats;
@@ -71,6 +85,7 @@ declare const fullApi: ApiFromModules<{
   emailLayout: typeof emailLayout;
   helpers: typeof helpers;
   http: typeof http;
+  leadEditLib: typeof leadEditLib;
   leadExport: typeof leadExport;
   leadImport: typeof leadImport;
   leadMerge: typeof leadMerge;
@@ -85,17 +100,22 @@ declare const fullApi: ApiFromModules<{
   organizations: typeof organizations;
   owners: typeof owners;
   passwordReset: typeof passwordReset;
+  platform: typeof platform;
+  platformLib: typeof platformLib;
   properties: typeof properties;
   propertyBook: typeof propertyBook;
   "propertyBook/parser": typeof propertyBook_parser;
   "propertyBook/refresh": typeof propertyBook_refresh;
   "propertyBook/scraper": typeof propertyBook_scraper;
   propertyShares: typeof propertyShares;
+  push: typeof push;
+  pushSender: typeof pushSender;
   rateLimit: typeof rateLimit;
   reportingLib: typeof reportingLib;
   reports: typeof reports;
   stages: typeof stages;
   storage: typeof storage;
+  syncmedia: typeof syncmedia;
   users: typeof users;
   viewingForms: typeof viewingForms;
 }>;

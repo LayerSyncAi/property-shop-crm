@@ -20,6 +20,7 @@ import { useRequireAuth } from "@/hooks/useAuth";
 import { DuplicateWarning } from "@/components/leads/duplicate-warning";
 import { leadToasts, contactToasts, locationToasts } from "@/lib/toast";
 import { LEAD_SOURCE_OPTIONS, type LeadSource } from "@/lib/lead-sources";
+import { validateName, validatePhone, validateEmail } from "@/lib/validators";
 
 type Source = LeadSource;
 
@@ -180,10 +181,19 @@ export default function NewLeadPage() {
   // the older, smaller dataset so previously-missing suburbs become available.
   useEffect(() => {
     if (user && locations !== undefined) {
+<<<<<<< HEAD
       if (locations.length === 0) {
         seedLocations();
       } else {
         syncLocations();
+=======
+      // Best-effort housekeeping; refused (harmlessly) in the read-only
+      // platform view, so never let the rejection surface.
+      if (locations.length === 0) {
+        seedLocations().catch(() => {});
+      } else {
+        syncLocations().catch(() => {});
+>>>>>>> upstream/main
       }
     }
     // Run once per mount when locations first resolve.
@@ -249,27 +259,6 @@ export default function NewLeadPage() {
     if (!propertyResults) return [];
     return propertyResults.filter((p: PropertyResult) => selectedPropertyIds.has(p._id));
   }, [propertyResults, selectedPropertyIds]);
-
-  // Validation functions for new contact
-  const validateName = (value: string): string | undefined => {
-    if (!value.trim()) return "Name is required";
-    if (value.trim().length < 2) return "Name must be at least 2 characters";
-    return undefined;
-  };
-
-  const validatePhone = (value: string): string | undefined => {
-    if (!value.trim()) return undefined; // Phone is optional
-    const digits = value.replace(/\D/g, "");
-    if (digits.length < 7) return "Please enter a valid phone number";
-    return undefined;
-  };
-
-  const validateEmail = (value: string): string | undefined => {
-    if (!value.trim()) return undefined;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) return "Please enter a valid email address";
-    return undefined;
-  };
 
   const handleNewContactFieldChange = (
     field: "name" | "phone" | "email",

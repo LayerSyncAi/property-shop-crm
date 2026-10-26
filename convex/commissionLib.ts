@@ -11,10 +11,41 @@
  *   <party>Amount     = commissionAmount * <party>Percent / 100
  */
 
+<<<<<<< HEAD
 /** Fixed gross commission rate applied to the sale value (5%). */
 export const COMMISSION_RATE = 0.05;
 
 /** The commission rate expressed as a whole-number percentage (5). */
+=======
+const DEFAULT_COMMISSION_RATE = 0.05;
+
+/**
+ * Resolve the gross commission rate. Defaults to 5% and can be overridden per
+ * deployment via the NEXT_PUBLIC_COMMISSION_RATE environment variable (a decimal
+ * fraction between 0 and 1, e.g. "0.05" for 5%). Kept env-driven so the rate is
+ * white-label configuration rather than a hardcoded literal. Reads
+ * NEXT_PUBLIC_* so the same value is available in both the Convex runtime and
+ * the browser bundle that renders the commissions UI.
+ */
+function resolveCommissionRate(): number {
+  const raw =
+    typeof process !== "undefined"
+      ? process.env.NEXT_PUBLIC_COMMISSION_RATE
+      : undefined;
+  if (raw) {
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed > 0 && parsed < 1) {
+      return parsed;
+    }
+  }
+  return DEFAULT_COMMISSION_RATE;
+}
+
+/** Gross commission rate applied to the sale value (default 5%). */
+export const COMMISSION_RATE = resolveCommissionRate();
+
+/** The commission rate expressed as a whole-number percentage (e.g. 5). */
+>>>>>>> upstream/main
 export const COMMISSION_RATE_PERCENT = COMMISSION_RATE * 100;
 
 /** Gross commission pool earned on a deal of the given sale value. */

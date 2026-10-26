@@ -1,6 +1,31 @@
 import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 
+<<<<<<< HEAD
+=======
+/** Fallback temporary password when AUTH_TEMP_PASSWORD is not configured. */
+const FALLBACK_TEMP_PASSWORD = "ChangeMe!123";
+
+/**
+ * The temporary password an admin issues when provisioning or repairing a
+ * login. It is always paired with `resetPasswordOnNextLogin`, so it is a
+ * transient credential the admin communicates to the user for a single sign-in
+ * before they set their own — not a secret (the admin UI displays it). Both the
+ * Convex runtime (which hashes it) and the browser (which shows the admin the
+ * hint) must resolve the same value, so it is read from the
+ * `NEXT_PUBLIC_AUTH_TEMP_PASSWORD` environment variable (set it in BOTH the
+ * Next.js and Convex deployment env). Never a client-specific literal; falls
+ * back to a documented default when unset.
+ */
+export function getTempPassword(): string {
+  const fromEnv =
+    typeof process !== "undefined"
+      ? process.env.NEXT_PUBLIC_AUTH_TEMP_PASSWORD
+      : undefined;
+  return fromEnv && fromEnv.length >= 8 ? fromEnv : FALLBACK_TEMP_PASSWORD;
+}
+
+>>>>>>> upstream/main
 /**
  * Single source of truth for reconciling a Convex Auth *password* account.
  *

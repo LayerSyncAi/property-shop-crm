@@ -5,10 +5,18 @@ import { getCurrentUser, requireAdmin, getCurrentUserOptional, getCurrentUserWit
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Scrypt } from "lucia";
 import { recordAudit } from "./logs";
+<<<<<<< HEAD
 import { rebuildPasswordAccount } from "./lib/authReconcile";
+=======
+import { rebuildPasswordAccount, getTempPassword } from "./lib/authReconcile";
+>>>>>>> upstream/main
 
-/** Default temporary password for admin-created users */
-const DEFAULT_TEMP_PASSWORD = "12345678";
+/**
+ * Temporary password for admin-created / reset users. Configurable per
+ * deployment via AUTH_TEMP_PASSWORD (see getTempPassword); always paired with a
+ * forced reset on next login. No client-specific literal.
+ */
+const DEFAULT_TEMP_PASSWORD = getTempPassword();
 
 export const getMe = query({
   handler: async (ctx) => {
@@ -95,6 +103,9 @@ export const adminCreateUserInternal = internalMutation({
       .withIndex("by_email", (q) => q.eq("email", args.email))
       .unique();
     if (existing) {
+      if (existing.isPlatformAdmin) {
+        throw new Error("This email belongs to a platform (LayerSync) account and cannot join an organization");
+      }
       if (existing.orgId && existing.orgId !== args.orgId) {
         throw new Error("A user with this email already belongs to another organization");
       }
@@ -312,7 +323,8 @@ export const updateMyTimezone = mutation({
     timezone: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUserWithOrg(ctx);
+    // Own-row preference: no org needed (platform admins have none).
+    const user = await getCurrentUser(ctx);
     // Validate timezone string using Intl
     try {
       Intl.DateTimeFormat(undefined, { timeZone: args.timezone });
@@ -334,7 +346,12 @@ export const updateMyTimezone = mutation({
 export const setMyViewMode = mutation({
   args: { agentMode: v.boolean() },
   handler: async (ctx, args) => {
+<<<<<<< HEAD
     const user = await getCurrentUserWithOrg(ctx);
+=======
+    // Own-row preference: no org needed (platform admins have none).
+    const user = await getCurrentUser(ctx);
+>>>>>>> upstream/main
     await ctx.db.patch(user._id, {
       agentMode: args.agentMode,
       updatedAt: Date.now(),

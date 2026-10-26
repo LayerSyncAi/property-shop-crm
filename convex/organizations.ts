@@ -1,6 +1,11 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { getCurrentUser, getCurrentUserOptional, getCurrentUserWithOrg } from "./helpers";
+import {
+  getCurrentUser,
+  getCurrentUserOptional,
+  getCurrentUserWithOrg,
+  getEffectiveOrgId,
+} from "./helpers";
 
 function generateSlug(name: string): string {
   return name
@@ -27,6 +32,11 @@ export const setupOrganization = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
+
+    // Platform (LayerSync) staff accounts never own an organisation.
+    if (user.isPlatformAdmin) {
+      throw new Error("Platform admin accounts cannot create an organization");
+    }
 
     // If user already has an org, return it
     if (user.orgId) {
@@ -95,8 +105,11 @@ export const setupOrganization = mutation({
 export const getMyOrg = query({
   handler: async (ctx) => {
     const user = await getCurrentUserOptional(ctx);
-    if (!user || !user.orgId) return null;
-    const org = await ctx.db.get(user.orgId);
+    if (!user) return null;
+    // A platform admin viewing an organisation sees that org's details.
+    const orgId = getEffectiveOrgId(user);
+    if (!orgId) return null;
+    const org = await ctx.db.get(orgId);
     return org;
   },
 });
