@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { Home } from "lucide-react";
 import { api } from "../../../../convex/_generated/api";
+import { moduleOffMessage } from "../../../../convex/lib/moduleChanges";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ export default function StayLayout({ children }: { children: ReactNode }) {
         description={
           hub?.enabledModules.includes("stay")
             ? "Ask your director to give you the property manager or accounts role."
-            : "Your agency does not have SyncStay switched on."
+            : moduleOffMessage("SyncStay", !!hub?.isAdmin)
         }
         action={
           <Link href="/app/hub">

@@ -2,9 +2,10 @@
  * SyncEstate modules and the fixed role list.
  *
  * SynCRM is one module in a suite that shares one login, one set of users and
- * one list of contacts and properties (the Hub). An organisation pays for a
- * set of modules (`organizations.enabledModules`); a user reaches a module
- * when the org has it switched on AND their role allows it.
+ * one list of contacts and properties (the Hub). An organisation has a set of
+ * modules switched on (`organizations.enabledModules`), by its own admin in
+ * Agency settings or by LayerSync; a user reaches a module when the org has it
+ * switched on AND their role allows it.
  *
  * Kept dependency-free so the rules can be unit-tested and imported from both
  * Convex functions and the Next.js app.

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { Map as MapIcon } from "lucide-react";
 import { api } from "../../../../convex/_generated/api";
+import { moduleOffMessage } from "../../../../convex/lib/moduleChanges";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ export default function DevLayout({ children }: { children: ReactNode }) {
       <EmptyState
         icon={MapIcon}
         title="SyncDev is not available to you"
-        description={hub?.enabledModules.includes("dev") ? "Ask your director for access." : "Your agency does not have SyncDev switched on."}
+        description={hub?.enabledModules.includes("dev") ? "Ask your director for access." : moduleOffMessage("SyncDev", !!hub?.isAdmin)}
         action={
           <Link href="/app/hub">
             <Button variant="secondary">Back to the Hub</Button>

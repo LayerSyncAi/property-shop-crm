@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { animatedToast } from "@/components/ui/animated-toaster";
 import { getErrorMessage } from "@/lib/errors";
+import { ModuleChecklist } from "@/components/hub/module-checklist";
+import { MODULE_ORDER, type ModuleKey } from "@/config/modules";
+import { moduleChangeNotes } from "../../../../convex/lib/moduleChanges";
 
 type Form = {
   name: string;
@@ -126,9 +129,58 @@ export default function AgencySettingsPage() {
           )}
         </CardContent>
       </Card>
+      {hubContext?.isAdmin && <ModulesCard enabled={hubContext.enabledModules} />}
       <LogoCard logoUrl={branding?.logoUrl} canEdit={canEdit} />
       <BranchesCard branches={branches} canEdit={canEdit} />
     </div>
+  );
+}
+
+/** Which modules the agency uses. Roles then decide who on the team opens each one. */
+function ModulesCard({ enabled }: { enabled: ModuleKey[] }) {
+  const save = useMutation(api.hub.adminSetModules);
+  const [draft, setDraft] = useState<ModuleKey[] | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Follows the saved list until the admin changes something.
+  const value = draft ?? enabled;
+  const dirty = MODULE_ORDER.some((k) => value.includes(k) !== enabled.includes(k));
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await save({ modules: value });
+      setDraft(null);
+      animatedToast.success("Modules updated");
+    } catch (err) {
+      animatedToast.error("Could not update modules", { description: getErrorMessage(err) });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card className="max-w-2xl">
+      <CardHeader>
+        <h2 className="text-h3">Modules</h2>
+        <p className="text-sm text-text-muted">
+          Choose what your agency uses. Switching a module off hides it for everyone and keeps its data.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <ModuleChecklist value={value} onChange={setDraft} />
+        {moduleChangeNotes(enabled, value).map((note) => (
+          <p key={note} className="text-xs text-text-muted">
+            {note}
+          </p>
+        ))}
+        <div className="flex justify-end">
+          <Button onClick={handleSave} disabled={saving || !dirty}>
+            {saving ? "Saving..." : "Save modules"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

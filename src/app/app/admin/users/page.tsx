@@ -588,7 +588,7 @@ export default function UsersPage() {
                   </div>
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-xs text-text-muted">
-                      Roles decide which modules an agent can open. Property manager and Accounts open SyncStay. Valuer, Signing valuer, Valuations admin and Accounts open SyncWorth. Admins open everything.
+                      Roles decide which modules an agent can open. Property manager and Accounts open SyncStay. Valuer, Signing valuer, Valuations admin and Accounts open SyncWorth. Admins open every module that is switched on.
                     </p>
                     <Button size="sm" onClick={handleSaveEstateRoles} disabled={isSaving || !rolesDirty}>
                       Save roles

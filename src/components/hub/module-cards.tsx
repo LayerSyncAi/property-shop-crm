@@ -82,18 +82,25 @@ export function ModuleCards({
           {closed.map((key) => {
             const def = MODULES[key];
             const Icon = def.icon;
-            const onPlan = enabledModules.includes(key);
-            return (
+            const switchedOn = enabledModules.includes(key);
+            const row = (
               <div key={key} className="flex items-center gap-3 rounded-[16px] border border-dashed border-border-strong px-4 py-3 text-text-muted">
                 <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-text">{def.name}</p>
                   <p className="truncate text-xs">
-                    {onPlan ? "Your role can't open this. Ask your admin." : isAdmin ? "Ask LayerSync to switch this on" : def.tagline}
+                    {switchedOn ? "Your role can't open this. Ask your admin." : isAdmin ? "Switch this on in Agency settings" : "Ask your admin to switch this on"}
                   </p>
                 </div>
-                {onPlan ? <Lock className="h-4 w-4 shrink-0" aria-hidden="true" /> : <Badge variant="neutral">Not on your plan</Badge>}
+                {switchedOn ? <Lock className="h-4 w-4 shrink-0" aria-hidden="true" /> : <Badge variant="neutral">Switched off</Badge>}
               </div>
+            );
+            return isAdmin && !switchedOn ? (
+              <Link key={key} href="/app/settings">
+                {row}
+              </Link>
+            ) : (
+              row
             );
           })}
           {UPCOMING_MODULES.map((m) => {

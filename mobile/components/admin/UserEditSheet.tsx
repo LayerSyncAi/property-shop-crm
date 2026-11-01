@@ -60,7 +60,7 @@ export function UserEditSheet({ user, meId, onClose }: { user: User | null; meId
           <>
             <CheckList options={ESTATE_ROLES.map((r) => ({ value: r, label: ESTATE_ROLE_LABELS[r] }))} value={draft} onChange={setDraft} />
             <Body small muted>
-              Roles decide which modules an agent can open. Property manager and Accounts open SyncStay. Valuer, Signing valuer, Valuations admin and Accounts open SyncWorth. Admins open everything.
+              Roles decide which modules an agent can open. Property manager and Accounts open SyncStay. Valuer, Signing valuer, Valuations admin and Accounts open SyncWorth. Admins open every module that is switched on.
             </Body>
             <Button title="Save roles" small disabled={busy || !dirty} onPress={() => run(() => setEstateRoles({ userId: user._id, roles: draft }), { success: "SyncEstate roles updated." })} />
           </>

@@ -6,7 +6,7 @@ import { AdminGuard } from "../../components/admin/AdminGuard";
 const ITEMS: Array<{ icon: React.ComponentProps<typeof ListItem>["icon"]; title: string; subtitle: string; href: string }> = [
   { icon: "people-outline", title: "Users", subtitle: "Accounts, roles and access", href: "/admin/users" },
   { icon: "shield-checkmark-outline", title: "Roles", subtitle: "Who is an admin", href: "/admin/roles" },
-  { icon: "business-outline", title: "Agency settings", subtitle: "Details printed on receipts and reports", href: "/admin/settings" },
+  { icon: "business-outline", title: "Agency settings", subtitle: "Details, modules and branches", href: "/admin/settings" },
   { icon: "document-text-outline", title: "Logs", subtitle: "Audit trail and email log", href: "/admin/logs" },
   { icon: "git-branch-outline", title: "Pipeline stages", subtitle: "Order and outcomes of lead stages", href: "/admin/stages" },
   { icon: "speedometer-outline", title: "Lead scoring", subtitle: "Criteria and weights", href: "/admin/lead-scoring" },

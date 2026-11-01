@@ -149,17 +149,17 @@ export default function Hub() {
           <View style={{ gap: space.sm }}>
             {closed.map((k) => {
               const m = MODULES[k];
-              const onPlan = hub?.enabledModules.includes(k);
+              const switchedOn = hub?.enabledModules.includes(k);
               return (
-                <View key={k} style={{ flexDirection: "row", alignItems: "center", gap: space.md, padding: space.md, borderRadius: radius.lg, borderWidth: 1, borderStyle: "dashed", borderColor: colors.borderStrong }}>
+                <Pressable key={k} disabled={switchedOn || !hub?.isAdmin} onPress={() => router.push("/admin/settings")} style={{ flexDirection: "row", alignItems: "center", gap: space.md, padding: space.md, borderRadius: radius.lg, borderWidth: 1, borderStyle: "dashed", borderColor: colors.borderStrong }}>
                   <ProductIcon name={m.product} size={20} color={colors.faint} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: font.sm, fontWeight: "600", color: colors.text }}>{m.name}</Text>
                     <Text style={{ fontSize: font.xs, color: colors.muted }}>
-                      {onPlan ? "Your role cannot open this" : hub?.isAdmin ? "Ask LayerSync to switch this on" : "Not on your plan"}
+                      {switchedOn ? "Your role cannot open this" : hub?.isAdmin ? "Switch this on in Agency settings" : "Ask your admin to switch this on"}
                     </Text>
                   </View>
-                </View>
+                </Pressable>
               );
             })}
             {UPCOMING.map((u) => (

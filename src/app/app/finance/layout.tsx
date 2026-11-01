@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { Coins } from "lucide-react";
 import { api } from "../../../../convex/_generated/api";
+import { moduleOffMessage } from "../../../../convex/lib/moduleChanges";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ export default function FinanceLayout({ children }: { children: ReactNode }) {
         description={
           hub?.enabledModules.includes("finance")
             ? "Ask your director to give you the accounts or property manager role."
-            : "Your agency does not have SyncFinance switched on."
+            : moduleOffMessage("SyncFinance", !!hub?.isAdmin)
         }
         action={
           <Link href="/app/hub">
