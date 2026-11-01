@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/table";
 import { animatedToast } from "@/components/ui/animated-toaster";
 import { getErrorMessage } from "@/lib/errors";
-import { MODULES, MODULE_ORDER, type ModuleKey } from "@/config/modules";
+import { ModuleChecklist } from "@/components/hub/module-checklist";
+import { MODULES, type ModuleKey } from "@/config/modules";
 
 const formatDate = (ts: number | null | undefined) =>
   ts ? new Date(ts).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
@@ -483,25 +484,7 @@ export default function PlatformPage() {
           </div>
         }
       >
-        <div className="space-y-2">
-          {MODULE_ORDER.map((k) => (
-            <label
-              key={k}
-              className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm"
-            >
-              <input
-                type="checkbox"
-                checked={modulesDraft.includes(k)}
-                onChange={() =>
-                  setModulesDraft((prev) => (prev.includes(k) ? prev.filter((m) => m !== k) : [...prev, k]))
-                }
-                className="h-4 w-4 rounded border-border"
-              />
-              <span className="font-medium">{MODULES[k].name}</span>
-              <span className="text-xs text-text-muted">{MODULES[k].tagline}</span>
-            </label>
-          ))}
-        </div>
+        <ModuleChecklist value={modulesDraft} onChange={setModulesDraft} />
       </Modal>
 
       {/* Revoke modal */}

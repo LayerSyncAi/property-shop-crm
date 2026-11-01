@@ -28,8 +28,8 @@ function Inner() {
             {adminCount ?? 0} admin{adminCount === 1 ? "" : "s"}
           </Body>
           <Card style={{ gap: space.xs }}>
-            <Body><Body style={{ fontWeight: "700" }}>Admin: </Body>Full access to all features, can manage users and roles</Body>
-            <Body><Body style={{ fontWeight: "700" }}>Agent: </Body>Access to leads, contacts, properties, and tasks</Body>
+            <Body><Body style={{ fontWeight: "700" }}>Admin: </Body>Every module the agency has switched on, can manage users, roles and modules</Body>
+            <Body><Body style={{ fontWeight: "700" }}>Agent: </Body>SynCRM, SyncDev and SyncMedia, plus the modules their roles open</Body>
           </Card>
         </View>
       }

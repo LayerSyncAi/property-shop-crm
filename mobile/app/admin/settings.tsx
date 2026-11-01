@@ -1,9 +1,11 @@
-/** Agency details printed on receipts, statements and reports, and the agency branches. Admins edit; everyone else reads. */
+/** Agency details printed on receipts, statements and reports, the agency's modules and its branches. Admins edit; everyone else reads. */
 import { useEffect, useState } from "react";
 import { Text } from "react-native";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Body, Button, Card, Field, Loading, Row, Screen, Select } from "../../components/ui";
+import { moduleChangeNotes } from "../../../convex/lib/moduleChanges";
+import { Body, Button, Card, CheckList, Field, Loading, Row, Screen, Select } from "../../components/ui";
+import { MODULES, MODULE_ORDER, type ModuleKey } from "../../lib/modules";
 import { useRun } from "../../lib/useRun";
 import { colors, font, space } from "../../lib/theme";
 
@@ -16,6 +18,8 @@ export default function AgencySettings() {
   const branches = useQuery(api.hub.listBranches);
   const addBranch = useMutation(api.hub.addBranch);
   const removeBranch = useMutation(api.hub.removeBranch);
+  const setModules = useMutation(api.hub.adminSetModules);
+  const [moduleDraft, setModuleDraft] = useState<ModuleKey[] | null>(null);
   const [newBranch, setNewBranch] = useState("");
   const { busy, run } = useRun();
   const [form, setForm] = useState<Form | null>(null);
@@ -33,6 +37,11 @@ export default function AgencySettings() {
     if (!form.name.trim()) return run(async () => { throw new Error("Agency name is required"); });
     return run(() => update(form), { success: "Agency settings saved" });
   };
+
+  // Follows the saved list until the admin changes something.
+  const enabled = hub?.enabledModules ?? [];
+  const modules = moduleDraft ?? enabled;
+  const modulesDirty = MODULE_ORDER.some((k) => modules.includes(k) !== enabled.includes(k));
 
   return (
     <Screen>
@@ -58,6 +67,24 @@ export default function AgencySettings() {
         <Field label="VAT number" value={form.vatNumber} editable={canEdit} onChangeText={(v) => set("vatNumber", v)} />
         {canEdit && <Button title="Save settings" loading={busy} onPress={save} />}
       </Card>
+      {canEdit ? (
+        <Card style={{ gap: space.md }}>
+          <Text style={{ fontSize: font.md, fontWeight: "600", color: colors.text }}>Modules</Text>
+          <Body small muted>Choose what your agency uses. Switching a module off hides it for everyone and keeps its data.</Body>
+          <CheckList options={MODULE_ORDER.map((k) => ({ value: k, label: MODULES[k].name, hint: MODULES[k].tagline }))} value={modules} onChange={setModuleDraft} />
+          {moduleChangeNotes(enabled, modules).map((note) => (
+            <Body key={note} small muted>{note}</Body>
+          ))}
+          <Button
+            title="Save modules"
+            small
+            disabled={busy || !modulesDirty}
+            onPress={async () => {
+              if (await run(() => setModules({ modules }), { success: "Modules updated" })) setModuleDraft(null);
+            }}
+          />
+        </Card>
+      ) : null}
       <Card style={{ gap: space.md }}>
         <Text style={{ fontSize: font.md, fontWeight: "600", color: colors.text }}>Branches</Text>
         {(branches ?? []).length === 0 ? <Body small muted>No branches yet.</Body> : null}

@@ -282,12 +282,12 @@ export default function AdminRolesPage() {
               <p className="font-medium text-text mb-1">Role Permissions</p>
               <ul className="space-y-1">
                 <li>
-                  <strong>Admin:</strong> Full access to all features, can
-                  manage users and roles
+                  <strong>Admin:</strong> Every module the agency has switched
+                  on, can manage users, roles and modules
                 </li>
                 <li>
-                  <strong>Agent:</strong> Access to leads, contacts, properties,
-                  and tasks
+                  <strong>Agent:</strong> SynCRM, SyncDev and SyncMedia, plus the
+                  modules their roles open
                 </li>
               </ul>
             </div>

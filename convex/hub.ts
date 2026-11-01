@@ -1,10 +1,11 @@
 /**
  * SyncEstate Hub: the shared layer every module runs on.
  *
- * Owns which modules an organisation has (switched on by LayerSync platform
- * staff), the SyncEstate roles a user holds, agency settings, and the CRM's
- * headline figures for the director dashboard. Stay and Worth serve their own
- * figures from `stay/dashboard.hubSummary` and `worth/dashboard.hubSummary`.
+ * Owns which modules an organisation has (switched on by its own admin or by
+ * LayerSync platform staff), the SyncEstate roles a user holds, agency
+ * settings, and the CRM's headline figures for the director dashboard. Stay and
+ * Worth serve their own figures from `stay/dashboard.hubSummary` and
+ * `worth/dashboard.hubSummary`.
  */
 import { internalMutation, mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
@@ -62,7 +63,7 @@ export const getContext = query({
 });
 
 // =====================
-// Modules (LayerSync platform staff)
+// Modules
 // =====================
 
 async function applyModules(
@@ -88,6 +89,24 @@ async function applyModules(
   });
   return after;
 }
+
+/**
+ * An agency admin chooses their own agency's modules in Agency settings.
+ * Switching one off hides it and keeps its data. Platform view stays read-only.
+ */
+export const adminSetModules = mutation({
+  args: { modules: v.array(moduleKeyValidator) },
+  handler: async (ctx, args) => {
+    const admin = await requireAdmin(ctx);
+    if (args.modules.length === 0) throw new ConvexError("Keep at least one module switched on");
+    const org = await ctx.db.get(admin.orgId);
+    if (!org) throw new ConvexError("Organisation not found");
+    return applyModules(ctx, org, args.modules, {
+      id: admin._id,
+      label: admin.fullName || admin.name || admin.email || "Admin",
+    });
+  },
+});
 
 /** HB-01: LayerSync switches modules on or off for an agency. */
 export const setOrgModules = mutation({
