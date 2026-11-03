@@ -15,25 +15,25 @@ export type PhonePhoto = {
 
 export const PHOTOS = {
   hero: {
-    src: "/landing/hero.jpg",
-    mask: "/landing/hero-mask.png",
+    src: "/landing/hero-v2.jpg",
+    mask: "/landing/hero-mask-v2.png",
     width: 2400,
-    height: 1357,
-    quad: { tl: [0.42403, 0.14583], tr: [0.57835, 0.14654], br: [0.57601, 0.73355], bl: [0.4231, 0.73355] },
+    height: 1355,
+    quad: { tl: [0.42162, 0.1512], tr: [0.57961, 0.15102], br: [0.58013, 0.77602], bl: [0.42185, 0.7762] },
   },
   stage: {
-    src: "/landing/stage.jpg",
-    mask: "/landing/stage-mask.png",
+    src: "/landing/stage-v2.jpg",
+    mask: "/landing/stage-mask-v2.png",
     width: 1600,
-    height: 2000,
-    quad: { tl: [0.36182, 0.15362], tr: [0.6325, 0.15844], br: [0.61122, 0.66815], bl: [0.33541, 0.65831] },
+    height: 2138,
+    quad: { tl: [0.27176, 0.16572], tr: [0.56126, 0.14276], br: [0.67576, 0.65317], bl: [0.38489, 0.68859] },
   },
   stageAlt: {
-    src: "/landing/stage-alt.jpg",
-    mask: "/landing/stage-alt-mask.png",
+    src: "/landing/stage-alt-v2.jpg",
+    mask: "/landing/stage-alt-mask-v2.png",
     width: 1600,
-    height: 2000,
-    quad: { tl: [0.38056, 0.15769], tr: [0.66546, 0.1486], br: [0.6609, 0.7], bl: [0.37829, 0.7] },
+    height: 2138,
+    quad: { tl: [0.37776, 0.1424], tr: [0.68066, 0.13234], br: [0.62565, 0.74378], bl: [0.31263, 0.7213] },
   },
 } satisfies Record<string, PhonePhoto>;
 

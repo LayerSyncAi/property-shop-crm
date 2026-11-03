@@ -14,7 +14,7 @@ export function HubBentoPhone() {
       <PhoneStage
         photo="stageAlt"
         screens={["hub"]}
-        crop={{ x: [0.12, 0.92], y: [0.1, 0.62] }}
+        crop={{ x: [0.1, 0.9], y: [0.08, 0.6] }}
         sizes="(min-width: 1024px) 700px, 100vw"
         label="The Hub's Needs attention list: open maintenance, arrears, inspections due, an overdue valuation and payouts awaiting approval."
       />

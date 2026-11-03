@@ -387,10 +387,7 @@ This is the centrepiece.
 - Grade: deep teal shadows, neutral skin.
 - The approved hero is passed as a reference image to every later generation, for consistency.
 
-**Model:** GPT Image 2.5, quality "high", 2k (≈ 2.75 credits per image). It won the test against
-Cinema Studio 2.5 and Soul Cinema:
-- it kept the brief (two hands, nothing on the screen, straight-on);
-- its green screen was the cleanest.
+**Model:** Seedream 5.0 Pro on Higgsfield (`seedream_v5_pro`, 2k), about 2.5 credits per image. It replaced GPT Image 2.5 at Tadiwa's request. Every prompt follows the house structure in [`PROMPTS.md`](./PROMPTS.md): intent, scene, subjects with wardrobe and facial expression, camera, lighting in kelvin, grade and finish. The final prompts for every shot are kept there.
 
 **Green-screen compositing:**
 - Phones in H1 and H2 have a solid chroma-green screen.
@@ -409,12 +406,13 @@ Cinema Studio 2.5 and Soul Cinema:
 
 | ID | Shot | Aspect | Used in |
 |---|---|---|---|
-| H1 | Two hands, phone upright, straight-on, green screen (**test A approved candidate**) | 16:9 (plus 4:5 crop) | Hero, mobile chapters, app band, final CTA, OG |
-| H2 | One hand from the right, phone at a slight 3/4 angle, thumb hovering near the lower edge (not touching), green screen | 4:5 | Module showcase stage |
-| L1 | Sales agent at a viewing in a modern Harare home; client signing on the agent's phone; warm interior practicals, teal grade | 3:4 | Who it's for: Sales agencies |
-| L2 | Property manager in an apartment doorway, phone in hand, mid-inspection | 3:4 | Property managers |
-| L3 | Valuer outside a suburban house with a security wall and jacaranda, photographing it on a phone, golden hour then teal grade | 3:4 | Valuation firms |
-| L4 | Developer on a serviced-stands site with survey pegs and graded roads, phone in hand, dusk | 3:4 | Developers |
+| H1 | Two hands, phone upright, straight-on, symmetrical, green screen | 16:9 (plus 4:5 crop) | Hero, mobile chapters, app band, final CTA, OG |
+| H2 | One right hand from the bottom right, phone tilted about 10°, thumb on the frame, green screen | 3:4 | Module showcase stage |
+| H3 | One left hand cradling the phone in a gentle three-quarter turn, green screen | 3:4 | Hub bento, app band |
+| L1 | Borrowdale living room, golden hour: a female agent holds out her phone while a young couple sign on it, relieved and grinning | 3:4 | Who it's for: Sales agencies |
+| L2 | Avondale rental kitchen, morning: a male property manager photographs a leaking pipe under the sink; the tenant looks on, reassured | 3:4 | Property managers |
+| L3 | Mount Pleasant avenue under a jacaranda, golden hour: a female valuer photographs a house, focused and confident | 3:4 | Valuation firms |
+| L4 | Serviced stands site east of Harare, dusk: a developer smiles at his phone while his foreman points across the plots | 3:4 | Developers |
 
 **Budget:**
 - About 6 final images plus about 3 retries each, roughly 50 credits, within the 80 approved.

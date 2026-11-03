@@ -6,9 +6,9 @@ this script:
 
 1. finds the screen: strict green threshold, then a flood fill from the
    middle of the green area so green light spilled on the hands is left out;
-2. fits a straight line to each of the screen's four edges and intersects
-   them, which gives the true corners even though the screen corners are
-   rounded;
+2. finds the screen's long axis, then fits a straight line to each of the
+   four edges in that rotated frame and intersects them, which gives the
+   true corners even when the phone is tilted and its corners are rounded;
 3. writes a mask PNG (white, alpha = screen, slightly grown and feathered)
    that the page uses to clip the live screen, so rounded corners and
    anything in front of the glass stay on top;
@@ -61,33 +61,60 @@ def fit_edge(points: np.ndarray, vertical: bool) -> tuple[float, float]:
 
 
 def corners(screen: np.ndarray) -> dict:
+    """Fit the four screen edges and intersect them.
+
+    The phone may be tilted, so first find the screen's long axis (PCA of the
+    mask pixels) and work in coordinates rotated to line up with it. Each edge
+    is then sampled over the middle 60% of its length, away from the rounded
+    corners, fitted with a straight line, and the lines are intersected.
+    """
     ys, xs = np.nonzero(screen)
-    x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
-    w, h = x1 - x0, y1 - y0
+    cx, cy = xs.mean(), ys.mean()
+    cov = np.cov(np.stack([xs - cx, ys - cy]))
+    evals, evecs = np.linalg.eigh(cov)
+    long_axis = evecs[:, np.argmax(evals)]
+    # Angle that turns the long axis vertical.
+    theta = np.arctan2(long_axis[0], long_axis[1])
+    c, s_ = np.cos(theta), np.sin(theta)
+    # Rotate the pixel coordinates (u across, v down the phone).
+    u = (xs - cx) * c - (ys - cy) * s_
+    v = (xs - cx) * s_ + (ys - cy) * c
+    ui = np.round(u).astype(int)
+    vi = np.round(v).astype(int)
+    u0, u1, v0, v1 = ui.min(), ui.max(), vi.min(), vi.max()
+    w, h = u1 - u0, v1 - v0
+
     top, bottom, left, right = [], [], [], []
-    # Sample the middle 60% of each edge, away from the rounded corners.
-    for x in range(int(x0 + 0.2 * w), int(x1 - 0.2 * w)):
-        col = np.nonzero(screen[:, x])[0]
-        if len(col):
-            top.append((x, col.min()))
-            bottom.append((x, col.max()))
-    for y in range(int(y0 + 0.2 * h), int(y1 - 0.2 * h)):
-        row = np.nonzero(screen[y, :])[0]
-        if len(row):
-            left.append((row.min(), y))
-            right.append((row.max(), y))
-    t = fit_edge(np.array(top), False)
-    btm = fit_edge(np.array(bottom), False)
-    lft = fit_edge(np.array(left), True)
-    rgt = fit_edge(np.array(right), True)
+    by_u: dict[int, list[int]] = {}
+    by_v: dict[int, list[int]] = {}
+    for a, b in zip(ui, vi):
+        by_u.setdefault(a, []).append(b)
+        by_v.setdefault(b, []).append(a)
+    for a in range(int(u0 + 0.2 * w), int(u1 - 0.2 * w)):
+        col = by_u.get(a)
+        if col:
+            top.append((a, min(col)))
+            bottom.append((a, max(col)))
+    for b in range(int(v0 + 0.2 * h), int(v1 - 0.2 * h)):
+        row = by_v.get(b)
+        if row:
+            left.append((min(row), b))
+            right.append((max(row), b))
+    t = fit_edge(np.array(top, dtype=float), False)
+    btm = fit_edge(np.array(bottom, dtype=float), False)
+    lft = fit_edge(np.array(left, dtype=float), True)
+    rgt = fit_edge(np.array(right, dtype=float), True)
 
     def meet(hline, vline):
-        # y = ha*x + hb ; x = va*y + vb
+        # v = ha*u + hb ; u = va*v + vb
         ha, hb = hline
         va, vb = vline
-        y = (ha * vb + hb) / (1 - ha * va)
-        x = va * y + vb
-        return x, y
+        vv = (ha * vb + hb) / (1 - ha * va)
+        uu = va * vv + vb
+        # Back to image coordinates.
+        x = cx + uu * c + vv * s_
+        y = cy - uu * s_ + vv * c
+        return float(x), float(y)
 
     return {"tl": meet(t, lft), "tr": meet(t, rgt), "br": meet(btm, rgt), "bl": meet(btm, lft)}
 

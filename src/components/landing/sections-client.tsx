@@ -51,7 +51,7 @@ export function AppPhone() {
       <PhoneStage
         photo="stageAlt"
         screens={["signin"]}
-        crop={{ x: [0.12, 0.9], y: [0.1, 0.8] }}
+        crop={{ x: [0.1, 0.9], y: [0.08, 0.82] }}
         sizes="(min-width: 1024px) 560px, 100vw"
         label="The SyncEstate sign-in screen on a phone: one sign-in for every product your agency uses."
       />

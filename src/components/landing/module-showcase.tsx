@@ -217,7 +217,7 @@ export function ModuleShowcase() {
                   <PhoneStage
                     photo="stage"
                     screens={CHAPTER_SCREENS[ch.key]}
-                    crop={{ x: [0.12, 0.88], y: [0.08, 0.76] }}
+                    crop={{ x: [0.1, 0.85], y: [0.07, 0.76] }}
                     sizes="(max-width: 1023px) 130vw, 1px"
                     showDots
                     label={`${ch.name} on a phone: ${ch.eyebrow.toLowerCase()}.`}
@@ -230,12 +230,12 @@ export function ModuleShowcase() {
           {/* Desktop: one sticky phone. */}
           <div className="hidden lg:block">
             <div className="sticky top-[calc(50vh-min(41vh,400px))]">
-              <div className="l-stage l-stage-panel relative mx-auto max-h-[82vh] overflow-hidden rounded-[32px]" style={{ aspectRatio: "0.84", maxWidth: "100%" }}>
+              <div className="l-stage l-stage-panel relative mx-auto overflow-hidden rounded-[32px]" style={{ width: "min(100%, calc(82vh * 0.77))" }}>
                 <PhoneStage
                   photo="stage"
                   screens={ALL_SCREENS}
                   active={stageIndex}
-                  crop={{ x: [0.15, 0.85], y: [0.08, 0.75] }}
+                  crop={{ x: [0.12, 0.83], y: [0.07, 0.76] }}
                   sizes="(min-width: 1024px) 640px, 1px"
                   label={label}
                 />
