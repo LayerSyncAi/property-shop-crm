@@ -12,7 +12,7 @@ chaos of five disconnected tools collapsing into one app.
 The message, in one line: *How is your agency not running on SyncEstate yet? You are making your
 own life harder.*
 
-Status: **DRAFT v1, awaiting sign-off.** Items marked **[confirm]** need a yes or an edit from Tadiwa.
+Status: **v1.1, signed off 2026-11-03.** v1.1 changes: SyncStay reframed around property management (maintenance requests and inspections first, then rent and arrears); PropertyBook importing removed from the page.
 
 ---
 
@@ -162,8 +162,9 @@ Centred column, `min-height: 100svh`, with a radial `--haze` behind the photo.
    - Full width, max 1280px, aspect 16:9 (4:5 crop on mobile, centred on the phone).
    - The live screen is composited in (§7) and shows the **Hub**:
      - "Good morning, Tendai";
-     - a **Needs attention** list: "3 leads not contacted in 48 hours · SynCRM", "2 leases end in
-       30 days · SyncStay", "USD 4,280 rent overdue · SyncStay", "Valuation due Friday · SyncWorth";
+     - a **Needs attention** list: "3 leads not contacted in 48 hours · SynCRM", "New repair
+       request: Unit 4B geyser · SyncStay", "Routine inspection due: 12 Lomagundi Rd · SyncStay",
+       "USD 4,280 rent overdue · SyncStay", "Valuation due Friday · SyncWorth";
      - module tiles below.
    - The screen auto-scrolls slowly: 18s down, a pause, then back up.
    - The photo fades and scales from 1.04 to 1 over 1.4s after the headline.
@@ -237,7 +238,7 @@ This is the centrepiece.
 |---|---|---|---|---|---|
 | 1 | SynCRM · Leads, listings and deals | No lead goes **cold again.** | Every enquiry from PropertyBook, Facebook, WhatsApp or a walk-in lands in one pipeline, scored from Cold to On Fire. Your agents always know who to call next. | Lead scoring and a "top unworked leads" list · Duplicates caught by phone or email, merged with an audit trail · Reminders an hour before, when overdue, and a daily 8am agenda | CRM dashboard (win rate, KPI counters, score bands, top unworked leads), then scrolls to a lead's detail |
 | 2 | Viewings · Part of SynCRM | Prove the introduction. **Protect the commission.** | Capture the client's details and signature on the phone, at the viewing. The form locks when it's done and prints on your letterhead, so "who found this buyer?" is settled before it starts. | Signatures drawn on screen · Locked once completed · PDF on your agency letterhead | Viewing form with the signature pad mid-signature (the signature path animates in) |
-| 3 | SyncStay · Leases, rent and arrears | Know who owes what, **before you have to ask.** | Rent is charged automatically. Invoices and overdue reminders go out by email, and arrears are aged by days overdue. Landlords get statements without anyone building them by hand. | Lease expiry alerts 60 and 30 days ahead · Room-by-room inspections that lock on completion · Deposits held, applied or refunded, with a trail | Stay dashboard: Rent due this month, Collected so far, Total arrears, Occupancy, Leases ending soon |
+| 3 | SyncStay · Property management, digitised | Every property, every repair, **every inspection. Digitised.** | Each property, unit and lease lives in one digital file. Tenants log repair requests with photos straight from their portal, your team tracks them to done, and inspections happen room by room on the phone. Rent and arrears look after themselves. | Digital maintenance requests: raised by tenants, staff or an inspection, with photos, an assignee, costs, landlord approval for big repairs, and tenants emailed as status changes · Room-by-room inspections on the phone (move-in, routine, move-out), with condition ratings, photos and meter readings; locked on completion, acknowledged by the tenant, emailed to the landlord, and routine ones flagged when due · Rent charged automatically, arrears aged by days overdue, and landlord statements built for you | Maintenance board (New, In progress, Done) with a geyser repair request open (photo, assignee, cost, landlord approval: pending), then scrolls to a room-by-room inspection, then the Stay dashboard (Rent due, Collected, Arrears, Occupancy) |
 | 4 | SyncWorth · Valuations to signed report | Valuations out the door **on time, signed and locked.** | From instruction to inspection to signed report, every job has an owner and a due date. Comparables live in your firm's own database, not in one valuer's head. | Inspect on the phone, photos included · Signing-valuer review with versioned corrections · Optional hold-until-paid on reports | Worth dashboard: Open jobs, Overdue, Due this week, Average turnaround, Unpaid fees |
 | 5 | SyncFinance · Trust money, payouts and statements | Trust money **your auditor will thank you for.** | A proper double-entry ledger under a simple screen. Payouts need two people to approve, closed months stay closed, and USD and ZiG never mix. | Receipts, cash-up and landlord payouts · Mistakes reversed, never deleted · Trust report, cash book and debtors, ready for audit | Finance dashboard with trust and business balances by currency, plus a payout awaiting second approval |
 | 6 | SyncDev · Developments, stands and sales | Never **double-sell a stand** again. | Load a development's stands in one line, reserve on the spot from the field, and let reservations lapse on their own. Buyers get statements showing what's paid, what's owed and what's next. | Bulk stand entry: "1–40, A1–A12" · Instalment plans with reminders · Buyer statements emailed as PDFs | Stand grid (available, reserved, sold colour-coded), then a buyer statement |
@@ -255,7 +256,7 @@ This is the centrepiece.
 | AI Copilot | Ask **"Who should I call today?"** | The SynCRM Copilot answers questions about your pipeline, finds leads and properties, moves stages and creates tasks, in plain English, on web and phone. |
 | Portals | Landlords stop calling. **Tenants stop chasing.** | Invite-only portals show tenants their balance, receipts and repairs, and show landlords rent collected, arrears and statements. Each sees only what's theirs. |
 | Sync Notify | Reach every tenant in arrears **in one send** | Send SMS and email to segments (tenants in arrears, instalment clients, unpaid invoices) with personalised placeholders and a delivery log. |
-| PropertyBook | Bring your listings **across, not retyped** | Import your agency's live PropertyBook listings in batches, de-duplicated, with prices and statuses refreshed nightly. |
+| Commissions | Commission splits, **settled before the argument** | Set your agency's split rules once. When a deal is won, the commission record is created automatically and moves from pending to approved to paid, and every agent can see their own share. |
 
 ### 5.6 Who it's for (`#who`)
 
@@ -266,7 +267,7 @@ This is the centrepiece.
 | Card | Line | Chips |
 |---|---|---|
 | Sales agencies | From first enquiry to signed viewing form to paid commission. | SynCRM · SyncMedia |
-| Property managers | Rent collected, arrears chased, landlords updated, without the spreadsheet. | SyncStay · SyncFinance |
+| Property managers | Repairs logged and tracked, inspections done on the phone, rent and arrears under control. | SyncStay · SyncFinance |
 | Valuation firms | Every job on time, every report signed and locked. | SyncWorth |
 | Developers | Every stand, reservation and instalment, in real time. | SyncDev · SyncFinance |
 
@@ -288,13 +289,12 @@ This is the centrepiece.
 
 - **Eyebrow:** "HOW IT WORKS". **H2:** "We don't just sell software. **We transform agencies.**"
 - **Body:** "SyncEstate is built by LayerSync, end-to-end digital transformation specialists. We
-  set it up with you, bring your data across and get your team working in it." **[confirm: that
-  LayerSync offers setup, data migration and team training as a service]**
+  set it up with you, bring your data across and get your team working in it."
 - **Four steps** in a horizontal timeline. A green progress line draws in as it scrolls into view.
   1. **Chat to us.** Tell us how your agency works, on WhatsApp.
   2. **Pick your modules.** Start with what hurts most. Add the rest later.
-  3. **Bring your data.** Leads by CSV, your rental portfolio from Excel, listings from PropertyBook,
-     opening balances into Finance.
+  3. **Bring your data.** Leads by CSV, your rental portfolio from Excel, opening balances into
+     Finance.
   4. **Go live.** On every desk and every phone in your agency.
 
 ### 5.9 App coming soon (`#app`)
@@ -319,7 +319,7 @@ This is the centrepiece.
 2. **Does it work on my phone?** Yes. SyncEstate runs in any modern phone browser and can be
    installed to your home screen. Native iOS and Android apps are coming soon.
 3. **Can I bring my existing data?** Yes. Import leads from CSV, your rental portfolio from Excel,
-   listings straight from PropertyBook, and opening balances into SyncFinance.
+   and opening balances into SyncFinance.
 4. **Does it handle USD and ZiG?** Yes. Every amount carries its currency, and SyncFinance never
    mixes or converts them.
 5. **Can my landlords and tenants log in?** Yes, through invite-only portals. Tenants see their own
@@ -343,7 +343,7 @@ This is the centrepiece.
   1. The lockup and "Smarter real estate. Together.", then "Built in Zimbabwe by LayerSync,
      end-to-end digital transformation specialists."
   2. **Modules:** anchors to each chapter.
-  3. **Company:** LayerSync (layersync.ai **[confirm URL]**), WhatsApp.
+  3. **Company:** LayerSync (layersync.ai), WhatsApp.
   4. **Account:** Log in, Privacy (`/privacy`), Terms (`/terms`).
 - **Bottom row:** "© 2026 LayerSync. All rights reserved." on the left and the theme toggle on the
   right.
@@ -534,8 +534,8 @@ Cinema Studio 2.5 and Soul Cinema:
 ## 12. WhatsApp CTA
 
 - **Config:** `src/config/marketing.ts` exports `salesWhatsApp`, read from
-  `NEXT_PUBLIC_SALES_WHATSAPP` with a fallback to LayerSync's number.
-  **[confirm: number, in international format, e.g. 2637XXXXXXXX]**
+  `NEXT_PUBLIC_SALES_WHATSAPP` with a fallback to LayerSync's number, `263775187682`
+  (+263 77 518 7682).
 - **Link:** `https://wa.me/<number>?text=<encoded message>`. It opens in a new tab with
   `rel="noopener"`.
 - **Default message:** "Hi LayerSync! I run an estate agency and I'm interested in SyncEstate. Can
@@ -567,7 +567,7 @@ src/components/landing/
   final-cta.tsx
   footer.tsx
   phone/phone-stage.tsx             photo + matrix3d screen + mask
-  phone/screens/*.tsx               hub, crm, lead, viewing, stay, worth, finance, dev-stands, media-story, sign-in
+  phone/screens/*.tsx               hub, crm, lead, viewing, stay-maintenance, stay-inspection, stay-dashboard, worth, finance, dev-stands, media-story, sign-in
   content.ts                        all copy in one place
   landing.css                       tokens, grain, utilities
 src/config/marketing.ts             WhatsApp number and messages
@@ -594,6 +594,8 @@ scripts/landing/screen-quad.py      green-screen corner and mask extraction
 | WhatsApp Web extension: lookup, create lead, save chat | `convex/whatsapp.ts` |
 | Portals: tenant and landlord isolation | `convex/portal/*` |
 | Notify: SMS and email segments, placeholders, delivery log | `convex/notify/*` |
-| PropertyBook import, nightly refresh | `convex/propertyBook.ts`, `docs/propertybook-import.md` |
+| Maintenance: raised by tenant portal, staff or inspection; photos; assignee; cost; landlord approval; tenant status emails | `convex/schemas/stay.ts` (`stayMaintenance`), `convex/stay/maintenance.ts` |
+| Inspections: move-in/routine/move-out, room conditions and photos, meter readings, lock plus addenda, tenant acknowledgement, emailed to landlord, due-date scheduling, raise maintenance from an inspection | `convex/schemas/stay.ts` (`stayInspections`), `convex/stay/inspections.ts` |
+| Commission records created on a won deal, pending to approved to paid, split rules | `convex/commissions.ts`, `convex/commissionLib.ts` |
 | Modules switched on per agency, sold separately | `convex/lib/modules.ts`, `docs/261029_sync-dev.md` |
 | Push notifications and PWA install | `public/sw.js`, `public/manifest.json`, `convex/push.ts` |
