@@ -18,18 +18,18 @@ export type PhonePhoto = {
 
 export const PHOTOS = {
   hero: {
-    src: "/landing/hero-v3.jpg",
-    mask: "/landing/hero-v3-mask.png",
+    src: "/landing/hero-v4.jpg",
+    mask: "/landing/hero-v4-mask.png",
     width: 2400,
     height: 1355,
-    quad: { tl: [0.42318, 0.12088], tr: [0.58457, 0.11956], br: [0.58507, 0.7509], bl: [0.42208, 0.75227] },
+    quad: { tl: [0.4248, 0.13909], tr: [0.57341, 0.13914], br: [0.57306, 0.72676], bl: [0.42515, 0.72802] },
   },
   heroLight: {
-    src: "/landing/hero-light-v3.jpg",
-    mask: "/landing/hero-light-v3-mask.png",
+    src: "/landing/hero-light-v4.jpg",
+    mask: "/landing/hero-light-v4-mask.png",
     width: 2400,
     height: 1355,
-    quad: { tl: [0.42318, 0.12008], tr: [0.58485, 0.11927], br: [0.58499, 0.75024], bl: [0.42217, 0.75183] },
+    quad: { tl: [0.42482, 0.13873], tr: [0.5735, 0.13902], br: [0.57298, 0.72821], bl: [0.42509, 0.72793] },
   },
   stage: {
     src: "/landing/stage-v3.jpg",

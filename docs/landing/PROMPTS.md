@@ -35,7 +35,7 @@ Every prompt has these parts, in this order. Leave none out.
 
 ---
 
-## H1: Hero, two hands (16:9) → `hero-v3.jpg`
+## H1: Hero, two hands (16:9) → `hero-v4.jpg`
 
 The hands are a Zimbabwean businesswoman's, with a warm medium-brown complexion (changed from a man's on 2026-11-03 at Tadiwa's request).
 
@@ -77,7 +77,7 @@ H3 (left hand, used in the Hub bento and the app band) uses the same prompt, wit
 SUBJECT: this time a single left hand of the same woman rises from the bottom-left of the frame and cradles the phone upright in a relaxed grip, turned in a gentle three-quarter view of about 15 degrees so its right edge sits slightly further from the camera. Fingers wrap the left edge and the bottom; the thumb rests on the left edge of the metal frame. Nothing touches or covers the screen.
 ```
 
-## Light-theme twins → `hero-light-v3.jpg`, `stage-light-v3.jpg`, `stage-alt-light-v3.jpg`
+## Light-theme twins → `hero-light-v4.jpg`, `stage-light-v3.jpg`, `stage-alt-light-v3.jpg`
 
 Each is an **edit** of its dark photo, passed as the image reference, so the hands, the phone and its screen position stay put. The screen corners match the dark photo's to within 0.1%, so one crop fits both themes.
 
