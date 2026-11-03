@@ -1,0 +1,295 @@
+/* SyncEstate landing page. Tokens and the few styles Tailwind utilities
+   can't express. Everything is scoped to .landing so the app (light only)
+   is untouched. Spec: docs/landing/MASTER_SPEC.md §2–§3. */
+
+.landing {
+  --l-bg: #070b0d;
+  --l-bg-raised: #0d1417;
+  --l-surface: #111a1e;
+  --l-line: rgba(255, 255, 255, 0.08);
+  --l-line-strong: rgba(255, 255, 255, 0.14);
+  --l-ink: #eef2f3;
+  --l-ink-2: rgba(238, 242, 243, 0.64);
+  --l-ink-3: rgba(238, 242, 243, 0.42);
+  --l-accent: #9bd83d;
+  --l-accent-ink: #b5e46a;
+  --l-on-accent: #0f1419;
+  --l-glow: rgba(155, 216, 61, 0.32);
+  --l-haze: #0f2a28;
+  --l-stage: #070b0d;
+  --l-nav: rgba(13, 20, 23, 0.62);
+  --l-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Stages always read as dark, whatever the page theme. */
+  --l-stage-ink: #eef2f3;
+  --l-stage-ink-2: rgba(238, 242, 243, 0.66);
+  --l-stage-ink-3: rgba(238, 242, 243, 0.42);
+  --l-stage-line: rgba(255, 255, 255, 0.09);
+
+  color-scheme: dark;
+  background: var(--l-bg);
+  color: var(--l-ink);
+  font-family: var(--font-geist), system-ui, sans-serif;
+  min-height: 100svh;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+
+.landing[data-theme="light"] {
+  --l-bg: #f2f4f3;
+  --l-bg-raised: #ffffff;
+  --l-surface: #ffffff;
+  --l-line: rgba(15, 20, 25, 0.09);
+  --l-line-strong: rgba(15, 20, 25, 0.16);
+  --l-ink: #0f1419;
+  --l-ink-2: #58626a;
+  --l-ink-3: #6b757e;
+  --l-accent-ink: #3b6812;
+  --l-glow: rgba(155, 216, 61, 0.24);
+  --l-haze: #e1ecdc;
+  --l-nav: rgba(255, 255, 255, 0.72);
+  color-scheme: light;
+}
+
+/* Keep the overscroll area the page colour. */
+html:has(.landing[data-theme="dark"]) body,
+html:has(.landing:not([data-theme])) body {
+  background: #070b0d;
+}
+
+/* ---------- Type ---------------------------------------------------- */
+
+.l-mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+.l-eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--l-ink-3);
+}
+
+.l-h1 {
+  font-size: clamp(42px, 6.6vw, 96px);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.l-h2 {
+  font-size: clamp(32px, 4.2vw, 60px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.l-h3 {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.l-body-lg {
+  font-size: clamp(17px, 1.4vw, 19px);
+  line-height: 1.55;
+  color: var(--l-ink-2);
+  text-wrap: pretty;
+}
+
+.l-body {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--l-ink-2);
+  text-wrap: pretty;
+}
+
+/* The green mono accent phrase. */
+.l-accent {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-weight: 600;
+  font-size: 0.9em;
+  letter-spacing: -0.06em;
+  background: linear-gradient(90deg, #9bd83d, #d4f59a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.landing[data-theme="light"] .l-accent {
+  background: none;
+  color: var(--l-accent-ink);
+}
+/* Inside a dark stage the gradient applies in both themes. */
+.landing[data-theme="light"] .l-stage .l-accent {
+  background: linear-gradient(90deg, #9bd83d, #d4f59a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Surfaces ------------------------------------------------ */
+
+.l-stage {
+  background: var(--l-stage);
+  color: var(--l-stage-ink);
+  --l-ink: var(--l-stage-ink);
+  --l-ink-2: var(--l-stage-ink-2);
+  --l-ink-3: var(--l-stage-ink-3);
+  --l-line: var(--l-stage-line);
+  --l-accent-ink: #b5e46a;
+  --l-surface: #111a1e;
+  --l-bg-raised: #0d1417;
+  color-scheme: dark;
+}
+.landing[data-theme="light"] .l-stage-panel {
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+.l-card {
+  background: var(--l-surface);
+  border: 1px solid var(--l-line);
+  border-radius: 24px;
+}
+
+.l-grid-lines {
+  background-image: linear-gradient(to right, var(--l-line) 1px, transparent 1px);
+  background-size: calc(100% / 12) 100%;
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 40%, #000 30%, transparent 75%);
+}
+
+/* ---------- Buttons ------------------------------------------------- */
+
+.l-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: transform 0.25s var(--l-ease), box-shadow 0.25s var(--l-ease), background-color 0.25s var(--l-ease),
+    border-color 0.25s var(--l-ease);
+}
+.l-btn:active {
+  transform: scale(0.98);
+}
+.l-btn-primary {
+  background: var(--l-accent);
+  color: var(--l-on-accent);
+  box-shadow: 0 0 0 1px rgba(155, 216, 61, 0.4), 0 10px 32px -8px var(--l-glow);
+}
+.l-btn-primary:hover {
+  box-shadow: 0 0 0 1px rgba(155, 216, 61, 0.6), 0 14px 44px -6px rgba(155, 216, 61, 0.55);
+}
+.l-btn-ghost {
+  border: 1px solid var(--l-line-strong);
+  color: var(--l-ink);
+  background: transparent;
+}
+.l-btn-ghost:hover {
+  border-color: var(--l-ink-3);
+  background: var(--l-line);
+}
+.l-btn-sm {
+  height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+.l-btn-lg {
+  height: 58px;
+  padding: 0 30px;
+  font-size: 17px;
+}
+
+/* Rolling text: two stacked copies; hover rolls the second into view. */
+.l-roll {
+  display: inline-grid;
+  overflow: hidden;
+  height: 1.25em;
+  line-height: 1.25em;
+}
+.l-roll > span {
+  grid-area: 1 / 1;
+  transition: transform 0.45s var(--l-ease);
+}
+.l-roll > span + span {
+  transform: translateY(100%);
+}
+:is(a, button):hover > .l-roll > span:first-child,
+:is(a, button):hover .l-roll > span:first-child {
+  transform: translateY(-100%);
+}
+:is(a, button):hover > .l-roll > span + span,
+:is(a, button):hover .l-roll > span + span {
+  transform: translateY(0);
+}
+
+/* ---------- Focus, grain, misc ------------------------------------- */
+
+.landing :focus-visible {
+  outline: 2px solid var(--l-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.l-grain {
+  pointer-events: none;
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: l-grain 0.8s steps(4) infinite;
+}
+.landing[data-theme="light"] .l-grain {
+  display: none;
+}
+@keyframes l-grain {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); }
+  75% { transform: translate(-1%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+
+.l-skip {
+  position: absolute;
+  left: 16px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--l-accent);
+  color: var(--l-on-accent);
+  font-weight: 500;
+}
+.l-skip:focus {
+  top: 16px;
+}
+
+/* Hide scrollbars on horizontal chip rails. */
+.l-no-scrollbar {
+  scrollbar-width: none;
+}
+.l-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .l-grain {
+    animation: none;
+  }
+  .l-roll > span {
+    transition: none;
+  }
+}
