@@ -418,7 +418,7 @@ Cinema Studio 2.5 and Soul Cinema:
 
 **Budget:**
 - About 6 final images plus about 3 retries each, roughly 50 credits, within the 80 approved.
-- 8.25 credits spent so far on the test.
+- 5.75 credits spent so far on the test.
 - Delivery: AVIF and WebP via `next/image`. The hero is ≤ 220KB at 1600w and loads with
   `priority`.
 
