@@ -1,7 +1,7 @@
 {
   "name": "SyncEstate",
   "short_name": "SyncEstate",
-  "description": "Leads, lettings, valuations and finance for estate agencies, on one login.",
+  "description": "Run your estate agency from your phone: leads, lettings, repairs, valuations, trust accounts and developments on one login.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "natural",
@@ -75,7 +75,7 @@
       "name": "Pipeline",
       "short_name": "Pipeline",
       "description": "View your sales pipeline",
-      "url": "/app/pipeline",
+      "url": "/app/dashboard",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
