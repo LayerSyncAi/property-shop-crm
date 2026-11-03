@@ -66,7 +66,7 @@ export const hub = {
       title: "Alerts that find you",
       body: "Push notifications, a daily 8am agenda and email alerts for every module, so nothing waits for someone to remember.",
       toasts: [
-        { module: "SyncStay", text: "New repair request · Unit 4B, geyser not heating" },
+        { module: "SyncStay", text: "New repair request · Unit 4B, cracked bedroom window" },
         { module: "SynCRM", text: "Follow up with Rudo Chikwanha in 1 hour" },
         { module: "SyncFinance", text: "Payout to landlord F. Ndlovu needs your approval" },
       ],

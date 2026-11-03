@@ -2,6 +2,7 @@
    can't express. Everything is scoped to .landing so the app (light only)
    is untouched. Spec: docs/landing/MASTER_SPEC.md §2–§3. */
 
+@layer components {
 .landing {
   --l-bg: #070b0d;
   --l-bg-raised: #0d1417;
@@ -292,4 +293,125 @@ html:has(.landing:not([data-theme])) body {
   .l-roll > span {
     transition: none;
   }
+}
+
+/* ---------- Phone stage (phone/phone-stage.tsx) --------------------- */
+
+.l-phone-stage {
+  position: relative;
+  aspect-ratio: var(--ar);
+  overflow: hidden;
+  width: 100%;
+}
+@media (max-width: 767px) {
+  .l-phone-stage[data-mcrop] {
+    --ar: var(--m-ar);
+    --cw: var(--m-cw);
+    --ch: var(--m-ch);
+    --cx0: var(--m-cx0);
+    --cy0: var(--m-cy0);
+  }
+}
+.l-phone-stage-inner {
+  position: absolute;
+  width: calc(100% / var(--cw));
+  height: calc(100% / var(--ch));
+  left: calc(var(--cx0) / var(--cw) * -100%);
+  top: calc(var(--cy0) / var(--ch) * -100%);
+}
+.l-phone-screen-mask {
+  position: absolute;
+  inset: 0;
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  transition: opacity 0.4s var(--l-ease);
+}
+.l-phone-screen {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  background: #f2f4f3;
+}
+.l-phone-screen-page {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(6%);
+  transition: opacity 0.6s var(--l-ease), transform 0.6s var(--l-ease);
+}
+.l-phone-screen-page[data-active] {
+  opacity: 1;
+  transform: none;
+}
+.l-phone-scroll {
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.l-phone-scroll::-webkit-scrollbar {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .l-phone-scroll {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+/* A soft sheen and a touch of shade so the screen sits in the photo. */
+.l-phone-glass {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0) 32%),
+    linear-gradient(0deg, rgba(7, 11, 13, 0.1), rgba(7, 11, 13, 0.02));
+}
+.l-phone-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(7, 11, 13, 0.55);
+  backdrop-filter: blur(8px);
+}
+.l-phone-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  transition: width 0.3s var(--l-ease), background-color 0.3s var(--l-ease);
+}
+.l-phone-dots button[data-active] {
+  width: 22px;
+  background: #9bd83d;
+}
+.l-sign-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: l-sign 2.4s var(--l-ease) 0.6s forwards;
+}
+@keyframes l-sign {
+  to { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l-phone-screen-page {
+    transition: opacity 0.2s linear;
+    transform: none;
+  }
+  .l-sign-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Theme-specific assets (logos). */
+.landing[data-theme="light"] .l-only-dark,
+.landing:not([data-theme="light"]) .l-only-light {
+  display: none;
+}
 }
