@@ -55,7 +55,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-pressed={!toLight}
       aria-label={toLight ? "Switch to light theme" : "Switch to dark theme"}
       title={toLight ? "Light theme" : "Dark theme"}
-      className={`relative grid h-9 w-9 flex-none place-items-center rounded-full border border-[var(--l-line-strong)] text-[var(--l-ink)] transition-colors hover:bg-[var(--l-line)] ${className ?? ""}`}
+      className={`l-orb grid h-9 w-9 flex-none place-items-center ${className ?? ""}`}
     >
       <Sun size={16} strokeWidth={1.8} className={`absolute transition-all duration-300 ${toLight ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"}`} />
       <Moon size={16} strokeWidth={1.8} className={`absolute transition-all duration-300 ${toLight ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />

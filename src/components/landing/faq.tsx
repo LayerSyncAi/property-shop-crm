@@ -41,9 +41,8 @@ export function Faq() {
                   >
                     {item.q}
                     <span
-                      className={`grid h-8 w-8 flex-none place-items-center rounded-full border border-[var(--l-line-strong)] transition-all duration-300 ${
-                        isOpen ? "rotate-45 border-[var(--l-accent)] bg-[var(--l-accent)] text-[var(--l-on-accent)]" : ""
-                      }`}
+                      data-on={isOpen ? "" : undefined}
+                      className={`l-orb grid h-8 w-8 flex-none place-items-center transition-[rotate] duration-300 ${isOpen ? "rotate-45" : ""}`}
                     >
                       <Plus size={16} strokeWidth={2} />
                     </span>

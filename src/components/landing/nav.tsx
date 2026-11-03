@@ -56,7 +56,7 @@ export function Nav() {
           </WhatsAppButton>
           <button
             type="button"
-            className="grid h-10 w-10 place-items-center rounded-full bg-[var(--l-ink)] text-[var(--l-bg)] sm:hidden"
+            className="l-orb l-orb-solid grid h-10 w-10 place-items-center sm:hidden"
             aria-expanded={open}
             aria-controls="landing-mobile-menu"
             aria-label={open ? "Close menu" : "Open menu"}

@@ -13,6 +13,7 @@ import { Integrations } from "./integrations";
 import { AppComingSoon, FinalCta, Footer, HowItWorks, WhoItsFor, Zimbabwe } from "./sections";
 import { Faq } from "./faq";
 import { noFlashScript, ROOT_ID } from "./theme";
+import { ButtonFX } from "./button-fx";
 
 const geistMono = Geist_Mono({
   subsets: ["latin"],
@@ -28,6 +29,7 @@ export function Landing() {
         Skip to content
       </a>
       <div aria-hidden className="l-grain" />
+      <ButtonFX />
       <Nav />
       <main id="main">
         <Hero />
