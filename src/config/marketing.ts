@@ -21,4 +21,19 @@ export function moduleWhatsAppMessage(moduleName: string): string {
   return `Hi LayerSync! I'm interested in ${moduleName} for my agency. Can we chat?`;
 }
 
-export const layerSyncUrl = "https://layersync.ai";
+/** LayerSync's own website. */
+export const layerSyncUrl = "https://www.layersyncai.com";
+
+/**
+ * The public address of this site, for canonical URLs, the sitemap and
+ * structured data. NEXT_PUBLIC_SITE_URL wins (set it when a custom domain
+ * goes live); on Vercel the production domain is used; otherwise the
+ * current production address.
+ */
+export const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "https://syncrm.vercel.app")
+).replace(/\/$/, "");
+
+/** The sales number as dialled internationally, e.g. +263775187682. */
+export const salesPhoneE164 = `+${salesWhatsApp}`;

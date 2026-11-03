@@ -348,7 +348,7 @@ This is the centrepiece.
   1. The lockup and "Smarter real estate. Together.", then "Built in Zimbabwe by LayerSync,
      end-to-end digital transformation specialists."
   2. **Modules:** anchors to each chapter.
-  3. **Company:** LayerSync (layersync.ai), WhatsApp.
+  3. **Company:** LayerSync (www.layersyncai.com), WhatsApp.
   4. **Account:** Log in, Privacy (`/privacy`), Terms (`/terms`).
 - **Bottom row:** "© 2026 LayerSync. All rights reserved." on the left and the theme toggle on the
   right.
