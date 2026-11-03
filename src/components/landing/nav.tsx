@@ -28,11 +28,11 @@ export function Nav() {
     <header className="fixed inset-x-0 top-3 z-50 px-3 sm:top-4 sm:px-4">
       <nav
         aria-label="Main"
-        className={`mx-auto flex h-14 max-w-[1200px] items-center justify-between gap-3 rounded-full border border-[var(--l-line)] bg-[var(--l-nav)] pl-5 pr-2 backdrop-blur-xl transition-shadow duration-300 ${
+        className={`mx-auto flex h-14 max-w-[1200px] items-center justify-between gap-3 rounded-full border border-[var(--l-line)] bg-[var(--l-nav)] pl-6 pr-2 backdrop-blur-xl sm:pl-7 transition-shadow duration-300 ${
           scrolled ? "shadow-[0_12px_40px_-12px_rgba(0,0,0,0.45)]" : ""
         }`}
       >
-        <Link href="#top" aria-label="SyncEstate, back to top" className="flex-none">
+        <Link href="#top" aria-label="SyncEstate, back to top" className="flex flex-none items-center">
           <Logo />
         </Link>
 
