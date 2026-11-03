@@ -184,30 +184,36 @@ html:has(.landing:not([data-theme])) body {
 }
 
 /* ---------- Buttons -------------------------------------------------
-   3D glass pills, after the "Liquid button" reference: a glossy top with a
-   crisp rim highlight, a darker bevel underneath, a visible side wall (the
-   solid 0 Npx 0 shadow) that makes the pill read as extruded, and a soft cast
-   shadow. Hover lifts the pill; press sinks it into its wall. A light sheen
-   sweeps across now and then, and ButtonFX (button-fx.tsx) adds a liquid
-   ripple from the press point plus a small jelly bounce.
+   Single-plane glass. Each button is one flat pill; its depth comes only
+   from how light sits on it, never from a fake extrusion:
+     - a 1px rim of light that hugs the exact outline (::before, a masked
+       gradient border): bright along the top, fading down the sides;
+     - curvature shading inside the same shape: a soft specular glow near the
+       top (it follows the pointer on hover) and a gentle darkening toward
+       the bottom edge;
+     - translucency: the glass blurs and tints what is behind it;
+     - one soft contact shadow, so it rests on the page.
+   Press compresses the pill in place; ButtonFX (button-fx.tsx) adds a
+   ripple from the press point and moves the highlight with the pointer.
 
    Materials:
-     .l-btn-primary  lime glass, glows green (both themes)
-     .l-btn-ghost    black glass on dark, white glass on light
+     .l-btn-primary  lime glass (both themes)
+     .l-btn-ghost    smoked glass on dark, frosted white glass on light
      .l-orb          round icon buttons in the ghost material
      .l-orb-solid    round button in the inverse material (the menu button)
    ------------------------------------------------------------------- */
 
 .l-btn,
 .l-orb {
-  --wall: 4px;
-  --lift: 0px;
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  transform: translateY(var(--lift));
-  transition: transform 0.35s var(--l-ease), box-shadow 0.35s var(--l-ease), filter 0.35s var(--l-ease);
+  border-radius: 999px;
+  transition: transform 0.4s var(--l-ease), box-shadow 0.4s var(--l-ease), filter 0.4s var(--l-ease),
+    --mx 0.5s var(--l-ease), --my 0.5s var(--l-ease);
   -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
 }
 .l-btn {
   display: inline-flex;
@@ -216,13 +222,9 @@ html:has(.landing:not([data-theme])) body {
   gap: 10px;
   height: 48px;
   padding: 0 22px;
-  border-radius: 999px;
   font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
-}
-.l-orb {
-  border-radius: 999px;
 }
 .l-btn > *,
 .l-orb > * {
@@ -230,18 +232,19 @@ html:has(.landing:not([data-theme])) body {
   z-index: 2;
 }
 
-/* Glossy cap: the bright curved reflection across the top half. */
+/* Rim light: a 1px gradient border on the exact outline. */
 .l-btn::before,
 .l-orb::before {
   content: "";
   position: absolute;
+  inset: 0;
   z-index: 1;
-  left: 6%;
-  right: 6%;
-  top: 1px;
-  height: 52%;
-  border-radius: 999px 999px 60% 60% / 999px 999px 100% 100%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, var(--gloss, 0.55)), rgba(255, 255, 255, 0));
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   pointer-events: none;
 }
 
@@ -257,166 +260,154 @@ html:has(.landing:not([data-theme])) body {
   height: 14px;
   margin: -7px 0 0 -7px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--ripple, rgba(255, 255, 255, 0.6)) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--ripple, rgba(255, 255, 255, 0.5)) 0%, transparent 70%);
   transform: scale(0);
   opacity: 0;
   pointer-events: none;
 }
 .l-btn.is-rippling::after,
 .l-orb.is-rippling::after {
-  animation: l-ripple 0.75s var(--l-ease);
-}
-.l-btn.is-rippling,
-.l-orb.is-rippling {
-  animation: l-jelly 0.6s var(--l-ease);
+  animation: l-ripple 0.8s var(--l-ease);
 }
 
-.l-btn:hover,
-.l-orb:hover {
-  --lift: -2px;
-  --wall: 6px;
-}
 .l-btn:active,
 .l-orb:active {
-  --lift: 3px;
-  --wall: 1px;
-  transition-duration: 0.08s;
+  transform: scale(0.97);
+  transition-duration: 0.12s;
 }
 
 /* Lime glass. */
 .l-btn-primary {
-  --gloss: 0.6;
-  --ripple: rgba(255, 255, 255, 0.75);
+  --rim: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.35) 38%, rgba(255, 255, 255, 0.12) 70%, rgba(255, 255, 255, 0.4) 100%);
+  --ripple: rgba(255, 255, 255, 0.7);
   color: var(--l-on-accent);
   background:
-    linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.5) 50%, transparent 62%) 160% 0 / 250% 100% no-repeat,
-    linear-gradient(180deg, #c6f07c 0%, #9bd83d 52%, #7fbd27 100%);
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 52%),
+    linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.32) 50%, transparent 60%) 160% 0 / 250% 100% no-repeat,
+    linear-gradient(180deg, rgba(186, 234, 108, 0.94) 0%, rgba(155, 216, 61, 0.94) 55%, rgba(132, 196, 44, 0.96) 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    inset 0 -3px 5px rgba(46, 86, 6, 0.35),
-    inset 0 0 0 1px rgba(64, 112, 10, 0.3),
-    0 var(--wall) 0 #4f8714,
-    0 calc(var(--wall) + 6px) 22px -6px rgba(155, 216, 61, 0.65),
-    0 calc(var(--wall) + 14px) 30px -14px rgba(0, 0, 0, 0.55);
+    inset 0 -12px 18px -12px rgba(38, 78, 0, 0.45),
+    inset 0 0 0 1px rgba(78, 128, 18, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.22),
+    0 10px 28px -10px rgba(155, 216, 61, 0.55);
   animation: l-sheen 7s ease-in-out infinite;
 }
 .l-btn-primary:hover {
-  filter: saturate(1.08) brightness(1.03);
+  filter: brightness(1.04) saturate(1.06);
+  box-shadow:
+    inset 0 -12px 18px -12px rgba(38, 78, 0, 0.4),
+    inset 0 0 0 1px rgba(78, 128, 18, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.22),
+    0 14px 38px -10px rgba(155, 216, 61, 0.75);
+}
+.l-btn-primary:active {
+  box-shadow:
+    inset 0 -8px 14px -8px rgba(38, 78, 0, 0.55),
+    inset 0 0 0 1px rgba(78, 128, 18, 0.22),
+    0 1px 1px rgba(0, 0, 0, 0.22),
+    0 6px 18px -8px rgba(155, 216, 61, 0.5);
 }
 
-/* Black glass (dark theme) / white glass (light theme). */
+/* Smoked glass (dark theme). */
 .l-btn-ghost,
 .l-orb {
-  --gloss: 0.22;
-  --ripple: rgba(155, 216, 61, 0.55);
+  --rim: linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0.05) 70%, rgba(255, 255, 255, 0.16) 100%);
+  --ripple: rgba(155, 216, 61, 0.45);
   color: var(--l-ink);
-  border: 1px solid rgba(255, 255, 255, 0.12);
   background:
-    linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.14) 50%, transparent 62%) 160% 0 / 250% 100% no-repeat,
-    linear-gradient(180deg, rgba(60, 70, 76, 0.88) 0%, rgba(22, 29, 33, 0.92) 55%, rgba(12, 17, 20, 0.95) 100%);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%) 160% 0 / 250% 100% no-repeat,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%),
+    rgba(18, 25, 28, 0.55);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    inset 0 -3px 5px rgba(0, 0, 0, 0.45),
-    0 var(--wall) 0 #030506,
-    0 calc(var(--wall) + 12px) 26px -12px rgba(0, 0, 0, 0.75);
+    inset 0 -12px 18px -12px rgba(0, 0, 0, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 10px 28px -14px rgba(0, 0, 0, 0.7);
 }
 .l-btn-ghost {
   animation: l-sheen 7s ease-in-out 1.2s infinite;
 }
-.landing[data-theme="light"] .l-btn-ghost,
-.landing[data-theme="light"] .l-orb {
-  --gloss: 0.9;
-  border-color: rgba(15, 20, 25, 0.08);
-  background:
-    linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.9) 50%, transparent 62%) 160% 0 / 250% 100% no-repeat,
-    linear-gradient(180deg, #ffffff 0%, #f1f4f2 55%, #e2e8e4 100%);
-  box-shadow:
-    inset 0 1px 0 #ffffff,
-    inset 0 -3px 5px rgba(15, 20, 25, 0.07),
-    0 var(--wall) 0 #c9d3cd,
-    0 calc(var(--wall) + 12px) 24px -12px rgba(15, 20, 25, 0.28);
+.l-btn-ghost:hover,
+.l-orb:hover {
+  filter: brightness(1.12);
 }
 
-/* Inverse material: a white glass disc on dark, an ink glass disc on light. */
-.l-orb-solid {
-  --gloss: 0.9;
-  --ripple: rgba(155, 216, 61, 0.6);
-  color: #0f1419;
-  border-color: rgba(255, 255, 255, 0.6);
+/* Frosted white glass (light theme). */
+.landing[data-theme="light"] .l-btn-ghost,
+.landing[data-theme="light"] .l-orb {
+  --rim: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.6) 40%, rgba(15, 20, 25, 0.03) 75%, rgba(15, 20, 25, 0.06) 100%);
   background:
-    linear-gradient(180deg, #ffffff 0%, #eef2f0 55%, #d9e0dc 100%);
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.85) 50%, transparent 60%) 160% 0 / 250% 100% no-repeat,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(241, 245, 243, 0.62) 100%);
   box-shadow:
-    inset 0 1px 0 #ffffff,
-    inset 0 -3px 5px rgba(15, 20, 25, 0.12),
-    0 var(--wall) 0 #9aa6a0,
-    0 calc(var(--wall) + 12px) 24px -12px rgba(0, 0, 0, 0.6);
+    inset 0 -12px 18px -12px rgba(15, 20, 25, 0.07),
+    0 0 0 1px rgba(15, 20, 25, 0.05),
+    0 1px 2px rgba(15, 20, 25, 0.07),
+    0 10px 26px -14px rgba(15, 20, 25, 0.22);
+}
+.landing[data-theme="light"] .l-btn-ghost:hover,
+.landing[data-theme="light"] .l-orb:hover {
+  filter: brightness(1.02);
+}
+
+/* Inverse material: white glass disc on dark, ink glass disc on light. */
+.l-orb-solid {
+  --rim: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 45%, rgba(15, 20, 25, 0.08) 100%);
+  --ripple: rgba(155, 216, 61, 0.5);
+  color: #0f1419;
+  background:
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(228, 234, 231, 0.94) 100%);
+  box-shadow:
+    inset 0 -12px 18px -12px rgba(15, 20, 25, 0.22),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 10px 26px -12px rgba(0, 0, 0, 0.6);
 }
 .landing[data-theme="light"] .l-orb-solid {
-  --gloss: 0.25;
+  --rim: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0.14) 100%);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.1);
-  background: linear-gradient(180deg, #3a444a 0%, #182024 55%, #0b1013 100%);
+  background:
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(40, 49, 54, 0.95) 0%, rgba(13, 18, 21, 0.97) 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset 0 -3px 5px rgba(0, 0, 0, 0.5),
-    0 var(--wall) 0 #020304,
-    0 calc(var(--wall) + 12px) 24px -12px rgba(15, 20, 25, 0.45);
+    inset 0 -12px 18px -12px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(15, 20, 25, 0.3),
+    0 10px 26px -12px rgba(15, 20, 25, 0.45);
 }
 
 /* An orb that is "on" (the open FAQ item) takes the lime glass. */
 .l-orb[data-on],
 .landing[data-theme="light"] .l-orb[data-on] {
-  --gloss: 0.6;
+  --rim: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.3) 45%, rgba(255, 255, 255, 0.35) 100%);
   color: var(--l-on-accent);
-  border-color: rgba(64, 112, 10, 0.4);
-  background: linear-gradient(180deg, #c6f07c 0%, #9bd83d 52%, #7fbd27 100%);
+  background:
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(186, 234, 108, 0.95) 0%, rgba(132, 196, 44, 0.96) 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    inset 0 -3px 5px rgba(46, 86, 6, 0.35),
-    0 var(--wall) 0 #4f8714,
-    0 calc(var(--wall) + 6px) 18px -6px rgba(155, 216, 61, 0.6);
+    inset 0 -10px 14px -10px rgba(38, 78, 0, 0.45),
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 8px 20px -8px rgba(155, 216, 61, 0.55);
 }
 
 .l-btn-sm {
   height: 38px;
   padding: 0 16px;
   font-size: 14px;
-  --wall: 3px;
-}
-.l-btn-sm:hover {
-  --wall: 5px;
 }
 .l-btn-lg {
   height: 58px;
   padding: 0 30px;
   font-size: 17px;
-  --wall: 5px;
-}
-.l-btn-lg:hover {
-  --wall: 7px;
-}
-
-.l-btn-sm:active,
-.l-btn-lg:active {
-  --wall: 1px;
 }
 
 @keyframes l-sheen {
-  0%, 72% { background-position: 160% 0, 0 0; }
-  100% { background-position: -60% 0, 0 0; }
+  0%, 74% { background-position: 0 0, 160% 0, 0 0, 0 0; }
+  100% { background-position: 0 0, -60% 0, 0 0, 0 0; }
 }
 @keyframes l-ripple {
-  0% { transform: scale(0); opacity: 0.95; }
-  100% { transform: scale(26); opacity: 0; }
-}
-@keyframes l-jelly {
-  0% { transform: translateY(var(--lift)) scale(1, 1); }
-  30% { transform: translateY(var(--lift)) scale(1.06, 0.92); }
-  55% { transform: translateY(var(--lift)) scale(0.97, 1.04); }
-  80% { transform: translateY(var(--lift)) scale(1.01, 0.99); }
-  100% { transform: translateY(var(--lift)) scale(1, 1); }
+  0% { transform: scale(0); opacity: 0.9; }
+  100% { transform: scale(28); opacity: 0; }
 }
 
 /* Rolling text: two stacked copies; hover rolls the second into view. */
@@ -499,17 +490,13 @@ html:has(.landing:not([data-theme])) body {
     animation: none;
   }
   .l-btn,
-  .l-orb,
-  .l-btn.is-rippling,
-  .l-orb.is-rippling {
+  .l-orb {
     animation: none;
     transition: box-shadow 0.2s linear, filter 0.2s linear;
   }
-  .l-btn:hover,
-  .l-orb:hover,
   .l-btn:active,
   .l-orb:active {
-    --lift: 0px;
+    transform: none;
   }
   .l-btn.is-rippling::after,
   .l-orb.is-rippling::after {
@@ -691,4 +678,16 @@ html:has(.landing:not([data-theme])) body {
   content: "";
   position: absolute;
   inset: -12px -6px;
+}
+
+/* The specular highlight's position, animatable (ButtonFX sets it on hover). */
+@property --mx {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+@property --my {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: -20%;
 }
