@@ -435,8 +435,8 @@ export function MaintenanceRequestScreen() {
           <Card gap={12}>
             <Text>Bottom left pane of the main bedroom window is cracked. Found at the routine inspection.</Text>
             <div style={{ display: "flex", gap: 8 }}>
-              <Photo src="/landing/thumb-window.jpg" />
-              <Photo src="/landing/thumb-bedroom.jpg" />
+              <Photo src="/landing/thumb-window-v2.jpg" />
+              <Photo src="/landing/thumb-bedroom-v2.jpg" />
               <span style={{ width: 84, height: 84, borderRadius: 12, border: `1.5px dashed ${c.borderStrong}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, color: c.brand, fontSize: 13, fontWeight: 600 }}>
                 <Camera size={22} strokeWidth={1.7} />
                 Add
@@ -532,8 +532,8 @@ export function InspectionScreen() {
             <ConditionChips selected="Damaged" />
             <Text small muted>Window pane cracked, bottom left. Walls and floor fine.</Text>
             <div style={{ display: "flex", gap: 8 }}>
-              <Photo src="/landing/thumb-window.jpg" />
-              <Photo src="/landing/thumb-bedroom.jpg" />
+              <Photo src="/landing/thumb-window-v2.jpg" />
+              <Photo src="/landing/thumb-bedroom-v2.jpg" />
             </div>
             <Button small variant="secondary" icon={Wrench}>Raise maintenance request</Button>
           </Card>
@@ -542,7 +542,7 @@ export function InspectionScreen() {
             <ConditionChips selected="Good" />
             <Text small muted>Clean. No marks on walls or floors.</Text>
             <div style={{ display: "flex", gap: 8 }}>
-              <Photo src="/landing/thumb-living.jpg" />
+              <Photo src="/landing/thumb-living-v2.jpg" />
             </div>
           </Card>
           <Card gap={12}>
@@ -738,11 +738,11 @@ export function MediaStudioScreen() {
           </div>
           <div style={{ margin: "0 14px", borderRadius: 16, overflow: "hidden", height: 210 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/landing/thumb-house.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src="/landing/thumb-house-v2.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
           <div style={{ marginTop: "auto", background: accent, color: "#fff", padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", gap: 6 }}>
-              {["/landing/thumb-living.jpg", "/landing/thumb-bedroom.jpg", "/landing/thumb-house-detail.jpg"].map((s) => (
+              {["/landing/thumb-living-v2.jpg", "/landing/thumb-bedroom-v2.jpg", "/landing/thumb-house-detail-v2.jpg"].map((s) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img key={s} src={s} alt="" style={{ width: 74, height: 46, objectFit: "cover", border: "2px solid #fff", borderRadius: 4 }} />
               ))}

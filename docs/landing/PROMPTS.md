@@ -122,3 +122,66 @@ LIGHTING: the last warm light of sunset (about 2800K) from frame right rims both
 GRADE: warm amber sky, deep teal shadows, rich red earth, natural skin tones.
 FINISH: photorealistic, fine detail, subtle film grain, no text, no logos.
 ```
+
+---
+
+## In-app photos (Seedream 5.0 Pro, 1k)
+
+These are the small photos shown inside the phone screens. They follow the same structure but are lit differently by purpose.
+- **Inspection and repair photos** must look like what an inspector actually takes on a phone: handheld, deep depth of field, flat daylight, no styling.
+- **Brochure photos** must look like professional listing photography: tilt-shift, straight verticals, golden hour.
+
+### Cracked window (1:1) → `thumb-window-v2.jpg` (repair request, inspection)
+
+```
+Realistic smartphone photo taken by a property inspector to document damage for a repair request.
+SCENE: the main bedroom window of a modern rental apartment in Avondale, Harare, mid-morning. A white aluminium sliding window frame; the lower-left glass pane has a clear diagonal crack running from the bottom corner, with a small spider-web impact point. Through the glass, softly out of focus: jacaranda branches and a pale blue sky.
+CAMERA: shot handheld on a phone, about 60cm from the glass, straight on and slightly from below, the crack centred and in sharp focus; natural phone-camera look with deep depth of field.
+LIGHTING: bright, even daylight from outside (about 5600K), no flash, no reflections of the photographer.
+GRADE: true-to-life colours, clean whites, no stylisation.
+FINISH: photorealistic, documentary, sharp detail on the crack, no people, no text, no watermark.
+```
+
+### Bedroom (1:1) → `thumb-bedroom-v2.jpg` (repair request, inspection, brochure)
+
+```
+Realistic smartphone photo taken by a property inspector during a routine inspection.
+SCENE: the main bedroom of a tidy, modern rental apartment in Avondale, Harare, mid-morning. A neatly made double bed with white linen and a sage-green throw, a light oak bedside table with a ceramic lamp, cream walls, a light grey tiled floor, a large window with sheer white curtains on the left.
+CAMERA: shot handheld on a phone from the doorway at standing eye level, slightly wide (about 24mm equivalent), the whole room visible, level horizon; natural phone-camera look with deep depth of field.
+LIGHTING: soft daylight from the window (about 5600K), gentle shadows, no flash.
+GRADE: true-to-life neutral colours, no stylisation.
+FINISH: photorealistic, documentary, no people, no text, no watermark.
+```
+
+### Living room (1:1) → `thumb-living-v2.jpg` (inspection, brochure)
+
+```
+Realistic smartphone photo taken by a property inspector during a routine inspection.
+SCENE: the open-plan living room of a modern rental apartment in Avondale, Harare, late morning. A charcoal fabric three-seater sofa with two mustard cushions, a low walnut coffee table, a woven Binga basket, a jute rug on light grey tiles, white walls, a sliding door onto a small balcony with potted plants.
+CAMERA: shot handheld on a phone from a corner of the room at standing eye level, slightly wide (about 24mm equivalent), level horizon; natural phone-camera look with deep depth of field.
+LIGHTING: soft daylight through the balcony door (about 5600K), no flash.
+GRADE: true-to-life neutral colours, no stylisation.
+FINISH: photorealistic, documentary, clean and well kept, no people, no text, no watermark.
+```
+
+### House front (1:1) → `thumb-house-v2.jpg` (SyncMedia brochure hero)
+
+```
+Professional real-estate listing photograph for a property brochure.
+SCENE: the front of a modern four-bedroom family home in Borrowdale, Harare, at golden hour. Clean contemporary architecture: white rendered walls, a dark grey standing-seam roof, large floor-to-ceiling windows glowing with warm interior light, a natural stone feature wall, a wide paved driveway, a manicured green lawn, tall palms and a msasa tree, a low cream boundary wall with a dark steel gate.
+CAMERA: full-frame, 24mm tilt-shift lens, f/8, shot from the edge of the lawn at chest height, verticals perfectly straight, the house filling two-thirds of the frame.
+LIGHTING: warm low sun (about 3500K) from the left raking across the facade, deep blue-hour sky beginning on the right, interior lights on.
+GRADE: rich but natural colours, warm highlights, clean whites, lush greens.
+FINISH: photorealistic, crisp architectural detail, no people, no cars, no text, no watermark, no signage.
+```
+
+### Pool and garden (4:3) → `thumb-house-detail-v2.jpg` (SyncMedia brochure strip)
+
+```
+Professional real-estate listing photograph for a property brochure.
+SCENE: the garden of a modern family home in Borrowdale, Harare, at golden hour: a rectangular swimming pool with clear turquoise water and a dark tiled edge, two white loungers on a light stone deck, a covered patio with a timber pergola, bougainvillea in pink bloom along a white boundary wall, and the house's glass doors glowing behind.
+CAMERA: full-frame, 24mm lens, f/8, shot from the far corner of the pool at chest height, level horizon, the pool leading the eye to the house.
+LIGHTING: warm low sun (about 3500K) from the right, soft reflections on the water.
+GRADE: rich but natural colours, warm highlights, clean whites.
+FINISH: photorealistic, crisp detail, no people, no text, no watermark.
+```
