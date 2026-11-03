@@ -5,7 +5,7 @@
  * screen. The app uses Ionicons; these use the nearest Lucide icon.
  */
 import type { CSSProperties, ReactNode } from "react";
-import { createLucideIcon, type IconNode, type LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Bell, ChevronLeft, ChevronRight, LayoutGrid, Signal, Wifi } from "lucide-react";
 import { PRODUCT_ICON_PATHS, type ProductIconKey } from "@/lib/product-icon-paths";
 
@@ -45,19 +45,6 @@ const toneColours: Record<Tone, [string, string]> = {
   neutral: [c.muted, c.surface],
   hot: [c.hot, c.hotBg],
 };
-
-const productIcons = new Map<ProductIconKey, LucideIcon>();
-export function productIcon(key: ProductIconKey): LucideIcon {
-  let icon = productIcons.get(key);
-  if (!icon) {
-    icon = createLucideIcon(
-      `landing-${key}`,
-      PRODUCT_ICON_PATHS[key].map((d, i): IconNode[number] => ["path", { d, key: `${key}-${i}` }])
-    );
-    productIcons.set(key, icon);
-  }
-  return icon;
-}
 
 /* ---------- Device chrome ------------------------------------------- */
 
@@ -438,8 +425,18 @@ export function Field({ label, value, placeholder }: { label: string; value?: st
   );
 }
 
+/** A SyncEstate product icon drawn straight from its path data. */
+export function ProductGlyph({ product, size = 22, strokeWidth = 1.5, className }: { product: ProductIconKey; size?: number; strokeWidth?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      {PRODUCT_ICON_PATHS[product].map((d) => (
+        <path key={d} d={d} />
+      ))}
+    </svg>
+  );
+}
+
 export function IconTile({ product, size = 44 }: { product: ProductIconKey; size?: number }) {
-  const Icon = productIcon(product);
   return (
     <span
       style={{
@@ -454,7 +451,7 @@ export function IconTile({ product, size = 44 }: { product: ProductIconKey; size
         flex: "none",
       }}
     >
-      <Icon size={22} strokeWidth={1.5} />
+      <ProductGlyph product={product} />
     </span>
   );
 }

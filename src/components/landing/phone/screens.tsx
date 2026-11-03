@@ -459,7 +459,7 @@ export function MaintenanceRequestScreen() {
               <span style={{ fontSize: 15, fontWeight: 600 }}>Farai Ndlovu</span>
               <Badge tone="warning">Pending</Badge>
             </div>
-            <Text small muted>The cost is above the property's repair threshold, so the landlord approves it first.</Text>
+            <Text small muted>{"The cost is above the property's repair threshold, so the landlord approves it first."}</Text>
             <div style={{ display: "flex", gap: 8 }}>
               <Button small style={{ flex: 1 }}>Mark approved</Button>
               <Button small variant="secondary" style={{ flex: 1 }}>Mark declined</Button>

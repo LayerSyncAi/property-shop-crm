@@ -6,6 +6,12 @@ import { Geist_Mono } from "next/font/google";
 import "./landing.css";
 import { Nav } from "./nav";
 import { Hero } from "./hero";
+import { TheSync } from "./the-sync/the-sync";
+import { HubBento } from "./hub-bento";
+import { ModuleShowcase } from "./module-showcase";
+import { Integrations } from "./integrations";
+import { AppComingSoon, FinalCta, Footer, HowItWorks, WhoItsFor, Zimbabwe } from "./sections";
+import { Faq } from "./faq";
 import { noFlashScript, ROOT_ID } from "./theme";
 
 const geistMono = Geist_Mono({
@@ -25,7 +31,18 @@ export function Landing() {
       <Nav />
       <main id="main">
         <Hero />
+        <TheSync />
+        <HubBento />
+        <ModuleShowcase />
+        <Integrations />
+        <WhoItsFor />
+        <Zimbabwe />
+        <HowItWorks />
+        <AppComingSoon />
+        <Faq />
+        <FinalCta />
       </main>
+      <Footer />
     </div>
   );
 }
