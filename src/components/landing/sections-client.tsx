@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useReducedMotion } from "./motion";
-import { PhoneStage } from "./phone/phone-stage";
+import { ThemedPhoneStage } from "./phone/phone-stage";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -48,10 +48,10 @@ export function HowLine({ steps }: { steps: readonly { title: string; body: stri
 export function AppPhone() {
   return (
     <div className="mx-auto w-full max-w-[560px]">
-      <PhoneStage
+      <ThemedPhoneStage
         photo="stageAlt"
         screens={["signin"]}
-        crop={{ x: [0.1, 0.9], y: [0.08, 0.82] }}
+        crop={{ x: [0.14, 0.94], y: [0.1, 0.84] }}
         sizes="(min-width: 1024px) 560px, 100vw"
         label="The SyncEstate sign-in screen on a phone: one sign-in for every product your agency uses."
       />

@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { sync } from "../content";
 import { Accent, Eyebrow } from "../bits";
 import { useReducedMotion } from "../motion";
+import { useLandingTheme } from "../theme";
 import { createSyncField, type Layout, type SyncField } from "./gl";
 
 function smoothstep(a: number, b: number, x: number) {
@@ -35,6 +36,11 @@ export function TheSync() {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reduce = useReducedMotion();
+  const [theme] = useLandingTheme();
+  const lightRef = useRef(false);
+  useEffect(() => {
+    lightRef.current = theme === "light";
+  }, [theme]);
   const [glFailed, setGlFailed] = useState(false);
   const mode: "gl" | "static" = reduce || glFailed ? "static" : "gl";
   const [state, setState] = useState(0);
@@ -67,7 +73,7 @@ export function TheSync() {
       if (!running || !field) return;
       const p = progress();
       mouse.force *= 0.93;
-      field.render(p, (performance.now() - t0) / 1000, mouse);
+      field.render(p, (performance.now() - t0) / 1000, mouse, lightRef.current);
       stage.style.setProperty("--cap-o", String(1 - smoothstep(0.24, 0.36, p)));
       stage.style.setProperty("--halo-o", String(smoothstep(0.7, 0.95, p)));
       const s = stateFor(p);
@@ -230,7 +236,7 @@ export function TheSync() {
               {captions.map((c, i) => (
                 <li
                   key={i}
-                  className="l-mono absolute flex max-w-[46vw] -translate-x-1/2 items-center gap-1.5 rounded-full text-left leading-tight sm:max-w-none sm:whitespace-nowrap border border-white/10 bg-black/50 px-2.5 py-1 text-[10px] text-white/75 backdrop-blur sm:text-[11px]"
+                  className="l-mono absolute flex max-w-[46vw] -translate-x-1/2 items-center gap-1.5 rounded-full text-left leading-tight sm:max-w-none sm:whitespace-nowrap border border-[var(--l-line)] bg-[var(--l-caption-bg)] px-2.5 py-1 text-[10px] text-[var(--l-caption-ink)] backdrop-blur sm:text-[11px]"
                   style={{ left: `${c.left}%`, top: `${c.top}%` }}
                 >
                   <span className="h-1.5 w-1.5 flex-none rounded-full bg-[#d92d20]" />
@@ -243,7 +249,7 @@ export function TheSync() {
           {/* Copy: left on desktop, at the bottom on mobile. */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6 pb-10 sm:p-10 lg:inset-y-0 lg:left-0 lg:right-auto lg:flex lg:w-[44%] lg:items-center lg:p-16">
             <div className="relative">
-              <div className="absolute -inset-10 -z-10 bg-[radial-gradient(closest-side,rgba(7,11,13,0.85),transparent)] lg:hidden" />
+              <div className="absolute -inset-10 -z-10 lg:hidden" style={{ background: "radial-gradient(closest-side, color-mix(in srgb, var(--l-stage) 85%, transparent), transparent)" }} />
               <div key={state} className="l-sync-copy flex flex-col gap-4" aria-hidden>
                 <Eyebrow dot={state === 2}>{current.eyebrow}</Eyebrow>
                 <p className="l-h2 max-w-[16ch]">
@@ -253,7 +259,7 @@ export function TheSync() {
               </div>
               <div className="mt-8 flex gap-1.5" aria-hidden>
                 {[0, 1, 2].map((i) => (
-                  <span key={i} className={`h-1 rounded-full transition-all duration-500 ${i === state ? "w-8 bg-[#9bd83d]" : "w-3 bg-white/20"}`} />
+                  <span key={i} className={`h-1 rounded-full transition-all duration-500 ${i === state ? "w-8 bg-[#9bd83d]" : "w-3 bg-[var(--l-line-strong)]"}`} />
                 ))}
               </div>
             </div>

@@ -19,6 +19,10 @@ this script:
 Usage:
     python3 -I scripts/landing/screen-quad.py <src.png> <out-name> [max-width]
 
+The screen is always painted near-black, in light-theme photos too: the
+mask's soft edge lets a sliver of it show, and dark blends into the bezel
+where a light fill would show as a white hairline.
+
 Outputs public/landing/<out-name>.jpg and public/landing/<out-name>-mask.png.
 Requires Pillow and numpy.
 """

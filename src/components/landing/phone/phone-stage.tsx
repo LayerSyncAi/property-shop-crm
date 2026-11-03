@@ -19,6 +19,22 @@ import { SCREENS, SCREEN_H, SCREEN_W } from "./screens";
 
 type Crop = { x: [number, number]; y: [number, number] };
 
+type StageProps = {
+  photo: keyof typeof PHOTOS;
+  screens: string[];
+  /** Controlled screen index. Leave unset to cycle on a timer. */
+  active?: number;
+  cycleMs?: number;
+  crop?: Crop;
+  mobileCrop?: Crop;
+  label: string;
+  priority?: boolean;
+  sizes?: string;
+  showDots?: boolean;
+  className?: string;
+  style?: CSSProperties;
+};
+
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 function cropVars(photo: PhonePhoto, crop: Crop, prefix: string): Record<string, string> {
@@ -50,21 +66,7 @@ export function PhoneStage({
   showDots = false,
   className,
   style,
-}: {
-  photo: keyof typeof PHOTOS;
-  screens: string[];
-  /** Controlled screen index. Leave unset to cycle on a timer. */
-  active?: number;
-  cycleMs?: number;
-  crop?: Crop;
-  mobileCrop?: Crop;
-  label: string;
-  priority?: boolean;
-  sizes?: string;
-  showDots?: boolean;
-  className?: string;
-  style?: CSSProperties;
-}) {
+}: StageProps) {
   const photo: PhonePhoto = PHOTOS[photoKey];
   const innerRef = useRef<HTMLDivElement>(null);
   const screenRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -161,7 +163,8 @@ export function PhoneStage({
     ...(mobileCrop ? cropVars(photo, mobileCrop, "m-") : {}),
   } as CSSProperties;
 
-  const px = box
+  // A hidden stage (the other theme's photo) measures 0×0; skip it until shown.
+  const px = box && box.w > 0 && box.h > 0
     ? {
         tl: [photo.quad.tl[0] * box.w, photo.quad.tl[1] * box.h] as [number, number],
         tr: [photo.quad.tr[0] * box.w, photo.quad.tr[1] * box.h] as [number, number],
@@ -223,5 +226,26 @@ export function PhoneStage({
         </div>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * A phone stage with a photo for each theme. Both are rendered and CSS shows
+ * the one for the current theme (.l-only-dark / .l-only-light), so the right
+ * photo is there on first paint, with no flash. Light photos are the same shot
+ * relit on the light page colour, so one crop fits both.
+ */
+export function ThemedPhoneStage({
+  photo,
+  priority,
+  className,
+  label,
+  ...rest
+}: Omit<StageProps, "photo"> & { photo: "hero" | "stage" | "stageAlt" }) {
+  return (
+    <>
+      <PhoneStage {...rest} photo={photo} label={label} priority={priority} className={`l-only-dark ${className ?? ""}`} />
+      <PhoneStage {...rest} photo={`${photo}Light`} label={label} className={`l-only-light ${className ?? ""}`} />
+    </>
   );
 }

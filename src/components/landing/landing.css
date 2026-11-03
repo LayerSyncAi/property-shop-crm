@@ -26,6 +26,17 @@
   --l-stage-ink-2: rgba(238, 242, 243, 0.66);
   --l-stage-ink-3: rgba(238, 242, 243, 0.42);
   --l-stage-line: rgba(255, 255, 255, 0.09);
+  --l-stage-accent-ink: #b5e46a;
+  --l-stage-surface: #111a1e;
+  --l-stage-raised: #0d1417;
+  /* Text over photos (Who it's for cards) and floating captions. */
+  --l-scrim: #070b0d;
+  --l-scrim-ink: #ffffff;
+  --l-scrim-ink-2: rgba(255, 255, 255, 0.75);
+  --l-scrim-chip: rgba(255, 255, 255, 0.1);
+  --l-photo-tint: 0.25;
+  --l-caption-bg: rgba(0, 0, 0, 0.5);
+  --l-caption-ink: rgba(255, 255, 255, 0.75);
 
   color-scheme: dark;
   background: var(--l-bg);
@@ -49,6 +60,23 @@
   --l-glow: rgba(155, 216, 61, 0.24);
   --l-haze: #e1ecdc;
   --l-nav: rgba(255, 255, 255, 0.72);
+  /* Stages are the light page colour with dark ink: a true inverse of the
+     dark theme, not dark panels on a light page. */
+  --l-stage: #f2f4f3;
+  --l-stage-ink: #0f1419;
+  --l-stage-ink-2: #58626a;
+  --l-stage-ink-3: #6b757e;
+  --l-stage-line: rgba(15, 20, 25, 0.09);
+  --l-stage-accent-ink: #3b6812;
+  --l-stage-surface: #ffffff;
+  --l-stage-raised: #ffffff;
+  --l-scrim: #f2f4f3;
+  --l-scrim-ink: #0f1419;
+  --l-scrim-ink-2: #3d464d;
+  --l-scrim-chip: rgba(255, 255, 255, 0.75);
+  --l-photo-tint: 0;
+  --l-caption-bg: rgba(255, 255, 255, 0.82);
+  --l-caption-ink: #3d464d;
   color-scheme: light;
 }
 
@@ -124,13 +152,6 @@ html:has(.landing:not([data-theme])) body {
   background: none;
   color: var(--l-accent-ink);
 }
-/* Inside a dark stage the gradient applies in both themes. */
-.landing[data-theme="light"] .l-stage .l-accent {
-  background: linear-gradient(90deg, #9bd83d, #d4f59a);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
 
 /* ---------- Surfaces ------------------------------------------------ */
 
@@ -141,14 +162,13 @@ html:has(.landing:not([data-theme])) body {
   --l-ink-2: var(--l-stage-ink-2);
   --l-ink-3: var(--l-stage-ink-3);
   --l-line: var(--l-stage-line);
-  --l-accent-ink: #b5e46a;
-  --l-surface: #111a1e;
-  --l-bg-raised: #0d1417;
+  --l-accent-ink: var(--l-stage-accent-ink);
+  --l-surface: var(--l-stage-surface);
+  --l-bg-raised: var(--l-stage-raised);
   color-scheme: dark;
 }
-.landing[data-theme="light"] .l-stage-panel {
-  border-radius: 28px;
-  overflow: hidden;
+.landing[data-theme="light"] .l-stage {
+  color-scheme: light;
 }
 
 .l-card {
@@ -427,9 +447,9 @@ html:has(.landing:not([data-theme])) body {
 }
 
 @layer components {
-  /* In dark mode photo stages melt into the page; in light mode they stay
-     framed dark panels. */
-  .landing:not([data-theme="light"]) .l-fade-edges {
+  /* Photo stages melt into the page in both themes: each theme has its own
+     photos shot on that theme's background. */
+  .l-fade-edges {
     mask-image: radial-gradient(ellipse 72% 78% at 50% 46%, #000 58%, transparent 100%);
     -webkit-mask-image: radial-gradient(ellipse 72% 78% at 50% 46%, #000 58%, transparent 100%);
   }

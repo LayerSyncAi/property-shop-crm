@@ -35,33 +35,35 @@ Every prompt has these parts, in this order. Leave none out.
 
 ---
 
-## H1: Hero, two hands (16:9) → `hero.jpg`
+## H1: Hero, two hands (16:9) → `hero-v4.jpg`
 
-The first attempt (and a Seedream 4.5 attempt) came back off-centre, with odd phone proportions, and 4.5 drew the "rim lights" as glowing tubes in the background. The fixes that worked:
+The hands are a Zimbabwean businesswoman's, with a warm medium-brown complexion (changed from a man's on 2026-11-03 at Tadiwa's request).
+
+What made the hero work, learned from earlier attempts:
 - give the phone exact proportions (19.5:9, softly rounded corners);
 - ask for a symmetrical composition centred left to right;
-- say the rim light comes from **out-of-frame sources**, with no fixtures visible;
+- say the rim light comes from **out-of-frame sources**, with no fixtures visible (Seedream 4.5 otherwise draws glowing tubes);
 - describe the grip by its purpose ("the way you hold up a phone to show someone your screen").
 
 ```
 Photorealistic commercial product photograph for a premium software launch, shot in a dark studio.
-SUBJECT: a Black Zimbabwean businessman's two hands rise from the bottom of the frame and hold a modern smartphone upright in portrait orientation, perfectly centred left to right, the way you hold up a phone to show someone your screen. The left hand wraps the left side and bottom-left corner, thumb lying flat along the left edge of the frame; the right hand wraps the right side and bottom-right corner, fingertips curled lightly behind the phone. Both thumbs stay on the metal frame; nothing touches or covers the screen. Crisp white shirt cuffs under charcoal wool suit sleeves at both wrists.
+SUBJECT: the two hands of a Zimbabwean businesswoman with a warm medium-brown complexion rise from the bottom of the frame and hold a modern smartphone upright in portrait orientation, perfectly centred left to right, the way you hold up a phone to show someone your screen. Slender, elegant fingers with short, neat nails in a natural nude polish; a thin gold band on the right ring finger. The left hand wraps the left side and bottom-left corner, thumb lying flat along the left edge of the frame; the right hand wraps the right side and bottom-right corner, fingertips curled lightly behind the phone. Both thumbs stay on the metal frame; nothing touches or covers the screen. The cuffs of a tailored ivory blazer show at both wrists.
 PHONE: modern frameless smartphone with 19.5:9 proportions, softly rounded corners, thin dark titanium frame, no notch, no logos. The screen faces the lens straight on, flat and parallel to the sensor. The whole display is one flat, evenly lit, matte, pure chroma-key green (#00FF00), edge to edge: no interface, no text, no reflection, no glare.
 CAMERA: full-frame, 85mm lens, f/5.6, lens centred on the screen at the same height; the phone fills the central 55% of the frame height; symmetrical composition with equal dark space left and right.
-LIGHTING: low-key. Lime-green (#9BD83D) rim light from out-of-frame sources behind the subject on both sides traces the knuckles, fingers and phone edges; no light fixtures or light tubes visible anywhere. Soft, dim neutral front fill so skin texture and knuckle creases read.
+LIGHTING: low-key. Lime-green (#9BD83D) rim light from out-of-frame sources behind the subject on both sides traces the knuckles, fingers and phone edges; no light fixtures visible anywhere. Soft, dim neutral front fill so skin texture reads naturally.
 BACKGROUND: plain seamless near-black (#070B0D) with a faint deep-teal haze (#0F2A28) behind the phone; nothing else in frame.
-FINISH: natural deep brown skin tones, high micro-contrast, tack sharp, subtle film grain.
+FINISH: natural warm medium-brown skin with true texture, high micro-contrast, tack sharp, subtle film grain.
 ```
 
-## H2 and H3: Stage phones (3:4) → `stage.jpg`, `stage-alt.jpg`
+## H2 and H3: Stage phones (3:4) → `stage-v3.jpg`, `stage-alt-v3.jpg`
 
-Generated with the approved hero (H1) passed as an **image reference**, so the studio, the light, the skin tone, the sleeve and the phone match. Only the hand and the angle change.
+Generated with the approved hero (H1) passed as an **image reference**, so the studio, the light, the hands and the phone match. Only the hand and the angle change.
 
 H2 (right hand, used in the module showcase):
 
 ```
-Photorealistic commercial product photograph, the same shoot as the reference image: match its dark studio, near-black background with deep-teal haze, lime-green rim light, natural deep brown skin tone, charcoal suit sleeve with white shirt cuff, and the same phone design exactly.
-SUBJECT: this time a single right hand of the same Black Zimbabwean businessman rises from the bottom-right corner and holds the phone upright, leaning about 8 degrees to the right, screen facing the camera. Fingers wrap the right edge and the bottom; the thumb rests on the right edge of the metal frame. Nothing touches or covers the screen.
+Photorealistic commercial product photograph, the same shoot as the reference image: match its dark studio, near-black background with deep-teal haze, lime-green rim light, the same woman's warm medium-brown skin, slender fingers with nude nails and thin gold band, the ivory blazer cuff, and the same phone design exactly.
+SUBJECT: this time a single right hand of the same woman rises from the bottom-right corner and holds the phone upright, leaning about 8 degrees to the left, screen facing the camera. Fingers wrap the right edge and the bottom; the thumb rests on the right edge of the metal frame. Nothing touches or covers the screen.
 PHONE: 19.5:9 proportions, softly rounded corners, thin dark titanium frame, no notch, no logos. The whole display is one flat, evenly lit, matte, pure chroma-key green (#00FF00), edge to edge: no interface, no text, no reflection, no glare.
 CAMERA: full-frame, 85mm lens, f/5.6, lens level with the screen; the phone is large and centred, filling about 65% of the frame height, its top edge about 12% below the top of the frame.
 LIGHTING: low-key; lime-green (#9BD83D) rim light from out-of-frame sources behind, tracing the knuckles and phone edges; dim neutral front fill; no light fixtures visible.
@@ -72,7 +74,20 @@ FINISH: tack sharp, high micro-contrast, subtle film grain.
 H3 (left hand, used in the Hub bento and the app band) uses the same prompt, with SUBJECT replaced by:
 
 ```
-SUBJECT: this time a single left hand of the same Black Zimbabwean businessman rises from the bottom-left of the frame and cradles the phone upright in a relaxed grip, turned in a gentle three-quarter view of about 15 degrees so its right edge sits slightly further from the camera. Fingers wrap the left edge and the bottom; the thumb rests on the left edge of the metal frame. Nothing touches or covers the screen.
+SUBJECT: this time a single left hand of the same woman rises from the bottom-left of the frame and cradles the phone upright in a relaxed grip, turned in a gentle three-quarter view of about 15 degrees so its right edge sits slightly further from the camera. Fingers wrap the left edge and the bottom; the thumb rests on the left edge of the metal frame. Nothing touches or covers the screen.
+```
+
+## Light-theme twins → `hero-light-v4.jpg`, `stage-light-v3.jpg`, `stage-alt-light-v3.jpg`
+
+Each is an **edit** of its dark photo, passed as the image reference, so the hands, the phone and its screen position stay put. The screen corners match the dark photo's to within 0.1%, so one crop fits both themes.
+
+```
+Edit the reference photo into its light-mode version, like the same product shot relit in a bright daylight studio.
+KEEP EXACTLY: the same woman's hand(s), warm medium-brown skin, nude nails and ivory blazer cuff(s); the same pose, grip and tilt; the same phone design, position, size and angle; and the same flat, evenly lit, pure chroma-key green screen (#00FF00), edge to edge, with nothing covering it and no reflections.
+CHANGE ONLY THE ENVIRONMENT AND LIGHT:
+BACKGROUND: a plain seamless studio sweep in a soft, pale grey-green off-white (#F2F4F3), with a very faint mint glow (#E1ECDC) behind the phone; no objects, no dark areas, no vignette.
+LIGHTING: high-key and airy. A large soft key light from the upper left (about 5600K) gives gentle, natural shadows on the hands; soft white fill from the right; a thin lime-green (#9BD83D) edge highlight along the phone's frame only.
+FINISH: clean commercial look, true-to-life warm medium-brown skin texture, tack sharp, subtle grain.
 ```
 
 ## L1: Sales agencies (3:4) → `who-sales.jpg`
