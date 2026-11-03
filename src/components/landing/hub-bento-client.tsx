@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedMotion } from "./motion";
 import { hub } from "./content";
 import { PhoneStage } from "./phone/phone-stage";
 import { ProductGlyph } from "./phone/ui";
@@ -68,10 +69,10 @@ export function AlertToasts() {
       {hub.tiles.alerts.toasts.map((t, i) => (
         <motion.li
           key={t.text}
-          initial={reduce ? { opacity: 0 } : { opacity: 0, x: 40 }}
-          whileInView={reduce ? { opacity: 1 } : { opacity: 1, x: 0 }}
+          initial={{ opacity: 0, x: 40 }}
+          whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: reduce ? 0.2 : 0.7, delay: reduce ? 0 : 0.2 + i * 0.25, ease: EASE }}
+          transition={reduce ? { duration: 0.2, x: { duration: 0 } } : { duration: 0.7, delay: 0.2 + i * 0.25, ease: EASE }}
           className="flex min-w-0 items-center gap-3 rounded-2xl border border-[var(--l-line)] bg-[var(--l-bg-raised)] px-4 py-3"
         >
           <span className="h-2 w-2 flex-none rounded-full bg-[var(--l-accent)] shadow-[0_0_10px_var(--l-accent)]" />

@@ -1,15 +1,16 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedMotion } from "./motion";
 import { PhoneStage } from "./phone/phone-stage";
 
 export function HeroPhoto() {
   const reduce = useReducedMotion();
   return (
     <motion.div
-      initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 1.04 }}
-      animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1 }}
-      transition={{ duration: reduce ? 0.2 : 1.4, delay: reduce ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0, scale: 1.04 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={reduce ? { duration: 0.2, scale: { duration: 0 } } : { duration: 1.4, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className="l-stage l-stage-panel l-fade-edges relative overflow-hidden sm:rounded-[32px]"
     >
       <PhoneStage

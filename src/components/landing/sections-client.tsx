@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedMotion } from "./motion";
 import { PhoneStage } from "./phone/phone-stage";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -14,7 +15,7 @@ export function HowLine({ steps }: { steps: readonly { title: string; body: stri
       <motion.div
         aria-hidden
         className="absolute left-[11px] top-0 h-full w-px origin-top bg-[var(--l-accent)] shadow-[0_0_12px_var(--l-accent)] md:left-0 md:top-[11px] md:h-px md:w-full md:origin-left"
-        initial={{ scaleX: reduce ? 1 : 0, scaleY: reduce ? 1 : 0 }}
+        initial={{ scaleX: 0, scaleY: 0 }}
         whileInView={{ scaleX: 1, scaleY: 1 }}
         viewport={{ once: true, amount: 0.5 }}
         transition={{ duration: reduce ? 0 : 1.6, ease: EASE }}
@@ -24,10 +25,10 @@ export function HowLine({ steps }: { steps: readonly { title: string; body: stri
           <motion.li
             key={s.title}
             className="flex gap-5 md:flex-col md:gap-6"
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16 }}
-            whileInView={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: reduce ? 0.2 : 0.7, delay: reduce ? 0 : 0.3 + i * 0.3, ease: EASE }}
+            transition={reduce ? { duration: 0.2, y: { duration: 0 } } : { duration: 0.7, delay: 0.3 + i * 0.3, ease: EASE }}
           >
             <span className="relative z-10 grid h-6 w-6 flex-none place-items-center rounded-full border border-[var(--l-accent)] bg-[var(--l-bg)]">
               <span className="h-2 w-2 rounded-full bg-[var(--l-accent)]" />

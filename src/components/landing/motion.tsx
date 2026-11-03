@@ -4,10 +4,29 @@
  * Motion primitives for the landing page (spec §9). Everything collapses to
  * a plain fade when the visitor prefers reduced motion.
  */
-import { motion, useReducedMotion } from "framer-motion";
-import { useRef, type CSSProperties, type ReactNode } from "react";
+import { motion } from "framer-motion";
+import { useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
+
+/**
+ * Whether the visitor prefers reduced motion. Hydration-safe: the server and
+ * the first client render both say false, then it updates, so the HTML always
+ * matches (framer's own hook reads the media query during hydration).
+ */
+export function useReducedMotion(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia(REDUCE_QUERY);
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(REDUCE_QUERY).matches,
+    () => false
+  );
+}
 
 /** Fades content up as it scrolls into view. */
 export function Reveal({
@@ -31,10 +50,10 @@ export function Reveal({
     <Comp
       className={className}
       style={style}
-      initial={reduce ? { opacity: 0 } : { opacity: 0, y }}
-      whileInView={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: reduce ? 0.2 : 0.7, delay: reduce ? 0 : delay, ease: EASE }}
+      transition={reduce ? { duration: 0.2, y: { duration: 0 } } : { duration: 0.7, delay, ease: EASE }}
     >
       {children}
     </Comp>
@@ -63,11 +82,11 @@ export function MaskedLines({
         <span key={i} className="block overflow-hidden pb-[0.08em]">
           <motion.span
             className={`block ${lineClassName ?? ""}`}
-            initial={reduce ? { opacity: 0 } : { y: "110%", rotate: 2 }}
+            initial={{ y: "110%", rotate: 2 }}
             {...(inView
-              ? { whileInView: reduce ? { opacity: 1 } : { y: "0%", rotate: 0 }, viewport: { once: true, amount: 0.6 } }
-              : { animate: reduce ? { opacity: 1 } : { y: "0%", rotate: 0 } })}
-            transition={{ duration: reduce ? 0.2 : 1.1, delay: reduce ? 0 : delay + i * 0.08, ease: EASE }}
+              ? { whileInView: { y: "0%", rotate: 0 }, viewport: { once: true, amount: 0.6 } }
+              : { animate: { y: "0%", rotate: 0 } })}
+            transition={reduce ? { duration: 0 } : { duration: 1.1, delay: delay + i * 0.08, ease: EASE }}
             style={{ transformOrigin: "0% 100%" }}
           >
             {line}

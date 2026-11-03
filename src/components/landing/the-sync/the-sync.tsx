@@ -6,10 +6,10 @@
  * stage; the WebGL field draws behind the copy. With reduced motion or no
  * WebGL it becomes a static mark with the three lines of copy in order.
  */
-import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { sync } from "../content";
 import { Accent, Eyebrow } from "../bits";
+import { useReducedMotion } from "../motion";
 import { createSyncField, type Layout, type SyncField } from "./gl";
 
 function smoothstep(a: number, b: number, x: number) {

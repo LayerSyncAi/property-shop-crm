@@ -1,11 +1,11 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useId, useState } from "react";
 import { faq } from "./content";
 import { Accent, Container, WhatsAppButton } from "./bits";
-import { Reveal } from "./motion";
+import { Reveal, useReducedMotion } from "./motion";
 
 export function Faq() {
   const [open, setOpen] = useState<number | null>(0);
