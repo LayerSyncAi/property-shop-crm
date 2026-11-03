@@ -63,5 +63,9 @@ export function ThemeToggle({ className }: { className?: string }) {
   );
 }
 
-/** Applies the saved theme before first paint. Rendered inside the root. */
-export const noFlashScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}");if(t==="light"||t==="dark"){document.getElementById("${ROOT_ID}").dataset.theme=t}}catch(e){}})();`;
+/**
+ * Runs before first paint, inside the root: applies the saved theme, and
+ * makes the page open at the top. Browsers otherwise restore the last scroll
+ * position on reload; a link to a section (#faq) still lands on it.
+ */
+export const noFlashScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}");if(t==="light"||t==="dark"){document.getElementById("${ROOT_ID}").dataset.theme=t}}catch(e){}try{if(!location.hash&&"scrollRestoration" in history){history.scrollRestoration="manual"}}catch(e){}})();`;
