@@ -28,14 +28,14 @@ export function WhoItsFor() {
         {who.cards.map((card, i) => (
           <Reveal key={card.title} delay={i * 0.08} className="l-stage group relative aspect-[3/4] w-[78vw] flex-none snap-center overflow-hidden rounded-[24px] sm:w-[46vw] lg:w-auto">
             <Image src={card.image} alt={card.alt} fill sizes="(min-width: 1024px) 300px, 78vw" className="object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#070b0d] via-[#070b0d]/45 to-transparent" />
-            <div aria-hidden className="absolute inset-0 bg-[#0f2a28] mix-blend-color opacity-25" />
+            <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(to top, var(--l-scrim) 8%, color-mix(in srgb, var(--l-scrim) 55%, transparent) 42%, transparent 70%)" }} />
+            <div aria-hidden className="absolute inset-0 bg-[#0f2a28] mix-blend-color" style={{ opacity: "var(--l-photo-tint)" }} />
             <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-6">
-              <h3 className="l-h3 text-white">{card.title}</h3>
-              <p className="text-[15px] leading-snug text-white/75">{card.body}</p>
+              <h3 className="l-h3 text-[var(--l-scrim-ink)]">{card.title}</h3>
+              <p className="text-[15px] leading-snug text-[var(--l-scrim-ink-2)]">{card.body}</p>
               <ul className="flex flex-wrap gap-1.5">
                 {card.chips.map((c) => (
-                  <li key={c} className="l-mono rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-white/85 backdrop-blur">
+                  <li key={c} className="l-mono rounded-full bg-[var(--l-scrim-chip)] px-2.5 py-1 text-[11px] text-[var(--l-scrim-ink)] backdrop-blur">
                     {c}
                   </li>
                 ))}
@@ -73,9 +73,9 @@ export function Zimbabwe() {
               {zimbabwe.chips.map((chip, i) => {
                 const Icon = ZW_ICONS[i];
                 return (
-                  <Reveal as="li" key={chip} delay={i * 0.05} className="flex items-center gap-3 rounded-2xl border border-[var(--l-stage-line)] bg-white/[0.03] px-4 py-3.5">
-                    <Icon size={17} strokeWidth={1.7} className="flex-none text-[#b5e46a]" />
-                    <span className="text-sm text-[var(--l-stage-ink)]">{chip}</span>
+                  <Reveal as="li" key={chip} delay={i * 0.05} className="flex items-center gap-3 rounded-2xl border border-[var(--l-line)] bg-[var(--l-surface)] px-4 py-3.5">
+                    <Icon size={17} strokeWidth={1.7} className="flex-none text-[var(--l-accent-ink)]" />
+                    <span className="text-sm text-[var(--l-ink)]">{chip}</span>
                   </Reveal>
                 );
               })}
@@ -118,26 +118,29 @@ export function AppComingSoon() {
               <Accent h={app.headline} />
             </h2>
             <p className="l-body-lg max-w-[46ch]">{app.body}</p>
-            <ul className="flex flex-wrap gap-3" aria-label="Native apps">
-              {[
-                { icon: Apple, store: "App Store", line: "Download on the" },
-                { icon: Play, store: "Google Play", line: "Get it on" },
-              ].map((b) => (
-                <li
-                  key={b.store}
-                  className="relative flex items-center gap-3 rounded-2xl border border-[var(--l-line-strong)] px-4 py-2.5 opacity-60"
-                >
-                  <b.icon size={22} strokeWidth={1.6} />
-                  <span className="flex flex-col leading-tight">
-                    <span className="text-[10px] text-[var(--l-ink-3)]">{b.line}</span>
-                    <span className="text-[15px] font-medium">{b.store}</span>
-                  </span>
-                  <span className="l-mono absolute -right-2 -top-2.5 rounded-full bg-[var(--l-accent)] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--l-on-accent)]">
-                    Coming soon
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="flex flex-col gap-3">
+              <p className="l-eyebrow flex items-center gap-2">
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--l-accent)] shadow-[0_0_10px_var(--l-accent)]" />
+                Native apps · Coming soon
+              </p>
+              <ul className="grid max-w-[440px] grid-cols-1 gap-3 min-[420px]:grid-cols-2" aria-label="Native apps, coming soon">
+                {[
+                  { icon: Apple, store: "App Store" },
+                  { icon: Play, store: "Google Play" },
+                ].map((b) => (
+                  <li
+                    key={b.store}
+                    className="flex min-w-0 items-center gap-3 rounded-2xl border border-dashed border-[var(--l-line-strong)] px-4 py-3 text-[var(--l-ink-2)]"
+                  >
+                    <b.icon size={22} strokeWidth={1.6} className="flex-none" />
+                    <span className="flex min-w-0 flex-col leading-tight">
+                      <span className="whitespace-nowrap text-[11px] text-[var(--l-ink-3)]">Coming soon to</span>
+                      <span className="truncate text-[15px] font-medium text-[var(--l-ink)]">{b.store}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </Reveal>
           <div className="l-stage relative flex items-end justify-center">
             <AppPhone />

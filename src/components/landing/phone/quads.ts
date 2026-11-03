@@ -2,6 +2,9 @@
  * Screen corners for each phone photo, normalised 0–1, from
  * scripts/landing/screen-quad.py. Re-run the script and paste its output
  * here whenever a photo changes.
+ *
+ * Every photo has a light-theme twin under the same key plus "Light",
+ * relit on the light page colour with the same hands and phone position.
  */
 export type Quad = { tl: [number, number]; tr: [number, number]; br: [number, number]; bl: [number, number] };
 
@@ -15,25 +18,46 @@ export type PhonePhoto = {
 
 export const PHOTOS = {
   hero: {
-    src: "/landing/hero-v2.jpg",
-    mask: "/landing/hero-mask-v2.png",
+    src: "/landing/hero-v3.jpg",
+    mask: "/landing/hero-v3-mask.png",
     width: 2400,
     height: 1355,
-    quad: { tl: [0.42162, 0.1512], tr: [0.57961, 0.15102], br: [0.58013, 0.77602], bl: [0.42185, 0.7762] },
+    quad: { tl: [0.42318, 0.12088], tr: [0.58457, 0.11956], br: [0.58507, 0.7509], bl: [0.42208, 0.75227] },
+  },
+  heroLight: {
+    src: "/landing/hero-light-v3.jpg",
+    mask: "/landing/hero-light-v3-mask.png",
+    width: 2400,
+    height: 1355,
+    quad: { tl: [0.42318, 0.12008], tr: [0.58485, 0.11927], br: [0.58499, 0.75024], bl: [0.42217, 0.75183] },
   },
   stage: {
-    src: "/landing/stage-v2.jpg",
-    mask: "/landing/stage-mask-v2.png",
+    src: "/landing/stage-v3.jpg",
+    mask: "/landing/stage-v3-mask.png",
     width: 1600,
     height: 2138,
-    quad: { tl: [0.27176, 0.16572], tr: [0.56126, 0.14276], br: [0.67576, 0.65317], bl: [0.38489, 0.68859] },
+    quad: { tl: [0.3732, 0.10983], tr: [0.75915, 0.15272], br: [0.61259, 0.78585], bl: [0.23377, 0.73843] },
+  },
+  stageLight: {
+    src: "/landing/stage-light-v3.jpg",
+    mask: "/landing/stage-light-v3-mask.png",
+    width: 1600,
+    height: 2138,
+    quad: { tl: [0.37302, 0.10896], tr: [0.76002, 0.1521], br: [0.61298, 0.78683], bl: [0.2335, 0.7393] },
   },
   stageAlt: {
-    src: "/landing/stage-alt-v2.jpg",
-    mask: "/landing/stage-alt-mask-v2.png",
+    src: "/landing/stage-alt-v3.jpg",
+    mask: "/landing/stage-alt-v3-mask.png",
     width: 1600,
     height: 2138,
-    quad: { tl: [0.37776, 0.1424], tr: [0.68066, 0.13234], br: [0.62565, 0.74378], bl: [0.31263, 0.7213] },
+    quad: { tl: [0.4388, 0.15945], tr: [0.75164, 0.18134], br: [0.63298, 0.75869], bl: [0.32436, 0.71281] },
+  },
+  stageAltLight: {
+    src: "/landing/stage-alt-light-v3.jpg",
+    mask: "/landing/stage-alt-light-v3-mask.png",
+    width: 1600,
+    height: 2138,
+    quad: { tl: [0.4388, 0.15806], tr: [0.75271, 0.18], br: [0.63344, 0.75972], bl: [0.32397, 0.71372] },
   },
 } satisfies Record<string, PhonePhoto>;
 

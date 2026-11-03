@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "./motion";
 import { hub } from "./content";
-import { PhoneStage } from "./phone/phone-stage";
+import { ThemedPhoneStage } from "./phone/phone-stage";
 import { ProductGlyph } from "./phone/ui";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -11,10 +11,10 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 export function HubBentoPhone() {
   return (
     <div className="relative -mt-4 sm:-mt-10">
-      <PhoneStage
+      <ThemedPhoneStage
         photo="stageAlt"
         screens={["hub"]}
-        crop={{ x: [0.1, 0.9], y: [0.08, 0.6] }}
+        crop={{ x: [0.14, 0.94], y: [0.1, 0.62] }}
         sizes="(min-width: 1024px) 700px, 100vw"
         label="The Hub's Needs attention list: open maintenance, arrears, inspections due, an overdue valuation and payouts awaiting approval."
       />

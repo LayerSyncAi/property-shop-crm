@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useReducedMotion } from "./motion";
-import { PhoneStage } from "./phone/phone-stage";
+import { ThemedPhoneStage } from "./phone/phone-stage";
 
 export function HeroPhoto() {
   const reduce = useReducedMotion();
@@ -13,7 +13,7 @@ export function HeroPhoto() {
       transition={reduce ? { duration: 0.2, scale: { duration: 0 } } : { duration: 1.4, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className="l-stage l-stage-panel l-fade-edges relative overflow-hidden sm:rounded-[32px]"
     >
-      <PhoneStage
+      <ThemedPhoneStage
         photo="hero"
         screens={["hub"]}
         crop={{ x: [0.08, 0.92], y: [0.0, 0.94] }}
@@ -30,7 +30,7 @@ export function HeroPhoto() {
 export function CtaPhone() {
   return (
     <div className="l-fade-bottom mx-auto w-full max-w-[520px]">
-      <PhoneStage
+      <ThemedPhoneStage
         photo="hero"
         screens={["hub"]}
         crop={{ x: [0.33, 0.67], y: [0.1, 0.62] }}

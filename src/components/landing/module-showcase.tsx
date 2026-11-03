@@ -13,7 +13,7 @@ import { moduleWhatsAppMessage, whatsAppLink } from "@/config/marketing";
 import { showcase, type Chapter, type ModuleKey } from "./content";
 import { Accent, Container, Eyebrow } from "./bits";
 import { Reveal } from "./motion";
-import { PhoneStage } from "./phone/phone-stage";
+import { ThemedPhoneStage } from "./phone/phone-stage";
 import { CHAPTER_SCREENS } from "./phone/screens";
 import { SyncDevIcon, SyncFinanceIcon, SyncMediaIcon, SyncStayIcon, SyncWorthIcon, SynCrmIcon } from "@/components/brand/product-icons";
 
@@ -214,10 +214,10 @@ export function ModuleShowcase() {
                 </div>
                 {/* Mobile: the chapter's own phone. */}
                 <div className="l-stage l-stage-panel mt-10 overflow-hidden rounded-[28px] lg:hidden">
-                  <PhoneStage
+                  <ThemedPhoneStage
                     photo="stage"
                     screens={CHAPTER_SCREENS[ch.key]}
-                    crop={{ x: [0.1, 0.85], y: [0.07, 0.76] }}
+                    crop={{ x: [0.06, 0.92], y: [0.05, 0.88] }}
                     sizes="(max-width: 1023px) 130vw, 1px"
                     showDots
                     label={`${ch.name} on a phone: ${ch.eyebrow.toLowerCase()}.`}
@@ -230,17 +230,17 @@ export function ModuleShowcase() {
           {/* Desktop: one sticky phone. */}
           <div className="hidden lg:block">
             <div className="sticky top-[calc(50vh-min(41vh,400px))]">
-              <div className="l-stage l-stage-panel relative mx-auto overflow-hidden rounded-[32px]" style={{ width: "min(100%, calc(82vh * 0.77))" }}>
-                <PhoneStage
+              <div className="l-stage l-stage-panel relative mx-auto overflow-hidden rounded-[32px]" style={{ width: "min(100%, calc(82vh * 0.76))" }}>
+                <ThemedPhoneStage
                   photo="stage"
                   screens={ALL_SCREENS}
                   active={stageIndex}
-                  crop={{ x: [0.12, 0.83], y: [0.07, 0.76] }}
+                  crop={{ x: [0.08, 0.9], y: [0.05, 0.86] }}
                   sizes="(min-width: 1024px) 640px, 1px"
                   label={label}
                 />
                 <div aria-hidden className="pointer-events-none absolute inset-0 shadow-[inset_0_0_80px_20px_var(--l-stage)]" />
-                <div className="l-mono pointer-events-none absolute left-5 top-5 flex items-center gap-2 rounded-full border border-[var(--l-stage-line)] bg-black/40 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] text-[var(--l-stage-ink-2)] backdrop-blur">
+                <div className="l-mono pointer-events-none absolute left-5 top-5 flex items-center gap-2 rounded-full border border-[var(--l-line)] bg-[var(--l-caption-bg)] px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] text-[var(--l-caption-ink)] backdrop-blur">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#9bd83d]" />
                   {chapters[active].name}
                 </div>

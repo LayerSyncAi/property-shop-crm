@@ -61,9 +61,14 @@ Status: **v1.1, signed off 2026-11-03.** v1.1 changes: SyncStay reframed around 
   The choice persists in `localStorage` under `se-theme`.
 - **No flash:** an inline script runs before paint and sets `data-theme` on the landing root, not
   on `<html>`. The app (`/app`) is light-only and must be untouched.
-- **Stages stay dark in both themes.** Every photo panel and the WebGL section keep their dark,
-  cinematic look. In light mode they sit as dark rounded panels (radius 28px) on the light page,
-  like premium hardware sites.
+- **The light theme is a true inverse of the dark one** (revised 2026-11-03 at Tadiwa's request).
+  - No dark panels stay on the light page. Every stage (the hero, The Sync, the Hub bento, the
+    module showcase, Built in Zimbabwe, the app band and the final CTA) takes the light page colour
+    with dark ink.
+  - Every phone photo has a light twin: the same hands and phone, relit in a bright studio on the
+    light page colour (`PHOTOS.<key>Light`, rendered by `ThemedPhoneStage`).
+  - The Sync draws dark particles with normal blending, with the brand ink as its green.
+  - The Who it's for cards use a light scrim with dark text.
 - **Phone screens always show the real light UI**, because the app is light-only. A bright screen
   glowing in a dark photo is the look.
 

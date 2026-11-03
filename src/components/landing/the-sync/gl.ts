@@ -21,6 +21,7 @@ uniform vec2 uMouse;
 uniform float uMouseForce;
 uniform float uPointSize;
 uniform vec2 uMarkCentre;
+uniform float uLight;
 varying vec3 vColor;
 varying float vAlpha;
 
@@ -58,14 +59,18 @@ void main() {
   gl_Position = vec4(pos.x / uAspect, pos.y, 0.0, 1.0);
   gl_PointSize = uPointSize * (0.75 + aSeed.z * 0.75) * mix(1.0, 0.85, e);
 
-  // Colour: grey problems (a few flickering red) into brand green.
-  vec3 grey = vec3(0.46, 0.51, 0.55);
+  // Colour: grey problems (a few flickering red) into brand green. On the
+  // light theme the particles are drawn dark on light: deeper grey, and the
+  // green resolves to the brand ink with the brand green as highlights.
+  vec3 grey = mix(vec3(0.46, 0.51, 0.55), vec3(0.35, 0.39, 0.42), uLight);
   vec3 red = vec3(0.851, 0.176, 0.125);
   float isRed = step(0.88, aSeed.y) * step(0.0, sin(t * 7.0 + aSeed.z * 40.0));
   vec3 before = mix(grey, red, isRed);
-  vec3 green = mix(vec3(0.608, 0.847, 0.239), vec3(0.831, 0.961, 0.604), step(0.85, aSeed.z));
-  vColor = mix(before, green, e);
-  vAlpha = mix(0.75, 0.95, e);
+  float bright = step(0.85, aSeed.z);
+  vec3 greenDark = mix(vec3(0.608, 0.847, 0.239), vec3(0.831, 0.961, 0.604), bright);
+  vec3 greenLight = mix(vec3(0.231, 0.408, 0.071), vec3(0.525, 0.769, 0.180), bright);
+  vColor = mix(before, mix(greenDark, greenLight, uLight), e);
+  vAlpha = mix(mix(0.75, 0.95, e), mix(0.7, 0.9, e), uLight);
 }
 `;
 
@@ -194,7 +199,8 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
 
 export type SyncField = {
   resize(width: number, height: number, dpr: number): Layout;
-  render(progress: number, time: number, mouse: { x: number; y: number; force: number }): void;
+  /** light: draw dark particles with normal blending for the light theme. */
+  render(progress: number, time: number, mouse: { x: number; y: number; force: number }, light: boolean): void;
   dispose(): void;
 };
 
@@ -253,6 +259,7 @@ export async function createSyncField(canvas: HTMLCanvasElement, count: number):
   const uMouseForce = u("uMouseForce");
   const uPointSize = u("uPointSize");
   const uMarkCentre = u("uMarkCentre");
+  const uLight = u("uLight");
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE);
@@ -285,7 +292,12 @@ export async function createSyncField(canvas: HTMLCanvasElement, count: number):
       pointSize = Math.max(1.5, Math.min(3.2, (height / 900) * 2.6)) * dpr;
       return L;
     },
-    render(progress, time, mouse) {
+    render(progress, time, mouse, light) {
+      // Additive glow on dark; ordinary "over" blending on light, where
+      // adding colour would wash out to white.
+      if (light) gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      else gl.blendFunc(gl.ONE, gl.ONE);
+      gl.uniform1f(uLight, light ? 1 : 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform1f(uProgress, progress);
       gl.uniform1f(uTime, time);
