@@ -84,6 +84,7 @@ export function ModuleShowcase() {
   const sub = subState.chapter === active ? subState.i : 0;
   const refs = useRef<(HTMLElement | null)[]>([]);
   const chipRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const chipBarRef = useRef<HTMLDivElement>(null);
 
   // The chapter in the middle of the viewport is the active one.
   useEffect(() => {
@@ -113,9 +114,15 @@ export function ModuleShowcase() {
     return () => window.clearInterval(t);
   }, [active]);
 
-  // Keep the active chip in view on the mobile chip bar.
+  // Keep the active chip centred in the mobile chip bar. Scroll the bar
+  // sideways only: scrollIntoView would also scroll the page, and since this
+  // runs on mount it used to drag phones down to this section on load.
   useEffect(() => {
-    chipRefs.current[active]?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    const bar = chipBarRef.current;
+    const chip = chipRefs.current[active];
+    if (!bar || !chip || bar.clientWidth === 0) return;
+    const left = chip.offsetLeft - (bar.clientWidth - chip.offsetWidth) / 2;
+    bar.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
   }, [active]);
 
   const stageIndex = OFFSETS[active] + sub;
@@ -137,7 +144,7 @@ export function ModuleShowcase() {
 
       {/* Mobile and tablet: sticky chip bar. */}
       <nav aria-label="Modules" className="sticky top-[76px] z-30 mt-12 lg:hidden">
-        <div className="l-no-scrollbar mx-3 flex gap-2 overflow-x-auto rounded-full border border-[var(--l-line)] bg-[var(--l-nav)] p-1.5 backdrop-blur-xl">
+        <div ref={chipBarRef} className="l-no-scrollbar relative mx-3 flex gap-2 overflow-x-auto rounded-full border border-[var(--l-line)] bg-[var(--l-nav)] p-1.5 backdrop-blur-xl">
           {chapters.map((ch, i) => (
             <a
               key={ch.key}
