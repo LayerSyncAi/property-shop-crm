@@ -234,7 +234,8 @@ html:has(.landing:not([data-theme])) body {
 
 /* Rim light: a 1px gradient border on the exact outline. */
 .l-btn::before,
-.l-orb::before {
+.l-orb::before,
+.l-tab-glass::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -277,7 +278,8 @@ html:has(.landing:not([data-theme])) body {
 }
 
 /* Lime glass. */
-.l-btn-primary {
+.l-btn-primary,
+.l-tab-glass {
   --rim: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.35) 38%, rgba(255, 255, 255, 0.12) 70%, rgba(255, 255, 255, 0.4) 100%);
   --ripple: rgba(255, 255, 255, 0.7);
   color: var(--l-on-accent);
@@ -388,6 +390,49 @@ html:has(.landing:not([data-theme])) body {
     inset 0 -10px 14px -10px rgba(38, 78, 0, 0.45),
     0 1px 2px rgba(0, 0, 0, 0.2),
     0 8px 20px -8px rgba(155, 216, 61, 0.55);
+}
+
+/* The module tab marker (module-showcase.tsx): one lime glass pill that
+   slides to the active tab, under the labels, in the primary button's
+   material. The mobile chip bar places it by measuring the chip; the
+   desktop rail steps it by --i rows. */
+.l-tab-glass {
+  position: absolute;
+  left: 0;
+  top: 0;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 999px;
+  pointer-events: none;
+}
+.l-chipbar .l-tab-glass {
+  opacity: 0;
+}
+.l-chipbar[data-ready] .l-tab-glass {
+  opacity: 1;
+  transition: transform 0.55s var(--l-ease), width 0.55s var(--l-ease), height 0.55s var(--l-ease),
+    opacity 0.3s linear;
+}
+/* The dark copy of the labels inside the marker, moved opposite to it. */
+.l-tab-ink {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  width: max-content;
+  white-space: nowrap;
+  color: var(--l-on-accent);
+}
+.l-chipbar[data-ready] .l-tab-ink {
+  transition: transform 0.55s var(--l-ease);
+}
+.l-rail .l-tab-glass {
+  transform: translateY(calc(var(--i, 0) * 56px));
+  transition: transform 0.55s var(--l-ease);
+}
+.l-rail .l-tab-ink {
+  transform: translateY(calc(var(--i, 0) * -56px));
+  transition: transform 0.55s var(--l-ease);
 }
 
 .l-btn-sm {
@@ -501,6 +546,15 @@ html:has(.landing:not([data-theme])) body {
   .l-btn.is-rippling::after,
   .l-orb.is-rippling::after {
     animation: none;
+  }
+  .l-tab-glass,
+  .l-tab-ink,
+  .l-chipbar[data-ready] .l-tab-glass,
+  .l-chipbar[data-ready] .l-tab-ink,
+  .l-rail .l-tab-glass,
+  .l-rail .l-tab-ink {
+    animation: none;
+    transition: none;
   }
   .l-roll > span {
     transition: none;
@@ -678,6 +732,14 @@ html:has(.landing:not([data-theme])) body {
   content: "";
   position: absolute;
   inset: -12px -6px;
+}
+
+/* Unlayered on purpose: beats the chip's text utility. Until the glass
+   marker is placed (first paint, or no JavaScript), the active chip fills
+   itself with lime. */
+.l-chipbar:not([data-ready]) [aria-current] {
+  background: var(--l-accent);
+  color: var(--l-on-accent);
 }
 
 /* The specular highlight's position, animatable (ButtonFX sets it on hover). */
