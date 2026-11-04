@@ -7,7 +7,7 @@
  * with its own phone, under a sticky chip bar.
  */
 import { ArrowUpRight, Check, FileSignature } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { LucideIcon } from "lucide-react";
 import { moduleWhatsAppMessage, whatsAppLink } from "@/config/marketing";
 import { showcase, type Chapter, type ModuleKey } from "./content";
@@ -28,6 +28,9 @@ const ICONS: Record<ModuleKey, LucideIcon> = {
 };
 
 const chapters = showcase.chapters as Chapter[];
+
+/** A module chip; the glass marker's dark label copy uses the same box. */
+const CHIP = "relative flex h-11 flex-none items-center justify-center rounded-full px-4 text-sm font-medium leading-none";
 
 /** All chapters' screens in one list, so one stage can show any of them. */
 const ALL_SCREENS = chapters.flatMap((ch) => CHAPTER_SCREENS[ch.key]);
@@ -85,6 +88,8 @@ export function ModuleShowcase() {
   const refs = useRef<(HTMLElement | null)[]>([]);
   const chipRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const chipBarRef = useRef<HTMLDivElement>(null);
+  const chipGlassRef = useRef<HTMLSpanElement>(null);
+  const chipInkRef = useRef<HTMLSpanElement>(null);
 
   // The chapter in the middle of the viewport is the active one.
   useEffect(() => {
@@ -125,6 +130,37 @@ export function ModuleShowcase() {
     bar.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
   }, [active]);
 
+  // Slide the lime glass marker onto the active chip. Written straight to the
+  // DOM: it follows layout (fonts, resizes), not React state. The marker
+  // carries a dark copy of the labels moved the opposite way, so the copy
+  // stays over the real labels and text turns dark exactly where the glass
+  // covers it, mid-slide too. The first placement is instant; data-ready
+  // turns the slide on after it.
+  useEffect(() => {
+    const bar = chipBarRef.current;
+    const glass = chipGlassRef.current;
+    const ink = chipInkRef.current;
+    if (!bar || !glass || !ink) return;
+    let frame = 0;
+    const place = () => {
+      const chip = chipRefs.current[active];
+      if (!chip || bar.clientWidth === 0) return;
+      glass.style.width = `${chip.offsetWidth}px`;
+      glass.style.height = `${chip.offsetHeight}px`;
+      glass.style.transform = `translate(${chip.offsetLeft}px, ${chip.offsetTop}px)`;
+      ink.style.transform = `translate(${-chip.offsetLeft}px, ${-chip.offsetTop}px)`;
+      if (!("ready" in bar.dataset)) frame = requestAnimationFrame(() => (bar.dataset.ready = ""));
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(bar);
+    chipRefs.current.forEach((c) => c && ro.observe(c));
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [active]);
+
   const stageIndex = OFFSETS[active] + sub;
   const label = useMemo(() => `${chapters[active].name} on a phone: ${chapters[active].eyebrow.toLowerCase()}.`, [active]);
 
@@ -144,7 +180,10 @@ export function ModuleShowcase() {
 
       {/* Mobile and tablet: sticky chip bar. */}
       <nav aria-label="Modules" className="sticky top-[76px] z-30 mt-12 lg:hidden">
-        <div ref={chipBarRef} className="l-no-scrollbar relative mx-3 flex gap-2 overflow-x-auto rounded-full border border-[var(--l-line)] bg-[var(--l-nav)] p-1.5 backdrop-blur-xl">
+        <div
+          ref={chipBarRef}
+          className="l-chipbar l-no-scrollbar relative mx-3 flex gap-1 overflow-x-auto rounded-full border border-[var(--l-line)] bg-[var(--l-nav)] p-1.5 backdrop-blur-xl"
+        >
           {chapters.map((ch, i) => (
             <a
               key={ch.key}
@@ -153,13 +192,20 @@ export function ModuleShowcase() {
               }}
               href={`#module-${ch.key}`}
               aria-current={i === active ? "true" : undefined}
-              className={`flex-none rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
-                i === active ? "bg-[var(--l-accent)] text-[var(--l-on-accent)]" : "text-[var(--l-ink-2)]"
-              }`}
+              className={`${CHIP} text-[var(--l-ink-2)] transition-colors hover:text-[var(--l-ink)]`}
             >
               {ch.name}
             </a>
           ))}
+          <span ref={chipGlassRef} aria-hidden className="l-tab-glass z-[1]">
+            <span ref={chipInkRef} className="l-tab-ink flex gap-1 p-1.5">
+              {chapters.map((ch) => (
+                <span key={ch.key} className={CHIP}>
+                  {ch.name}
+                </span>
+              ))}
+            </span>
+          </span>
         </div>
       </nav>
 
@@ -167,7 +213,13 @@ export function ModuleShowcase() {
         <div className="lg:grid lg:grid-cols-[56px_minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
           {/* Desktop rail. */}
           <div className="hidden lg:block">
-            <div role="tablist" aria-label="Modules" aria-orientation="vertical" className="sticky top-[calc(50vh-200px)] flex flex-col gap-2">
+            <div
+              role="tablist"
+              aria-label="Modules"
+              aria-orientation="vertical"
+              className="l-rail sticky top-[calc(50vh-200px)] flex flex-col gap-2"
+              style={{ "--i": active } as CSSProperties}
+            >
               {chapters.map((ch, i) => {
                 const Icon = ICONS[ch.key];
                 const on = i === active;
@@ -189,17 +241,28 @@ export function ModuleShowcase() {
                         (e.currentTarget.parentElement?.children[next] as HTMLElement | undefined)?.focus();
                       }
                     }}
-                    className={`relative grid h-12 w-12 place-items-center rounded-2xl border transition-all duration-300 ${
-                      on
-                        ? "border-[var(--l-accent)] bg-[var(--l-accent)] text-[var(--l-on-accent)] shadow-[0_8px_28px_-8px_var(--l-glow)]"
-                        : "border-[var(--l-line)] bg-[var(--l-surface)] text-[var(--l-ink-3)] hover:text-[var(--l-ink)]"
-                    }`}
+                    className="relative grid h-12 w-12 place-items-center rounded-2xl border border-[var(--l-line)] bg-[var(--l-surface)] text-[var(--l-ink-3)] transition-colors hover:text-[var(--l-ink)]"
                   >
                     <Icon size={20} strokeWidth={1.6} />
                     <span className="sr-only">{ch.name}</span>
                   </button>
                 );
               })}
+              {/* The glass marker, with a dark copy of the icons (see the chip
+                  bar). Last child, so the arrow keys' children[next] still
+                  finds the tabs. */}
+              <span aria-hidden className="l-tab-glass z-[1] h-12 w-12 rounded-2xl">
+                <span className="l-tab-ink flex flex-col gap-2">
+                  {chapters.map((ch) => {
+                    const Icon = ICONS[ch.key];
+                    return (
+                      <span key={ch.key} className="grid h-12 w-12 place-items-center">
+                        <Icon size={20} strokeWidth={1.6} />
+                      </span>
+                    );
+                  })}
+                </span>
+              </span>
             </div>
           </div>
 
