@@ -14,6 +14,8 @@ import { AppComingSoon, FinalCta, Footer, HowItWorks, WhoItsFor, Zimbabwe } from
 import { Faq } from "./faq";
 import { noFlashScript, ROOT_ID } from "./theme";
 import { ButtonFX } from "./button-fx";
+import { EnquiryDialog } from "./enquiry-dialog";
+import { Vsl } from "./vsl";
 import { layerSyncUrl, salesPhoneE164, siteUrl } from "@/config/marketing";
 import { faq } from "./content";
 
@@ -85,6 +87,7 @@ export function Landing() {
       <Nav />
       <main id="main">
         <Hero />
+        <Vsl />
         <TheSync />
         <HubBento />
         <ModuleShowcase />
@@ -97,6 +100,7 @@ export function Landing() {
         <FinalCta />
       </main>
       <Footer />
+      <EnquiryDialog />
     </div>
   );
 }

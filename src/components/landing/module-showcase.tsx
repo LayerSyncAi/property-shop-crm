@@ -72,6 +72,8 @@ function ChapterCopy({ ch, index }: { ch: Chapter; index: number }) {
         target="_blank"
         rel="noopener noreferrer"
         data-cta={`module-${ch.key}`}
+        data-enquire=""
+        data-interest={ch.askAbout}
         className="group inline-flex w-fit items-center gap-1.5 text-[15px] font-medium text-[var(--l-accent-ink)]"
       >
         Ask about {ch.name} on WhatsApp

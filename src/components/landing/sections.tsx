@@ -5,7 +5,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Apple, Banknote, FileText, Inbox, LandPlot, MessageCircle, Phone, Play } from "lucide-react";
-import { layerSyncUrl, whatsAppLink } from "@/config/marketing";
+import { layerSyncUrl, salesPhoneDisplay, salesPhoneE164, whatsAppLink } from "@/config/marketing";
 import { app, finalCta, footer, how, showcase, who, zimbabwe } from "./content";
 import { Accent, Container, Eyebrow, Logo, WhatsAppButton } from "./bits";
 import { Magnetic, Reveal } from "./motion";
@@ -195,6 +195,7 @@ export function Footer() {
             links={[
               { label: "LayerSync", href: layerSyncUrl, external: true },
               { label: "Chat on WhatsApp", href: "whatsapp" },
+              { label: salesPhoneDisplay, href: `tel:${salesPhoneE164}` },
             ]}
           />
           <FooterCol
@@ -246,7 +247,7 @@ function FooterCol({ title, links }: { title: string; links: { label: string; hr
 
 function WhatsAppFooterLink({ label }: { label: string }) {
   return (
-    <a href={whatsAppLink()} target="_blank" rel="noopener noreferrer" data-cta="footer" className="text-sm text-[var(--l-ink-2)] transition-colors hover:text-[var(--l-ink)]">
+    <a href={whatsAppLink()} target="_blank" rel="noopener noreferrer" data-cta="footer" data-enquire="" className="text-sm text-[var(--l-ink-2)] transition-colors hover:text-[var(--l-ink)]">
       {label}
     </a>
   );

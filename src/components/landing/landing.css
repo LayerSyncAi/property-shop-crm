@@ -753,3 +753,80 @@ html:has(.landing:not([data-theme])) body {
   inherits: false;
   initial-value: -20%;
 }
+
+/* ---------- "Get in touch" dialog (enquiry-dialog.tsx) ---------------
+   A native <dialog>: showModal() gives the focus trap, Escape and the top
+   layer. It sits inside .landing, so the page tokens still apply. */
+.l-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100svh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--l-ink);
+  overflow: visible;
+}
+.l-dialog::backdrop {
+  background: rgba(3, 6, 8, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.l-dialog[open] {
+  animation: l-dialog-in 0.45s var(--l-ease);
+}
+.l-dialog-panel {
+  position: relative;
+  max-height: calc(100svh - 32px);
+  overflow-y: auto;
+  padding: 28px;
+  border: 1px solid var(--l-line-strong);
+  border-radius: 28px;
+  background: var(--l-bg-raised);
+  box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(155, 216, 61, 0.06);
+}
+.l-dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+.l-input {
+  display: block;
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--l-line-strong);
+  border-radius: 14px;
+  background: var(--l-surface);
+  color: var(--l-ink);
+  font-size: 16px; /* 16px stops iOS zooming into the field */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.l-input::placeholder {
+  color: var(--l-ink-3);
+}
+.l-input:focus {
+  outline: none;
+  border-color: var(--l-accent);
+  box-shadow: 0 0 0 3px var(--l-glow);
+}
+.l-input[aria-invalid="true"] {
+  border-color: #f97066;
+}
+.l-field-error {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #f97066;
+}
+.landing[data-theme="light"] .l-field-error {
+  color: #b42318;
+}
+@keyframes l-dialog-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l-dialog[open] {
+    animation: none;
+  }
+}

@@ -18,6 +18,16 @@ export const hero = {
   micro: "Works on any phone today · Native iOS & Android apps coming soon",
 };
 
+export const vsl = {
+  eyebrow: "Watch the tour",
+  headline: ["See your whole agency ", "in two minutes."] as Headline,
+  sub: "Every module, one login, and how we get your team running on it. Then tell us about your agency.",
+  cta: "Get in touch",
+  src: "/landing/vsl/sync-estate-vsl.mp4",
+  poster: "/landing/vsl/sync-estate-vsl-poster.jpg",
+  label: "SyncEstate in two minutes: a video tour of every module",
+};
+
 export const sync = {
   states: [
     {
@@ -335,6 +345,7 @@ export const footer = {
 };
 
 export const navLinks = [
+  { label: "Tour", href: "#tour" },
   { label: "Modules", href: "#modules" },
   { label: "How it works", href: "#how" },
   { label: "Who it's for", href: "#who" },

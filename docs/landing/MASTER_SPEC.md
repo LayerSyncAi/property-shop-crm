@@ -176,6 +176,13 @@ Centred column, `min-height: 100svh`, with a radial `--haze` behind the photo.
 6. **Microcopy under the stage** (`--ink-3`, mono 12px): "Works on any phone today · Native iOS &
    Android apps coming soon".
 
+### 5.1a The tour: the VSL (`#tour`)
+
+Added 2026-11-07. Straight after the hero: eyebrow "WATCH THE TOUR", H2 "See your whole agency
+**in two minutes.**", a 16:9 player with the VSL (`public/landing/vsl/`, source and re-render
+steps in `scripts/vsl/README.md`), and a **Get in touch** button under it. The player loads only
+its poster (`preload="none"`) until the visitor presses play. "Tour" is the first nav link.
+
 ### 5.2 The Sync: the WebGL moment (`#why`)
 
 The cost of standing still. Full spec in §8.
@@ -545,6 +552,14 @@ This is the centrepiece.
   we chat?"
 - **Module message:** "Hi LayerSync! I'm interested in {Module} for my agency. Can we chat?"
 - The buttons carry `data-cta="<location>"` so analytics can be added later without markup changes.
+- **Get in touch first (added 2026-11-07):** every WhatsApp button also carries `data-enquire`
+  (and `data-interest` for a module). `enquiry-dialog.tsx` catches the click and opens a dialog
+  that takes a name and phone number, saves them with `websiteEnquiries.submit`
+  (`convex/websiteEnquiries.ts`), then opens WhatsApp with "Hi LayerSync! I'm {name} ({phone}).
+  …". The links stay real `wa.me` links, so they still work without JavaScript, and a
+  modifier-click opens WhatsApp directly. LayerSync staff see enquiries on the Platform page.
+- **layersyncai.com** posts the same form to the public HTTP route `POST /website-enquiry`
+  (`convex/http.ts`) on this deployment's `.convex.site` domain.
 
 ---
 

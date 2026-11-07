@@ -34,15 +34,23 @@ export function Roll({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * The main call to action. It is a plain wa.me link, so it works without
+ * JavaScript; with it, EnquiryDialog (enquiry-dialog.tsx) catches the click
+ * to take a name and number first, then opens WhatsApp.
+ */
 export function WhatsAppButton({
   children = "Chat to us on WhatsApp",
   message,
+  interest,
   size = "md",
   cta,
   className,
 }: {
   children?: ReactNode;
   message?: string;
+  /** The module the visitor is asking about, shown in the dialog and the message. */
+  interest?: string;
   size?: "sm" | "md" | "lg";
   cta: string;
   className?: string;
@@ -54,6 +62,8 @@ export function WhatsAppButton({
       target="_blank"
       rel="noopener noreferrer"
       data-cta={cta}
+      data-enquire=""
+      data-interest={interest}
       className={`l-btn l-btn-primary ${sizeClass} ${className ?? ""}`}
     >
       <WhatsAppGlyph size={size === "lg" ? 20 : size === "sm" ? 16 : 18} />
