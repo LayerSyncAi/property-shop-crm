@@ -21,6 +21,31 @@ export function moduleWhatsAppMessage(moduleName: string): string {
   return `Hi LayerSync! I'm interested in ${moduleName} for my agency. Can we chat?`;
 }
 
+/**
+ * The prefilled message after a visitor fills in the "Get in touch" form:
+ * it opens with their name and number so the team knows who is writing.
+ */
+export function enquiryWhatsAppMessage({
+  name,
+  phone,
+  interest,
+}: {
+  name: string;
+  phone: string;
+  interest?: string;
+}): string {
+  const intro = `Hi LayerSync! I'm ${name.trim()} (${phone.trim()}).`;
+  const ask = interest
+    ? `I'm interested in ${interest} for my agency.`
+    : "I run an estate agency and I'm interested in SyncEstate.";
+  return `${intro} ${ask} Can we chat?`;
+}
+
+/** The sales number written for people, e.g. +263 77 518 7682. */
+export const salesPhoneDisplay = salesWhatsApp.startsWith("263") && salesWhatsApp.length === 12
+  ? `+263 ${salesWhatsApp.slice(3, 5)} ${salesWhatsApp.slice(5, 8)} ${salesWhatsApp.slice(8)}`
+  : `+${salesWhatsApp}`;
+
 /** LayerSync's own website. */
 export const layerSyncUrl = "https://www.layersyncai.com";
 

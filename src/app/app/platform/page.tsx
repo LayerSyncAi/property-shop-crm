@@ -25,6 +25,7 @@ import { animatedToast } from "@/components/ui/animated-toaster";
 import { getErrorMessage } from "@/lib/errors";
 import { ModuleChecklist } from "@/components/hub/module-checklist";
 import { MODULES, type ModuleKey } from "@/config/modules";
+import { WebsiteEnquiries } from "@/components/platform/website-enquiries";
 
 const formatDate = (ts: number | null | undefined) =>
   ts ? new Date(ts).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
@@ -228,6 +229,9 @@ export default function PlatformPage() {
           </div>
         )}
       </div>
+
+      {/* "Get in touch" enquiries from the marketing sites */}
+      <WebsiteEnquiries />
 
       {/* Organisations */}
       <Card>

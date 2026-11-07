@@ -876,6 +876,31 @@ export default defineSchema({
     .index("by_user_created", ["userId", "createdAt"])
     .index("by_user_read", ["userId", "readAt"]),
 
+  // --- Marketing ----------------------------------------------------------
+  // "Get in touch" enquiries from the SyncEstate landing page and
+  // layersyncai.com (convex/websiteEnquiries.ts). They belong to LayerSync,
+  // not to an agency, and show on the Platform page. One row per phone
+  // number: a repeat enquiry updates it and brings it back to "new".
+  websiteEnquiries: defineTable({
+    name: v.string(),
+    // International format, e.g. +263775187682.
+    phone: v.string(),
+    phoneDigits: v.string(),
+    site: v.union(v.literal("syncestate"), v.literal("layersync")),
+    // What they asked about: a module ("SyncStay") or a service.
+    interest: v.optional(v.string()),
+    page: v.optional(v.string()),
+    // Which button they pressed (the CTA's data-cta value).
+    cta: v.optional(v.string()),
+    status: v.union(v.literal("new"), v.literal("contacted"), v.literal("archived")),
+    submissions: v.number(),
+    createdAt: v.number(),
+    lastSubmittedAt: v.number(),
+  })
+    .index("by_phone", ["phoneDigits"])
+    .index("by_last_submitted", ["lastSubmittedAt"])
+    .index("by_status_last_submitted", ["status", "lastSubmittedAt"]),
+
   ...stayTables,
   ...worthTables,
   ...financeTables,

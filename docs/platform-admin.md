@@ -88,3 +88,16 @@ keep writing while rows disappear. The purge is idempotent and safe to re-run.
 4. Delete **Matrix Realty** (type its slug), then **Tagiv**.
 5. Confirm both rows disappear and an `org.purged` entry appears in the Convex
    dashboard logs with the document counts.
+
+## Website enquiries
+
+The Platform page lists everyone who pressed **Get in touch** on the SyncEstate landing page or
+on layersyncai.com (`convex/websiteEnquiries.ts`). Each visitor left a name and phone number and
+was then sent on to WhatsApp, so most will already be in the LayerSync chat. One row per phone
+number: a repeat enquiry updates the row and marks it **New** again. Mark rows **Contacted** or
+**Archive** them as you work through them.
+
+- The landing page saves with the public `websiteEnquiries.submit` mutation.
+- layersyncai.com posts JSON (as `text/plain`) to `https://<deployment>.convex.site/website-enquiry`.
+- A site-wide rate limit (30 a minute) stops floods; bad names or numbers are rejected.
+
