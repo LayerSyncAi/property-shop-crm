@@ -40,6 +40,9 @@ const BulkMatching = lazy(() =>
 );
 
 
+// Owner-filter value meaning "leads no agent owns yet".
+const UNASSIGNED_FILTER = "__unassigned";
+
 interface LeadRowData {
   _id: Id<"leads">;
   contactId: Id<"contacts">;
@@ -49,6 +52,8 @@ interface LeadRowData {
   score?: number;
   stageId: Id<"pipelineStages">;
   ownerName: string;
+  isUnassigned?: boolean;
+  interestNeedsReview?: boolean;
   updatedAt: number;
   closedAt?: number;
   closeReason?: string;
@@ -84,8 +89,12 @@ const LeadTableRow = React.memo(function LeadTableRow({
         </p>
       </TableCell>
       <TableCell>
-        <Badge variant={lead.interestType === "buy" ? "default" : "info"}>
+        <Badge
+          variant={lead.interestNeedsReview ? "warning" : lead.interestType === "buy" ? "default" : "info"}
+          title={lead.interestNeedsReview ? "Interest type needs review" : undefined}
+        >
           {lead.interestType === "buy" ? "Buy" : "Rent"}
+          {lead.interestNeedsReview ? " ?" : ""}
         </Badge>
       </TableCell>
       <TableCell>
@@ -167,8 +176,12 @@ const LeadCard = React.memo(function LeadCard({
         <ScoreBadge score={lead.score} />
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Badge variant={lead.interestType === "buy" ? "default" : "info"}>
+        <Badge
+          variant={lead.interestNeedsReview ? "warning" : lead.interestType === "buy" ? "default" : "info"}
+          title={lead.interestNeedsReview ? "Interest type needs review" : undefined}
+        >
           {lead.interestType === "buy" ? "Buy" : "Rent"}
+          {lead.interestNeedsReview ? " ?" : ""}
         </Badge>
         {lead.propertyTitle && (
           <span className="truncate text-xs text-text-muted">{lead.propertyTitle}</span>
@@ -288,7 +301,8 @@ export default function LeadsPage() {
         : undefined,
     propertyId: propertyFilter ? (propertyFilter as Id<"properties">) : undefined,
     q: debouncedContactName || undefined,
-    ownerUserId: ownerFilter ? (ownerFilter as Id<"users">) : undefined,
+    ownerUserId: ownerFilter && ownerFilter !== UNASSIGNED_FILTER ? (ownerFilter as Id<"users">) : undefined,
+    assignment: ownerFilter === UNASSIGNED_FILTER ? "unassigned" : undefined,
     scoreMin: scoreRange.scoreMin,
     scoreMax: scoreRange.scoreMax,
     sortBy: scoreSortDir || undefined,
@@ -310,7 +324,8 @@ export default function LeadsPage() {
               ? interestFilter
               : undefined,
           q: debouncedContactName || undefined,
-          ownerUserId: ownerFilter ? (ownerFilter as Id<"users">) : undefined,
+          ownerUserId: ownerFilter && ownerFilter !== UNASSIGNED_FILTER ? (ownerFilter as Id<"users">) : undefined,
+          assignment: ownerFilter === UNASSIGNED_FILTER ? "unassigned" : undefined,
           scoreMin: scoreRange.scoreMin,
           scoreMax: scoreRange.scoreMax,
         }
@@ -609,19 +624,18 @@ export default function LeadsPage() {
               onChange={(e) => setContactNameFilter(e.target.value)}
             />
           </div>
-          {isAdmin && (
-            <div className="space-y-2">
-              <Label>Owner</Label>
-              <StaggeredDropDown
-                value={ownerFilter}
-                onChange={(val) => setOwnerFilter(val)}
-                options={[
-                  { value: "", label: "All owners" },
-                  ...(users?.map((u) => ({ value: u._id, label: u.name })) ?? []),
-                ]}
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label>Assigned agent</Label>
+            <StaggeredDropDown
+              value={ownerFilter}
+              onChange={(val) => setOwnerFilter(val)}
+              options={[
+                { value: "", label: isAdmin ? "All agents" : "My leads + unassigned" },
+                { value: UNASSIGNED_FILTER, label: "Unassigned" },
+                ...(isAdmin ? users?.map((u) => ({ value: u._id, label: u.name })) ?? [] : []),
+              ]}
+            />
+          </div>
         </div>
       </motion.div>
 
