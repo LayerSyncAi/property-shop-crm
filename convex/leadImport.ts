@@ -1,9 +1,16 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import { getCurrentUserWithOrg } from "./helpers";
 import { checkRateLimit } from "./rateLimit";
 import { canonicalizeAreas } from "./lib/locations";
 import { LEAD_SOURCE_VALUES, LEGACY_PORTAL_SOURCE } from "./lib/leadSources";
+import {
+  matchAgent,
+  parseInterestType,
+  type AgentCandidate,
+  type AgentMatch,
+} from "./lib/leadImportMatching";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -17,7 +24,31 @@ function normalizePhone(phone: string): string {
 
 const sourceValues = LEAD_SOURCE_VALUES;
 
-const interestValues = ["rent", "buy"] as const;
+/** Active members of the org, as candidates for the Primary Agent column. */
+async function orgAgentCandidates(ctx: QueryCtx, orgId: Id<"organizations">): Promise<AgentCandidate[]> {
+  const users = await ctx.db
+    .query("users")
+    .withIndex("by_org", (q) => q.eq("orgId", orgId))
+    .collect();
+  return users
+    .filter((u) => u.isActive)
+    .map((u) => ({ id: u._id, name: u.fullName || u.name, email: u.email }));
+}
+
+/**
+ * Preview of how each distinct Primary Agent value will resolve, so the
+ * import page can show who each row goes to before anything is written.
+ * bulkImport repeats the same matching server-side.
+ */
+export const previewAgentMatches = query({
+  args: { names: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserWithOrg(ctx);
+    const agents = await orgAgentCandidates(ctx, user.orgId);
+    const unique = Array.from(new Set(args.names.map((n) => n.trim()).filter(Boolean))).slice(0, 500);
+    return unique.map((name) => ({ name, match: matchAgent(name, agents) as AgentMatch }));
+  },
+});
 
 export const checkDuplicates = query({
   args: {
@@ -170,7 +201,11 @@ export const bulkImport = mutation({
         phone: v.string(),
         email: v.optional(v.string()),
         source: v.string(),
-        interestType: v.string(),
+        // Raw cell from the file ("To Let", "For Sale", ...). Empty or
+        // unrecognised values are flagged for review, never defaulted.
+        interestType: v.optional(v.string()),
+        // Raw "Primary Agent" cell, resolved to an org member by name.
+        primaryAgent: v.optional(v.string()),
         budgetCurrency: v.optional(v.string()),
         budgetMin: v.optional(v.number()),
         budgetMax: v.optional(v.number()),
@@ -199,6 +234,7 @@ export const bulkImport = mutation({
       .withIndex("by_org", (q) => q.eq("orgId", user.orgId))
       .collect();
     const activeLeads = existingLeads.filter((l) => !l.isArchived);
+    const agents = await orgAgentCandidates(ctx, user.orgId);
 
     const results = {
       created: 0,
@@ -206,6 +242,18 @@ export const bulkImport = mutation({
       skipped: 0,
       failed: 0,
       errors: [] as Array<{ row: number; message: string }>,
+      // Primary Agent outcomes (only counted for rows that carry a value).
+      autoAssigned: 0,
+      unassigned: 0,
+      assignmentIssues: [] as Array<{
+        row: number;
+        value: string;
+        reason: "ambiguous" | "not_found";
+        candidates: string[];
+      }>,
+      // Rows whose interest type was empty or not recognised.
+      interestFlagged: 0,
+      interestIssues: [] as Array<{ row: number; value: string }>,
     };
 
     for (let i = 0; i < args.rows.length; i++) {
@@ -232,9 +280,27 @@ export const bulkImport = mutation({
         // platform — same treatment the migration gives historical leads.
         const sourceNeedsReview =
           source === LEGACY_PORTAL_SOURCE ? true : undefined;
-        const interestType = interestValues.includes(row.interestType as any)
-          ? (row.interestType as (typeof interestValues)[number])
-          : "buy";
+        // Interest type: previously anything other than the literal "rent"
+        // fell back to "buy", so portal wordings ("To Let", "Renting") all
+        // became buyers. Read the wording; flag what we can't read.
+        const parsedInterest = parseInterestType(row.interestType);
+        const interestRaw = (row.interestType ?? "").trim();
+
+        // Primary Agent → assigned agent. No value means "as before" (the
+        // importer owns the lead); a value that resolves to nobody or to
+        // several agents leaves the lead unassigned rather than guessing.
+        const agentMatch = matchAgent(row.primaryAgent, agents);
+        const matchedAgentId =
+          agentMatch.status === "matched" ? (agentMatch.agentId as Id<"users">) : null;
+        const agentIssue =
+          agentMatch.status === "ambiguous" || agentMatch.status === "not_found"
+            ? {
+                row: i,
+                value: (row.primaryAgent ?? "").trim(),
+                reason: agentMatch.status,
+                candidates: agentMatch.status === "ambiguous" ? agentMatch.candidates : [],
+              }
+            : null;
 
         let duplicateLead = null;
         if (row.email) {
@@ -263,6 +329,14 @@ export const bulkImport = mutation({
             continue;
           }
           if (args.mode === "upsert") {
+            // An existing lead keeps its owner unless the file names a clear
+            // match; it keeps its interest type when the file's is unreadable.
+            if (agentIssue) results.assignmentIssues.push(agentIssue);
+            if (matchedAgentId) results.autoAssigned++;
+            if (!parsedInterest && interestRaw) {
+              results.interestFlagged++;
+              results.interestIssues.push({ row: i, value: interestRaw });
+            }
             await ctx.db.patch(duplicateLead._id, {
               fullName: row.fullName.trim(),
               phone: row.phone.trim(),
@@ -270,7 +344,15 @@ export const bulkImport = mutation({
               email: row.email?.trim() || duplicateLead.email,
               source,
               sourceNeedsReview,
-              interestType,
+              interestType: parsedInterest ?? duplicateLead.interestType,
+              interestNeedsReview: parsedInterest
+                ? undefined
+                : interestRaw
+                  ? true
+                  : duplicateLead.interestNeedsReview,
+              ...(matchedAgentId
+                ? { ownerUserId: matchedAgentId, isUnassigned: undefined }
+                : {}),
               budgetCurrency: row.budgetCurrency || duplicateLead.budgetCurrency,
               budgetMin: row.budgetMin ?? duplicateLead.budgetMin,
               budgetMax: row.budgetMax ?? duplicateLead.budgetMax,
@@ -285,12 +367,15 @@ export const bulkImport = mutation({
           }
         }
 
+        const ownerUserId = matchedAgentId ?? user._id;
+        const isUnassigned = agentIssue ? true : undefined;
         const contactId = await ctx.db.insert("contacts", {
           name: row.fullName.trim(),
           phone: row.phone.trim(),
           normalizedPhone: normalizedPhoneVal,
           email: row.email?.trim(),
-          ownerUserIds: [user._id],
+          ownerUserIds:
+            matchedAgentId && matchedAgentId !== user._id ? [user._id, matchedAgentId] : [user._id],
           createdByUserId: user._id,
           orgId: user.orgId,
           createdAt: timestamp,
@@ -305,7 +390,10 @@ export const bulkImport = mutation({
           email: row.email?.trim(),
           source,
           sourceNeedsReview,
-          interestType,
+          // "buy" is only a placeholder when flagged: the lead shows
+          // "Interest type needs review" until an agent confirms it.
+          interestType: parsedInterest ?? "buy",
+          interestNeedsReview: parsedInterest ? undefined : true,
           budgetCurrency: row.budgetCurrency || undefined,
           budgetMin: row.budgetMin,
           budgetMax: row.budgetMax,
@@ -314,13 +402,23 @@ export const bulkImport = mutation({
             : [],
           notes: row.notes?.trim() || "",
           stageId: defaultStage._id,
-          ownerUserId: user._id,
+          ownerUserId,
+          isUnassigned,
           orgId: user.orgId,
           createdAt: timestamp,
           updatedAt: timestamp,
         });
 
         results.created++;
+        if (matchedAgentId) results.autoAssigned++;
+        if (agentIssue) {
+          results.unassigned++;
+          results.assignmentIssues.push(agentIssue);
+        }
+        if (!parsedInterest) {
+          results.interestFlagged++;
+          results.interestIssues.push({ row: i, value: interestRaw });
+        }
       } catch (e: any) {
         results.errors.push({ row: i, message: e.message || "Unknown error" });
         results.failed++;
