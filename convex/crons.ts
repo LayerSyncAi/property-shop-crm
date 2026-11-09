@@ -37,4 +37,36 @@ crons.daily(
   internal.propertyBook.refresh.refreshAllTracked
 );
 
+// Flag valuations due soon or overdue and remind the assigned valuer
+// (06:00 Harare).
+crons.daily(
+  "worth due date alerts",
+  { hourUTC: 4, minuteUTC: 0 },
+  internal.worth.alerts.flagDueJobs
+);
+
+// Alert property managers about inspections that have fallen due.
+crons.daily(
+  "stay inspections due",
+  { hourUTC: 5, minuteUTC: 0 },
+  internal.stay.inspections.processDueInspections
+);
+
+// SyncStay rent cycle: rent increases, monthly rent charges and invoices,
+// overdue reminders and lease expiry alerts. 03:30 UTC is 05:30 Harare, so
+// charges and emails are in place before the working day.
+crons.daily(
+  "stay daily rent cycle",
+  { hourUTC: 3, minuteUTC: 30 },
+  internal.stay.jobs.runDaily
+);
+
+// SyncDev and SyncFinance: keep instalment balances current, release
+// lapsed reservations and send payment reminders through SyncNotify. 04:30 UTC is 06:30 Harare.
+crons.daily(
+  "finance instalments daily",
+  { hourUTC: 4, minuteUTC: 30 },
+  internal.dev.sales.runDaily
+);
+
 export default crons;

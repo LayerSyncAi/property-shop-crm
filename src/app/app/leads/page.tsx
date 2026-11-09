@@ -24,6 +24,9 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { KanbanBoard } from "@/components/leads/kanban-board";
+import { ContactActions } from "@/components/common/contact-actions";
+import { TemperatureChip } from "@/components/leads/temperature";
+import { PhoneMainAction } from "@/components/ui/phone-main-action";
 
 const listVariants = {
   hidden: {},
@@ -75,7 +78,7 @@ const LeadTableRow = React.memo(function LeadTableRow({
       onClick={() => onRowClick(lead)}
     >
       <TableCell>
-        <Link href={`/app/leads/${lead._id}`} className="font-medium hover:text-primary">
+        <Link href={`/app/leads/${lead._id}`} className="font-medium hover:text-primary-ink">
           {lead.fullName}
         </Link>
         <p className="truncate text-xs text-text-muted">
@@ -112,6 +115,7 @@ const LeadTableRow = React.memo(function LeadTableRow({
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-1">
+          <ContactActions phone={lead.phone} name={lead.fullName} className="mr-1.5 gap-1" />
           <Tooltip content="View">
             <Button
               variant="secondary"
@@ -139,6 +143,7 @@ const LeadTableRow = React.memo(function LeadTableRow({
 });
 
 // Mobile equivalent of LeadTableRow: data tables stack as cards below md.
+// The whole card opens the lead; Call and WhatsApp sit up front.
 const LeadCard = React.memo(function LeadCard({
   lead,
   stages,
@@ -155,14 +160,18 @@ const LeadCard = React.memo(function LeadCard({
   return (
     <motion.div
       variants={rowVariants}
-      className="rounded-[12px] border border-border-strong bg-card-bg p-4 space-y-3"
+      className="cursor-pointer rounded-[20px] border border-border bg-card-bg shadow-[var(--shadow-card)] p-4 space-y-3 active:bg-row-hover"
+      onClick={() => onRowClick(lead)}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <Link href={`/app/leads/${lead._id}`} className="block truncate font-medium hover:text-primary">
+          <Link href={`/app/leads/${lead._id}`} className="block truncate font-medium hover:text-primary-ink">
             {lead.fullName}
           </Link>
-          <p className="text-xs text-text-muted">{lead.phone}</p>
+          <p className="truncate text-xs text-text-muted">
+            {lead.phone}
+            {lead.ownerName ? ` · ${lead.ownerName}` : ""}
+          </p>
         </div>
         <ScoreBadge score={lead.score} />
       </div>
@@ -185,37 +194,23 @@ const LeadCard = React.memo(function LeadCard({
         />
       </div>
       <div className="flex items-center justify-between gap-2 pt-1">
-        <span className="text-xs text-text-dim">Owner: {lead.ownerName}</span>
-        <div className="flex gap-1.5">
-          <Button variant="secondary" className="h-9 w-9 p-0" aria-label="View lead" onClick={() => onRowClick(lead)}>
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            className="h-9 w-9 p-0 text-danger hover:bg-danger/10 hover:text-danger"
-            aria-label="Delete lead"
-            onClick={() => onDelete(lead)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        <ContactActions phone={lead.phone} name={lead.fullName} labelled />
+        <Button
+          variant="secondary"
+          className="ml-auto h-9 w-9 p-0 text-danger hover:bg-danger/10 hover:text-danger"
+          aria-label="Delete lead"
+          onClick={(e) => { e.stopPropagation(); onDelete(lead); }}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
     </motion.div>
   );
 });
 
+// Score and temperature in one chip (hot 70+, warm 40 to 69, cold below).
 function ScoreBadge({ score }: { score: number | undefined }) {
-  if (score === undefined || score === null) {
-    return <Badge variant="neutral" className="px-2 py-0.5">--</Badge>;
-  }
-  const variant = score >= 70 ? "success" : score >= 40 ? "warning" : "danger";
-  const dot = score >= 70 ? "bg-success" : score >= 40 ? "bg-warning" : "bg-danger";
-  return (
-    <Badge variant={variant} className="gap-1 px-2 py-0.5 font-semibold">
-      <span className={`inline-block h-1.5 w-1.5 rounded-full ${dot}`} />
-      {score}
-    </Badge>
-  );
+  return <TemperatureChip score={score} />;
 }
 
 export default function LeadsPage() {
@@ -472,7 +467,7 @@ export default function LeadsPage() {
               onClick={() => setViewMode("list")}
               className={`flex items-center gap-1.5 rounded-[8px] px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
                 viewMode === "list"
-                  ? "bg-primary/15 text-primary shadow-sm"
+                  ? "bg-primary/15 text-primary-ink shadow-sm"
                   : "text-text-muted hover:text-text hover:bg-surface-2"
               }`}
             >
@@ -483,7 +478,7 @@ export default function LeadsPage() {
               onClick={() => setViewMode("kanban")}
               className={`flex items-center gap-1.5 rounded-[8px] px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
                 viewMode === "kanban"
-                  ? "bg-primary/15 text-primary shadow-sm"
+                  ? "bg-primary/15 text-primary-ink shadow-sm"
                   : "text-text-muted hover:text-text hover:bg-surface-2"
               }`}
             >
@@ -494,10 +489,11 @@ export default function LeadsPage() {
           <Button variant="secondary" onClick={() => setBulkMatchingOpen(true)}>
             Bulk Match
           </Button>
-          <Link href="/app/leads/new">
+          {/* On phones the same action floats above the tab bar. */}
+          <Link href="/app/leads/new" className="hidden md:block">
             <Button className="h-10 gap-2">
               <Plus className="h-4 w-4" />
-              New Lead
+              New lead
             </Button>
           </Link>
         </div>
@@ -510,7 +506,11 @@ export default function LeadsPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 24, delay: 0.04 }}
+<<<<<<< HEAD
           className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-border-strong bg-card-bg p-4"
+=======
+          className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-border bg-card-bg shadow-[var(--shadow-card)] p-4"
+>>>>>>> upstream/main
         >
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
@@ -535,7 +535,7 @@ export default function LeadsPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 24, delay: 0.06 }}
-        className="rounded-[12px] border border-border-strong bg-card-bg p-4"
+        className="rounded-[20px] border border-border bg-card-bg shadow-[var(--shadow-card)] p-4"
       >
         <button
           type="button"
@@ -672,12 +672,12 @@ export default function LeadsPage() {
                   <TableHead>
                     <button
                       onClick={toggleScoreSort}
-                      className="inline-flex items-center gap-1 hover:text-primary transition-colors"
+                      className="inline-flex items-center gap-1 hover:text-primary-ink transition-colors"
                     >
                       Score
                       {scoreSortDir === "" && <ArrowUpDown className="h-3 w-3 text-text-dim" />}
-                      {scoreSortDir === "score_desc" && <ArrowDown className="h-3 w-3 text-primary" />}
-                      {scoreSortDir === "score_asc" && <ArrowUp className="h-3 w-3 text-primary" />}
+                      {scoreSortDir === "score_desc" && <ArrowDown className="h-3 w-3 text-primary-ink" />}
+                      {scoreSortDir === "score_asc" && <ArrowUp className="h-3 w-3 text-primary-ink" />}
                     </button>
                   </TableHead>
                   <TableHead>Stage</TableHead>
@@ -737,6 +737,8 @@ export default function LeadsPage() {
           </ErrorBoundary>
         )
       )}
+
+      <PhoneMainAction label="New lead" icon={Plus} href="/app/leads/new" />
 
       {bulkMatchingOpen && (
         <Suspense fallback={null}>

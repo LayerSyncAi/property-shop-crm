@@ -140,7 +140,11 @@ export function PropertyAccess({
       <div className="space-y-3 rounded-lg border border-border-strong bg-surface-2/30 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
+<<<<<<< HEAD
             <ShieldCheck className="h-4 w-4 text-primary" />
+=======
+            <ShieldCheck className="h-4 w-4 text-primary-ink" />
+>>>>>>> upstream/main
             <Label className="m-0">Agent ownership</Label>
           </div>
           {isAdmin && !reassigning && (
@@ -164,7 +168,11 @@ export function PropertyAccess({
                 onClick={() => setOwnershipMode("company")}
                 className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                   ownershipMode === "company"
+<<<<<<< HEAD
                     ? "border-primary bg-primary text-white"
+=======
+                    ? "border-primary bg-primary text-primary-foreground"
+>>>>>>> upstream/main
                     : "border-border-strong bg-card-bg text-text-muted hover:border-primary/60"
                 }`}
               >
@@ -175,7 +183,11 @@ export function PropertyAccess({
                 onClick={() => setOwnershipMode("agents")}
                 className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                   ownershipMode === "agents"
+<<<<<<< HEAD
                     ? "border-primary bg-primary text-white"
+=======
+                    ? "border-primary bg-primary text-primary-foreground"
+>>>>>>> upstream/main
                     : "border-border-strong bg-card-bg text-text-muted hover:border-primary/60"
                 }`}
               >
@@ -193,7 +205,11 @@ export function PropertyAccess({
                       onClick={() => togglePendingOwner(a._id as Id<"users">)}
                       className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                         checked
+<<<<<<< HEAD
                           ? "border-primary bg-primary text-white"
+=======
+                          ? "border-primary bg-primary text-primary-foreground"
+>>>>>>> upstream/main
                           : "border-border-strong bg-card-bg text-text-muted hover:border-primary/60"
                       }`}
                     >
@@ -230,7 +246,11 @@ export function PropertyAccess({
       {/* Collaborators */}
       <div className="space-y-3 rounded-lg border border-border-strong bg-surface-2/30 p-4">
         <div className="flex items-center gap-2">
+<<<<<<< HEAD
           <UserPlus className="h-4 w-4 text-primary" />
+=======
+          <UserPlus className="h-4 w-4 text-primary-ink" />
+>>>>>>> upstream/main
           <Label className="m-0">Collaborators</Label>
         </div>
         <p className="text-xs text-text-muted">

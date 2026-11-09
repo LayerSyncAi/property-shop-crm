@@ -33,7 +33,7 @@ import { PropertyMarketingTab } from "@/components/properties/property-marketing
 import { PropertyBookBadge } from "@/components/properties/property-book-badge";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Eye, Trash2, Plus, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { UserPlus, Eye, Trash2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Megaphone } from "lucide-react";
 
 const propertyTabs = ["Details", "Owner", "Marketing", "Sharing", "Viewings", "Documentation", "Gallery"] as const;
 type PropertyTab = (typeof propertyTabs)[number];
@@ -618,7 +618,7 @@ export default function PropertiesPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="hidden md:flex items-center gap-1 rounded-[12px] border border-border-strong bg-card-bg p-1">
+          <div className="hidden md:flex items-center gap-1 rounded-[20px] border border-border bg-card-bg shadow-[var(--shadow-card)] p-1">
             <Button
               variant={viewMode === "list" ? "primary" : "ghost"}
               className="h-8 px-3"
@@ -650,7 +650,7 @@ export default function PropertiesPage() {
         </div>
       </div>
 
-      <div className="rounded-[12px] border border-border-strong bg-card-bg p-4">
+      <div className="rounded-[20px] border border-border bg-card-bg shadow-[var(--shadow-card)] p-4">
         <button
           type="button"
           onClick={() => setFiltersOpen((o) => !o)}
@@ -768,13 +768,13 @@ export default function PropertiesPage() {
               <TableHead>
                 <button
                   onClick={toggleAddedSort}
-                  className="inline-flex items-center gap-1 transition-colors hover:text-primary"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-primary-ink"
                   aria-label="Sort by date added"
                 >
                   Added
                   {addedSort === "" && <ArrowUpDown className="h-3 w-3 text-text-dim" />}
-                  {addedSort === "created_desc" && <ArrowDown className="h-3 w-3 text-primary" />}
-                  {addedSort === "created_asc" && <ArrowUp className="h-3 w-3 text-primary" />}
+                  {addedSort === "created_desc" && <ArrowDown className="h-3 w-3 text-primary-ink" />}
+                  {addedSort === "created_asc" && <ArrowUp className="h-3 w-3 text-primary-ink" />}
                 </button>
               </TableHead>
               <TableHead className="text-right">Action</TableHead>
@@ -928,7 +928,7 @@ export default function PropertiesPage() {
                   onClick={(e) => { e.stopPropagation(); toggleCompare(property._id); }}
                   className={`absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-lg border-2 transition ${
                     isCompared
-                      ? "border-primary bg-primary text-white"
+                      ? "border-primary bg-primary text-primary-foreground"
                       : "border-white/70 bg-white/60 text-transparent backdrop-blur-sm hover:border-primary/50"
                   }`}
                 >
@@ -1067,24 +1067,37 @@ export default function PropertiesPage() {
         description="Review the listing details and make updates as needed."
         onClose={closeModal}
         footer={
-          propertyTab === "Details" ? (
-            <div className="flex justify-end gap-2">
-              <Button variant="secondary" onClick={closeModal} disabled={isSaving}>
-                Cancel
-              </Button>
-              {(isAdmin || selectedProperty?.createdByUserId === currentUser?._id) && (
-                <Button onClick={handleSave} disabled={isSaving}>
-                  {isSaving ? "Saving..." : "Save changes"}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {/* Marketing collateral for this listing, seeded from its photos
+                and details. Available on every tab because it is a jumping-off
+                point rather than part of editing the record. */}
+            {selectedProperty ? (
+              <Link href={`/app/syncmedia/new?propertyId=${selectedProperty._id}`}>
+                <Button variant="secondary">
+                  <Megaphone className="h-4 w-4" /> Create brochure
                 </Button>
-              )}
-            </div>
-          ) : (
-            <div className="flex justify-end">
+              </Link>
+            ) : (
+              <span />
+            )}
+
+            {propertyTab === "Details" ? (
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={closeModal} disabled={isSaving}>
+                  Cancel
+                </Button>
+                {(isAdmin || selectedProperty?.createdByUserId === currentUser?._id) && (
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? "Saving..." : "Save changes"}
+                  </Button>
+                )}
+              </div>
+            ) : (
               <Button variant="secondary" onClick={closeModal}>
                 Close
               </Button>
-            </div>
-          )
+            )}
+          </div>
         }
       >
         <div className="space-y-5">

@@ -1,0 +1,832 @@
+/* SyncEstate landing page. Tokens and the few styles Tailwind utilities
+   can't express. Everything is scoped to .landing so the app (light only)
+   is untouched. Spec: docs/landing/MASTER_SPEC.md §2–§3. */
+
+@layer components {
+.landing {
+  --l-bg: #070b0d;
+  --l-bg-raised: #0d1417;
+  --l-surface: #111a1e;
+  --l-line: rgba(255, 255, 255, 0.08);
+  --l-line-strong: rgba(255, 255, 255, 0.14);
+  --l-ink: #eef2f3;
+  --l-ink-2: rgba(238, 242, 243, 0.64);
+  --l-ink-3: rgba(238, 242, 243, 0.42);
+  --l-accent: #9bd83d;
+  --l-accent-ink: #b5e46a;
+  --l-on-accent: #0f1419;
+  --l-glow: rgba(155, 216, 61, 0.32);
+  --l-haze: #0f2a28;
+  --l-stage: #070b0d;
+  --l-nav: rgba(13, 20, 23, 0.62);
+  --l-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Stages always read as dark, whatever the page theme. */
+  --l-stage-ink: #eef2f3;
+  --l-stage-ink-2: rgba(238, 242, 243, 0.66);
+  --l-stage-ink-3: rgba(238, 242, 243, 0.42);
+  --l-stage-line: rgba(255, 255, 255, 0.09);
+  --l-stage-accent-ink: #b5e46a;
+  --l-stage-surface: #111a1e;
+  --l-stage-raised: #0d1417;
+  /* Text over photos (Who it's for cards) and floating captions. */
+  --l-scrim: #070b0d;
+  --l-scrim-ink: #ffffff;
+  --l-scrim-ink-2: rgba(255, 255, 255, 0.75);
+  --l-scrim-chip: rgba(255, 255, 255, 0.1);
+  --l-photo-tint: 0.25;
+  --l-caption-bg: rgba(0, 0, 0, 0.5);
+  --l-caption-ink: rgba(255, 255, 255, 0.75);
+
+  color-scheme: dark;
+  background: var(--l-bg);
+  color: var(--l-ink);
+  font-family: var(--font-geist), system-ui, sans-serif;
+  min-height: 100svh;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+
+.landing[data-theme="light"] {
+  --l-bg: #f2f4f3;
+  --l-bg-raised: #ffffff;
+  --l-surface: #ffffff;
+  --l-line: rgba(15, 20, 25, 0.09);
+  --l-line-strong: rgba(15, 20, 25, 0.16);
+  --l-ink: #0f1419;
+  --l-ink-2: #58626a;
+  --l-ink-3: #6b757e;
+  --l-accent-ink: #3b6812;
+  --l-glow: rgba(155, 216, 61, 0.24);
+  --l-haze: #e1ecdc;
+  --l-nav: rgba(255, 255, 255, 0.72);
+  /* Stages are the light page colour with dark ink: a true inverse of the
+     dark theme, not dark panels on a light page. */
+  --l-stage: #f2f4f3;
+  --l-stage-ink: #0f1419;
+  --l-stage-ink-2: #58626a;
+  --l-stage-ink-3: #6b757e;
+  --l-stage-line: rgba(15, 20, 25, 0.09);
+  --l-stage-accent-ink: #3b6812;
+  --l-stage-surface: #ffffff;
+  --l-stage-raised: #ffffff;
+  --l-scrim: #f2f4f3;
+  --l-scrim-ink: #0f1419;
+  --l-scrim-ink-2: #3d464d;
+  --l-scrim-chip: rgba(255, 255, 255, 0.75);
+  --l-photo-tint: 0;
+  --l-caption-bg: rgba(255, 255, 255, 0.82);
+  --l-caption-ink: #3d464d;
+  color-scheme: light;
+}
+
+/* Keep the overscroll area the page colour. */
+html:has(.landing[data-theme="dark"]) body,
+html:has(.landing:not([data-theme])) body {
+  background: #070b0d;
+}
+
+/* ---------- Type ---------------------------------------------------- */
+
+.l-mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+.l-eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--l-ink-3);
+}
+
+.l-h1 {
+  font-size: clamp(42px, 6.6vw, 96px);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.l-h2 {
+  font-size: clamp(32px, 4.2vw, 60px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.l-h3 {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.l-body-lg {
+  font-size: clamp(17px, 1.4vw, 19px);
+  line-height: 1.55;
+  color: var(--l-ink-2);
+  text-wrap: pretty;
+}
+
+.l-body {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--l-ink-2);
+  text-wrap: pretty;
+}
+
+/* The green mono accent phrase. */
+.l-accent {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-weight: 600;
+  font-size: 0.9em;
+  letter-spacing: -0.06em;
+  background: linear-gradient(90deg, #9bd83d, #d4f59a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.landing[data-theme="light"] .l-accent {
+  background: none;
+  color: var(--l-accent-ink);
+}
+
+/* ---------- Surfaces ------------------------------------------------ */
+
+.l-stage {
+  background: var(--l-stage);
+  color: var(--l-stage-ink);
+  --l-ink: var(--l-stage-ink);
+  --l-ink-2: var(--l-stage-ink-2);
+  --l-ink-3: var(--l-stage-ink-3);
+  --l-line: var(--l-stage-line);
+  --l-accent-ink: var(--l-stage-accent-ink);
+  --l-surface: var(--l-stage-surface);
+  --l-bg-raised: var(--l-stage-raised);
+  color-scheme: dark;
+}
+.landing[data-theme="light"] .l-stage {
+  color-scheme: light;
+}
+
+.l-card {
+  background: var(--l-surface);
+  border: 1px solid var(--l-line);
+  border-radius: 24px;
+}
+
+.l-grid-lines {
+  background-image: linear-gradient(to right, var(--l-line) 1px, transparent 1px);
+  background-size: calc(100% / 12) 100%;
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 40%, #000 30%, transparent 75%);
+}
+
+/* ---------- Buttons -------------------------------------------------
+   Single-plane glass. Each button is one flat pill; its depth comes only
+   from how light sits on it, never from a fake extrusion:
+     - a 1px rim of light that hugs the exact outline (::before, a masked
+       gradient border): bright along the top, fading down the sides;
+     - curvature shading inside the same shape: a soft specular glow near the
+       top (it follows the pointer on hover) and a gentle darkening toward
+       the bottom edge;
+     - translucency: the glass blurs and tints what is behind it;
+     - one soft contact shadow, so it rests on the page.
+   Press compresses the pill in place; ButtonFX (button-fx.tsx) adds a
+   ripple from the press point and moves the highlight with the pointer.
+
+   Materials:
+     .l-btn-primary  lime glass (both themes)
+     .l-btn-ghost    smoked glass on dark, frosted white glass on light
+     .l-orb          round icon buttons in the ghost material
+     .l-orb-solid    round button in the inverse material (the menu button)
+   ------------------------------------------------------------------- */
+
+.l-btn,
+.l-orb {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 999px;
+  transition: transform 0.4s var(--l-ease), box-shadow 0.4s var(--l-ease), filter 0.4s var(--l-ease),
+    --mx 0.5s var(--l-ease), --my 0.5s var(--l-ease);
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+.l-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 22px;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.l-btn > *,
+.l-orb > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Rim light: a 1px gradient border on the exact outline. */
+.l-btn::before,
+.l-orb::before,
+.l-tab-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+/* Liquid ripple from the press point (position set by ButtonFX). */
+.l-btn::after,
+.l-orb::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: var(--rx, 50%);
+  top: var(--ry, 50%);
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ripple, rgba(255, 255, 255, 0.5)) 0%, transparent 70%);
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+.l-btn.is-rippling::after,
+.l-orb.is-rippling::after {
+  animation: l-ripple 0.8s var(--l-ease);
+}
+
+.l-btn:active,
+.l-orb:active {
+  transform: scale(0.97);
+  transition-duration: 0.12s;
+}
+
+/* Lime glass. */
+.l-btn-primary,
+.l-tab-glass {
+  --rim: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.35) 38%, rgba(255, 255, 255, 0.12) 70%, rgba(255, 255, 255, 0.4) 100%);
+  --ripple: rgba(255, 255, 255, 0.7);
+  color: var(--l-on-accent);
+  background:
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 52%),
+    linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.32) 50%, transparent 60%) 160% 0 / 250% 100% no-repeat,
+    linear-gradient(180deg, rgba(186, 234, 108, 0.94) 0%, rgba(155, 216, 61, 0.94) 55%, rgba(132, 196, 44, 0.96) 100%);
+  box-shadow:
+    inset 0 -12px 18px -12px rgba(38, 78, 0, 0.45),
+    inset 0 0 0 1px rgba(78, 128, 18, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.22),
+    0 10px 28px -10px rgba(155, 216, 61, 0.55);
+  animation: l-sheen 7s ease-in-out infinite;
+}
+.l-btn-primary:hover {
+  filter: brightness(1.04) saturate(1.06);
+  box-shadow:
+    inset 0 -12px 18px -12px rgba(38, 78, 0, 0.4),
+    inset 0 0 0 1px rgba(78, 128, 18, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.22),
+    0 14px 38px -10px rgba(155, 216, 61, 0.75);
+}
+.l-btn-primary:active {
+  box-shadow:
+    inset 0 -8px 14px -8px rgba(38, 78, 0, 0.55),
+    inset 0 0 0 1px rgba(78, 128, 18, 0.22),
+    0 1px 1px rgba(0, 0, 0, 0.22),
+    0 6px 18px -8px rgba(155, 216, 61, 0.5);
+}
+
+/* Smoked glass (dark theme). */
+.l-btn-ghost,
+.l-orb {
+  --rim: linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0.05) 70%, rgba(255, 255, 255, 0.16) 100%);
+  --ripple: rgba(155, 216, 61, 0.45);
+  color: var(--l-ink);
+  background:
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%) 160% 0 / 250% 100% no-repeat,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%),
+    rgba(18, 25, 28, 0.55);
+  box-shadow:
+    inset 0 -12px 18px -12px rgba(0, 0, 0, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 10px 28px -14px rgba(0, 0, 0, 0.7);
+}
+.l-btn-ghost {
+  animation: l-sheen 7s ease-in-out 1.2s infinite;
+}
+.l-btn-ghost:hover,
+.l-orb:hover {
+  filter: brightness(1.12);
+}
+
+/* Frosted white glass (light theme). */
+.landing[data-theme="light"] .l-btn-ghost,
+.landing[data-theme="light"] .l-orb {
+  --rim: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.6) 40%, rgba(15, 20, 25, 0.03) 75%, rgba(15, 20, 25, 0.06) 100%);
+  background:
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.85) 50%, transparent 60%) 160% 0 / 250% 100% no-repeat,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(241, 245, 243, 0.62) 100%);
+  box-shadow:
+    inset 0 -12px 18px -12px rgba(15, 20, 25, 0.07),
+    0 0 0 1px rgba(15, 20, 25, 0.05),
+    0 1px 2px rgba(15, 20, 25, 0.07),
+    0 10px 26px -14px rgba(15, 20, 25, 0.22);
+}
+.landing[data-theme="light"] .l-btn-ghost:hover,
+.landing[data-theme="light"] .l-orb:hover {
+  filter: brightness(1.02);
+}
+
+/* Inverse material: white glass disc on dark, ink glass disc on light. */
+.l-orb-solid {
+  --rim: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 45%, rgba(15, 20, 25, 0.08) 100%);
+  --ripple: rgba(155, 216, 61, 0.5);
+  color: #0f1419;
+  background:
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(228, 234, 231, 0.94) 100%);
+  box-shadow:
+    inset 0 -12px 18px -12px rgba(15, 20, 25, 0.22),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 10px 26px -12px rgba(0, 0, 0, 0.6);
+}
+.landing[data-theme="light"] .l-orb-solid {
+  --rim: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0.14) 100%);
+  color: #ffffff;
+  background:
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(40, 49, 54, 0.95) 0%, rgba(13, 18, 21, 0.97) 100%);
+  box-shadow:
+    inset 0 -12px 18px -12px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(15, 20, 25, 0.3),
+    0 10px 26px -12px rgba(15, 20, 25, 0.45);
+}
+
+/* An orb that is "on" (the open FAQ item) takes the lime glass. */
+.l-orb[data-on],
+.landing[data-theme="light"] .l-orb[data-on] {
+  --rim: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.3) 45%, rgba(255, 255, 255, 0.35) 100%);
+  color: var(--l-on-accent);
+  background:
+    radial-gradient(120% 140% at var(--mx) var(--my), rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(186, 234, 108, 0.95) 0%, rgba(132, 196, 44, 0.96) 100%);
+  box-shadow:
+    inset 0 -10px 14px -10px rgba(38, 78, 0, 0.45),
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 8px 20px -8px rgba(155, 216, 61, 0.55);
+}
+
+/* The module tab marker (module-showcase.tsx): one lime glass pill that
+   slides to the active tab, under the labels, in the primary button's
+   material. The mobile chip bar places it by measuring the chip; the
+   desktop rail steps it by --i rows. */
+.l-tab-glass {
+  position: absolute;
+  left: 0;
+  top: 0;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 999px;
+  pointer-events: none;
+}
+.l-chipbar .l-tab-glass {
+  opacity: 0;
+}
+.l-chipbar[data-ready] .l-tab-glass {
+  opacity: 1;
+  transition: transform 0.55s var(--l-ease), width 0.55s var(--l-ease), height 0.55s var(--l-ease),
+    opacity 0.3s linear;
+}
+/* The dark copy of the labels inside the marker, moved opposite to it. */
+.l-tab-ink {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  width: max-content;
+  white-space: nowrap;
+  color: var(--l-on-accent);
+}
+.l-chipbar[data-ready] .l-tab-ink {
+  transition: transform 0.55s var(--l-ease);
+}
+.l-rail .l-tab-glass {
+  transform: translateY(calc(var(--i, 0) * 56px));
+  transition: transform 0.55s var(--l-ease);
+}
+.l-rail .l-tab-ink {
+  transform: translateY(calc(var(--i, 0) * -56px));
+  transition: transform 0.55s var(--l-ease);
+}
+
+.l-btn-sm {
+  height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+.l-btn-lg {
+  height: 58px;
+  padding: 0 30px;
+  font-size: 17px;
+}
+
+@keyframes l-sheen {
+  0%, 74% { background-position: 0 0, 160% 0, 0 0, 0 0; }
+  100% { background-position: 0 0, -60% 0, 0 0, 0 0; }
+}
+@keyframes l-ripple {
+  0% { transform: scale(0); opacity: 0.9; }
+  100% { transform: scale(28); opacity: 0; }
+}
+
+/* Rolling text: two stacked copies; hover rolls the second into view. */
+.l-roll {
+  display: inline-grid;
+  overflow: hidden;
+  height: 1.25em;
+  line-height: 1.25em;
+}
+.l-roll > span {
+  grid-area: 1 / 1;
+  transition: transform 0.45s var(--l-ease);
+}
+.l-roll > span + span {
+  transform: translateY(100%);
+}
+:is(a, button):hover > .l-roll > span:first-child,
+:is(a, button):hover .l-roll > span:first-child {
+  transform: translateY(-100%);
+}
+:is(a, button):hover > .l-roll > span + span,
+:is(a, button):hover .l-roll > span + span {
+  transform: translateY(0);
+}
+
+/* ---------- Focus, grain, misc ------------------------------------- */
+
+.landing :focus-visible {
+  outline: 2px solid var(--l-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.l-grain {
+  pointer-events: none;
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: l-grain 0.8s steps(4) infinite;
+}
+.landing[data-theme="light"] .l-grain {
+  display: none;
+}
+@keyframes l-grain {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); }
+  75% { transform: translate(-1%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+
+.l-skip {
+  position: absolute;
+  left: 16px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--l-accent);
+  color: var(--l-on-accent);
+  font-weight: 500;
+}
+.l-skip:focus {
+  top: 16px;
+}
+
+/* Hide scrollbars on horizontal chip rails. */
+.l-no-scrollbar {
+  scrollbar-width: none;
+}
+.l-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .l-grain {
+    animation: none;
+  }
+  .l-btn,
+  .l-orb {
+    animation: none;
+    transition: box-shadow 0.2s linear, filter 0.2s linear;
+  }
+  .l-btn:active,
+  .l-orb:active {
+    transform: none;
+  }
+  .l-btn.is-rippling::after,
+  .l-orb.is-rippling::after {
+    animation: none;
+  }
+  .l-tab-glass,
+  .l-tab-ink,
+  .l-chipbar[data-ready] .l-tab-glass,
+  .l-chipbar[data-ready] .l-tab-ink,
+  .l-rail .l-tab-glass,
+  .l-rail .l-tab-ink {
+    animation: none;
+    transition: none;
+  }
+  .l-roll > span {
+    transition: none;
+  }
+}
+
+/* ---------- Phone stage (phone/phone-stage.tsx) --------------------- */
+
+.l-phone-stage {
+  position: relative;
+  aspect-ratio: var(--ar);
+  overflow: hidden;
+  width: 100%;
+}
+@media (max-width: 767px) {
+  .l-phone-stage[data-mcrop] {
+    --ar: var(--m-ar);
+    --cw: var(--m-cw);
+    --ch: var(--m-ch);
+    --cx0: var(--m-cx0);
+    --cy0: var(--m-cy0);
+  }
+}
+.l-phone-stage-inner {
+  position: absolute;
+  width: calc(100% / var(--cw));
+  height: calc(100% / var(--ch));
+  left: calc(var(--cx0) / var(--cw) * -100%);
+  top: calc(var(--cy0) / var(--ch) * -100%);
+}
+.l-phone-screen-mask {
+  position: absolute;
+  inset: 0;
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  transition: opacity 0.4s var(--l-ease);
+}
+.l-phone-screen {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  background: #f2f4f3;
+}
+.l-phone-screen-page {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(6%);
+  transition: opacity 0.6s var(--l-ease), transform 0.6s var(--l-ease);
+}
+.l-phone-screen-page[data-active] {
+  opacity: 1;
+  transform: none;
+}
+.l-phone-scroll {
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.l-phone-scroll::-webkit-scrollbar {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .l-phone-scroll {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+/* A soft sheen and a touch of shade so the screen sits in the photo. */
+.l-phone-glass {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0) 32%),
+    linear-gradient(0deg, rgba(7, 11, 13, 0.1), rgba(7, 11, 13, 0.02));
+}
+.l-phone-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(7, 11, 13, 0.55);
+  backdrop-filter: blur(8px);
+}
+.l-phone-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  transition: width 0.3s var(--l-ease), background-color 0.3s var(--l-ease);
+}
+.l-phone-dots button[data-active] {
+  width: 22px;
+  background: #9bd83d;
+}
+.l-sign-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: l-sign 2.4s var(--l-ease) 0.6s forwards;
+}
+@keyframes l-sign {
+  to { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l-phone-screen-page {
+    transition: opacity 0.2s linear;
+    transform: none;
+  }
+  .l-sign-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Theme-specific assets (logos). */
+.landing[data-theme="light"] .l-only-dark,
+.landing:not([data-theme="light"]) .l-only-light {
+  display: none;
+}
+}
+
+@layer components {
+  .l-sync-copy {
+    animation: l-fade-up 0.7s var(--l-ease) both;
+  }
+  @keyframes l-fade-up {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+@layer components {
+  /* Photo stages melt into the page in both themes: each theme has its own
+     photos shot on that theme's background. */
+  .l-fade-edges {
+    mask-image: radial-gradient(ellipse 72% 78% at 50% 46%, #000 58%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 72% 78% at 50% 46%, #000 58%, transparent 100%);
+  }
+  .l-fade-bottom {
+    mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+  }
+}
+
+/* Unlayered on purpose: globals.css has an unlayered `a { color: inherit }`,
+   which beats every layered rule, Tailwind's text utilities and the button
+   materials included. revert-layer hands link colour back to the layers. */
+.landing a {
+  color: revert-layer;
+}
+
+/* Unlayered on purpose: these must beat globals.css's mobile rules.
+   overflow-x: hidden on html/body makes body a scroll container, which
+   breaks position: sticky; clip prevents sideways scroll without that. */
+@media (max-width: 767px) {
+  html:has(#landing-root),
+  html:has(#landing-root) body {
+    overflow-x: clip;
+  }
+  .l-phone-dots button {
+    min-height: 0;
+    min-width: 0;
+  }
+}
+.l-phone-dots button {
+  position: relative;
+}
+.l-phone-dots button::after {
+  content: "";
+  position: absolute;
+  inset: -12px -6px;
+}
+
+/* Unlayered on purpose: beats the chip's text utility. Until the glass
+   marker is placed (first paint, or no JavaScript), the active chip fills
+   itself with lime. */
+.l-chipbar:not([data-ready]) [aria-current] {
+  background: var(--l-accent);
+  color: var(--l-on-accent);
+}
+
+/* The specular highlight's position, animatable (ButtonFX sets it on hover). */
+@property --mx {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+@property --my {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: -20%;
+}
+
+/* ---------- "Get in touch" dialog (enquiry-dialog.tsx) ---------------
+   A native <dialog>: showModal() gives the focus trap, Escape and the top
+   layer. It sits inside .landing, so the page tokens still apply. */
+.l-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100svh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--l-ink);
+  overflow: visible;
+}
+.l-dialog::backdrop {
+  background: rgba(3, 6, 8, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.l-dialog[open] {
+  animation: l-dialog-in 0.45s var(--l-ease);
+}
+.l-dialog-panel {
+  position: relative;
+  max-height: calc(100svh - 32px);
+  overflow-y: auto;
+  padding: 28px;
+  border: 1px solid var(--l-line-strong);
+  border-radius: 28px;
+  background: var(--l-bg-raised);
+  box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(155, 216, 61, 0.06);
+}
+.l-dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+.l-input {
+  display: block;
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--l-line-strong);
+  border-radius: 14px;
+  background: var(--l-surface);
+  color: var(--l-ink);
+  font-size: 16px; /* 16px stops iOS zooming into the field */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.l-input::placeholder {
+  color: var(--l-ink-3);
+}
+.l-input:focus {
+  outline: none;
+  border-color: var(--l-accent);
+  box-shadow: 0 0 0 3px var(--l-glow);
+}
+.l-input[aria-invalid="true"] {
+  border-color: #f97066;
+}
+.l-field-error {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #f97066;
+}
+.landing[data-theme="light"] .l-field-error {
+  color: #b42318;
+}
+@keyframes l-dialog-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l-dialog[open] {
+    animation: none;
+  }
+}

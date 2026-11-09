@@ -3,7 +3,15 @@ import { v } from "convex/values";
 import { getCurrentUserWithOrg } from "./helpers";
 import { checkRateLimit } from "./rateLimit";
 import { canonicalizeAreas } from "./lib/locations";
+<<<<<<< HEAD
 import { LEAD_SOURCE_VALUES, LEGACY_PORTAL_SOURCE } from "./lib/leadSources";
+=======
+import {
+  leadSourceValidator,
+  LEGACY_PORTAL_SOURCE,
+  resolveImportSource,
+} from "./lib/leadSources";
+>>>>>>> upstream/main
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -15,8 +23,11 @@ function normalizePhone(phone: string): string {
   return hasPlus ? "+" + digits : digits;
 }
 
+<<<<<<< HEAD
 const sourceValues = LEAD_SOURCE_VALUES;
 
+=======
+>>>>>>> upstream/main
 const interestValues = ["rent", "buy"] as const;
 
 export const checkDuplicates = query({
@@ -164,12 +175,17 @@ export const bulkImport = mutation({
       v.literal("upsert"),
       v.literal("skip_duplicates")
     ),
+    // The source chosen for this upload. Every row is tagged with it unless
+    // sourceMode is "column" and the row carries a recognisable source of its
+    // own — so an imported list is never defaulted to "other" any more.
+    batchSource: leadSourceValidator,
+    sourceMode: v.optional(v.union(v.literal("batch"), v.literal("column"))),
     rows: v.array(
       v.object({
         fullName: v.string(),
         phone: v.string(),
         email: v.optional(v.string()),
-        source: v.string(),
+        source: v.optional(v.string()),
         interestType: v.string(),
         budgetCurrency: v.optional(v.string()),
         budgetMin: v.optional(v.number()),
@@ -224,9 +240,17 @@ export const bulkImport = mutation({
         }
 
         const normalizedPhoneVal = normalizePhone(row.phone);
+<<<<<<< HEAD
         const source = sourceValues.includes(row.source as any)
           ? (row.source as (typeof sourceValues)[number])
           : "other";
+=======
+        const source = resolveImportSource(
+          row.source,
+          args.batchSource,
+          args.sourceMode ?? "batch"
+        );
+>>>>>>> upstream/main
         // A CSV can still carry the retired generic portal bucket. Accept it
         // rather than losing the row, but flag it for reassignment to the real
         // platform — same treatment the migration gives historical leads.

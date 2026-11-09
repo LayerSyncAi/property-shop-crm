@@ -16,19 +16,29 @@ import {
   Download,
   CornerDownLeft,
   SlidersHorizontal,
+<<<<<<< HEAD
+=======
+  Megaphone,
+>>>>>>> upstream/main
   AlertTriangle,
   KeyRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useQuery } from "convex/react";
+import { LayoutGrid } from "lucide-react";
+import { api } from "../../../convex/_generated/api";
+import { MODULES } from "@/config/modules";
 import { cn } from "@/lib/utils";
 
 interface Command {
   id: string;
   label: string;
-  group: "Go to" | "Create" | "Tools";
+  group: "Records" | "Go to" | "Create" | "Tools";
   icon: LucideIcon;
   href: string;
   keywords?: string;
+  /** Secondary line for a record (phone, email, location). */
+  detail?: string;
 }
 
 const baseCommands: Command[] = [
@@ -37,10 +47,12 @@ const baseCommands: Command[] = [
   { id: "nav-contacts", label: "Contacts", group: "Go to", icon: Users, href: "/app/contacts", keywords: "people" },
   { id: "nav-owners", label: "Owners", group: "Go to", icon: KeyRound, href: "/app/owners", keywords: "sellers landlords vendors property owners" },
   { id: "nav-properties", label: "Properties", group: "Go to", icon: Building2, href: "/app/properties", keywords: "listings inventory" },
+  { id: "nav-syncmedia", label: "SyncMedia", group: "Go to", icon: Megaphone, href: "/app/syncmedia", keywords: "brochure flyer marketing social poster" },
   { id: "nav-tasks", label: "Tasks", group: "Go to", icon: ClipboardList, href: "/app/tasks", keywords: "activities todo" },
   { id: "nav-reports", label: "Reports", group: "Go to", icon: BarChart3, href: "/app/reports", keywords: "analytics revenue leaderboard" },
   { id: "act-new-lead", label: "New lead", group: "Create", icon: Plus, href: "/app/leads/new", keywords: "add create opportunity" },
   { id: "act-new-property", label: "New property", group: "Create", icon: Plus, href: "/app/properties/new", keywords: "add create listing" },
+  { id: "act-new-brochure", label: "New brochure", group: "Create", icon: Plus, href: "/app/syncmedia/new", keywords: "add create flyer poster syncmedia marketing" },
   { id: "act-matching", label: "Property matching", group: "Tools", icon: Search, href: "/app/contacts/matching", keywords: "match suggest" },
   { id: "act-segments", label: "Contact segmentation", group: "Tools", icon: SlidersHorizontal, href: "/app/contacts/segments", keywords: "segment filter" },
   { id: "act-import", label: "Import leads", group: "Tools", icon: Upload, href: "/app/leads/import", keywords: "csv upload" },
@@ -48,13 +60,18 @@ const baseCommands: Command[] = [
   { id: "act-source-review", label: "Lead source review", group: "Tools", icon: AlertTriangle, href: "/app/leads/source-review", keywords: "property portal propertybook reassign source" },
 ];
 
-const groupOrder: Command["group"][] = ["Go to", "Create", "Tools"];
+const groupOrder: Command["group"][] = ["Records", "Go to", "Create", "Tools"];
+
+// Wait for a pause in typing before searching records on the server.
+const SEARCH_DEBOUNCE_MS = 200;
 
 export function CommandPalette() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [activeIndex, setActiveIndex] = React.useState(0);
+  const hub = useQuery(api.hub.getContext);
+  const [searchTerm, setSearchTerm] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
 
@@ -85,13 +102,68 @@ export function CommandPalette() {
     }
   }, [open]);
 
+  React.useEffect(() => {
+    const id = setTimeout(() => setSearchTerm(query.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [query]);
+
+  // HB-21: contacts and properties across the agency.
+  const found = useQuery(
+    api.search.global,
+    open && searchTerm.length >= 2 ? { q: searchTerm } : "skip"
+  );
+  const records = React.useMemo<Command[]>(() => {
+    if (!found || query.trim().length < 2) return [];
+    return [
+      ...found.contacts.map((c) => ({
+        id: `contact-${c._id}`,
+        label: c.name,
+        group: "Records" as const,
+        icon: Users,
+        href: c.href,
+        detail: c.detail,
+      })),
+      ...found.properties.map((p) => ({
+        id: `property-${p._id}`,
+        label: p.title,
+        group: "Records" as const,
+        icon: Building2,
+        href: p.href,
+        detail: p.detail,
+      })),
+    ];
+  }, [found, query]);
+  const searchingRecords = query.trim().length >= 2 && (searchTerm !== query.trim() || found === undefined);
+
+  // Hub and module home pages sit alongside the CRM shortcuts.
+  const commands = React.useMemo<Command[]>(() => {
+    const moduleCommands: Command[] = (hub?.myModules ?? [])
+      .filter((k) => k !== "crm" && k !== "media")
+      .map((k) => ({
+        id: `nav-module-${k}`,
+        label: MODULES[k].name,
+        group: "Go to" as const,
+        icon: MODULES[k].icon,
+        href: MODULES[k].homeHref,
+        keywords: MODULES[k].tagline,
+      }));
+    return [
+      { id: "nav-hub", label: "Hub", group: "Go to", icon: LayoutGrid, href: "/app/hub", keywords: "sync estate modules home" },
+      ...moduleCommands,
+      ...baseCommands,
+    ];
+  }, [hub]);
+
   const results = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return baseCommands;
-    return baseCommands.filter(
-      (c) => c.label.toLowerCase().includes(q) || c.keywords?.toLowerCase().includes(q)
-    );
-  }, [query]);
+    if (!q) return commands;
+    return [
+      ...records,
+      ...commands.filter(
+        (c) => c.label.toLowerCase().includes(q) || c.keywords?.toLowerCase().includes(q)
+      ),
+    ];
+  }, [query, commands, records]);
 
   // Keep the active index in range as results change.
   React.useEffect(() => {
@@ -159,7 +231,7 @@ export function CommandPalette() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="Search or jump to…"
+                placeholder="Search contacts, properties or jump to…"
                 className="h-12 w-full bg-transparent text-sm text-text outline-none placeholder:text-text-muted"
                 aria-label="Search commands"
                 role="combobox"
@@ -174,7 +246,9 @@ export function CommandPalette() {
 
             <div ref={listRef} id="command-list" role="listbox" className="max-h-[320px] overflow-y-auto p-2">
               {results.length === 0 ? (
-                <p className="px-3 py-6 text-center text-sm text-text-muted">No matches for “{query}”.</p>
+                <p className="px-3 py-6 text-center text-sm text-text-muted">
+                  {searchingRecords ? "Searching…" : <>No matches for “{query}”.</>}
+                </p>
               ) : (
                 groupOrder.map((group) => {
                   const items = results.filter((c) => c.group === group);
@@ -201,7 +275,10 @@ export function CommandPalette() {
                             )}
                           >
                             <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                            <span className="flex-1 text-text">{cmd.label}</span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-text">{cmd.label}</span>
+                              {cmd.detail && <span className="block truncate text-xs text-text-muted">{cmd.detail}</span>}
+                            </span>
                             {active && <CornerDownLeft className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />}
                           </button>
                         );

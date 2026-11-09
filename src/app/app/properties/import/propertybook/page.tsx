@@ -606,7 +606,11 @@ export default function PropertyBookImportPage() {
                       onClick={() => setFetchSize(size)}
                       className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                         fetchSize === size
+<<<<<<< HEAD
                           ? "border-primary-600 bg-primary-600 text-white"
+=======
+                          ? "border-primary-600 bg-primary-600 text-primary-foreground"
+>>>>>>> upstream/main
                           : "border-border-strong bg-white text-text-muted hover:border-primary-600/60"
                       }`}
                     >
@@ -656,7 +660,7 @@ export default function PropertyBookImportPage() {
                       <button
                         key={agency.slug}
                         onClick={() => pickAgency(agency)}
-                        className="flex items-center gap-3 rounded-[12px] border border-border-strong bg-card-bg p-3 text-left transition hover:border-primary-600/60 hover:shadow-md"
+                        className="flex items-center gap-3 rounded-[20px] border border-border bg-card-bg shadow-[var(--shadow-card)] p-3 text-left transition hover:border-primary-600/60 hover:shadow-md"
                       >
                         {agency.logoUrl ? (
                           <Image
@@ -819,7 +823,7 @@ export default function PropertyBookImportPage() {
                       onClick={() => setBatchSize(size)}
                       className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                         batchSize === size
-                          ? "border-primary-600 bg-primary-600 text-white"
+                          ? "border-primary-600 bg-primary-600 text-primary-foreground"
                           : "border-border-strong bg-white text-text-muted hover:border-primary-600/60"
                       }`}
                     >
@@ -916,7 +920,11 @@ export default function PropertyBookImportPage() {
                                 onClick={(e) => openOwnerPicker(e, l.pbRefCode)}
                                 className={`inline-flex max-w-[170px] items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
                                   l.pbRefCode in ownershipByRef
+<<<<<<< HEAD
                                     ? "border-primary-600/60 bg-primary-600/10 text-primary-600"
+=======
+                                    ? "border-primary-600/60 bg-primary-600/10 text-primary-ink"
+>>>>>>> upstream/main
                                     : "border-border-strong bg-white text-text-muted hover:border-primary-600/60"
                                 }`}
                                 title="Set ownership for this listing"
@@ -945,7 +953,11 @@ export default function PropertyBookImportPage() {
                       onClick={() => setOwnershipMode("company")}
                       className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                         ownershipMode === "company"
+<<<<<<< HEAD
                           ? "border-primary-600 bg-primary-600 text-white"
+=======
+                          ? "border-primary-600 bg-primary-600 text-primary-foreground"
+>>>>>>> upstream/main
                           : "border-border-strong bg-white text-text-muted hover:border-primary-600/60"
                       }`}
                     >
@@ -956,7 +968,11 @@ export default function PropertyBookImportPage() {
                       onClick={() => setOwnershipMode("agents")}
                       className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                         ownershipMode === "agents"
+<<<<<<< HEAD
                           ? "border-primary-600 bg-primary-600 text-white"
+=======
+                          ? "border-primary-600 bg-primary-600 text-primary-foreground"
+>>>>>>> upstream/main
                           : "border-border-strong bg-white text-text-muted hover:border-primary-600/60"
                       }`}
                     >
@@ -997,7 +1013,11 @@ export default function PropertyBookImportPage() {
                               }
                               className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                                 checked
+<<<<<<< HEAD
                                   ? "border-primary-600 bg-primary-600 text-white"
+=======
+                                  ? "border-primary-600 bg-primary-600 text-primary-foreground"
+>>>>>>> upstream/main
                                   : "border-border-strong bg-white text-text-muted hover:border-primary-600/60"
                               }`}
                             >
@@ -1064,7 +1084,11 @@ export default function PropertyBookImportPage() {
                 onClick={() => setRowOwners(openOwner.ref, [])}
                 className={`mb-1 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-medium transition ${
                   effectiveOwners(openOwner.ref).length === 0
+<<<<<<< HEAD
                     ? "bg-primary-600/10 text-primary-600"
+=======
+                    ? "bg-primary-600/10 text-primary-ink"
+>>>>>>> upstream/main
                     : "text-text-muted hover:bg-gray-100"
                 }`}
               >
@@ -1093,7 +1117,11 @@ export default function PropertyBookImportPage() {
                         }
                         className={`flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-medium transition ${
                           checked
+<<<<<<< HEAD
                             ? "bg-primary-600/10 text-primary-600"
+=======
+                            ? "bg-primary-600/10 text-primary-ink"
+>>>>>>> upstream/main
                             : "text-text-muted hover:bg-gray-100"
                         }`}
                       >
@@ -1108,7 +1136,11 @@ export default function PropertyBookImportPage() {
                 <button
                   type="button"
                   onClick={() => setOpenOwner(null)}
+<<<<<<< HEAD
                   className="rounded-md px-2 py-1 text-xs font-medium text-primary-600 hover:bg-primary-600/10"
+=======
+                  className="rounded-md px-2 py-1 text-xs font-medium text-primary-ink hover:bg-primary-600/10"
+>>>>>>> upstream/main
                 >
                   Done
                 </button>

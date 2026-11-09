@@ -7,6 +7,11 @@ import { motion } from "framer-motion";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { canonicalizeArea } from "../../../../convex/lib/locations";
+<<<<<<< HEAD
+=======
+import { contactTags, isBuyerTenantContact } from "../../../../convex/lib/contactRoles";
+import { ContactDuplicateWarning } from "@/components/contacts/contact-duplicate-warning";
+>>>>>>> upstream/main
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,6 +65,11 @@ type ContactWithOwners = {
   preferredPropertyTypes?: PropertyType[];
   minBedrooms?: number;
   minBathrooms?: number;
+  ownerType?: "seller" | "landlord" | "both";
+  isBuyerTenant?: boolean;
+  isLeaseTenant?: boolean;
+  isValuationClient?: boolean;
+  isSupplier?: boolean;
   ownerUserIds: Id<"users">[];
   ownerNames: string[];
   createdByUserId: Id<"users">;
@@ -104,6 +114,7 @@ const ContactTableRow = React.memo(function ContactTableRow({
     >
       <TableCell>
         <p className="font-medium">{contact.name}</p>
+        <ContactTagBadges contact={contact} />
       </TableCell>
       <TableCell>{contact.phone || "-"}</TableCell>
       <TableCell>{contact.email || "-"}</TableCell>
@@ -166,6 +177,19 @@ const ContactTableRow = React.memo(function ContactTableRow({
   );
 });
 
+/** Seller, landlord, tenant, valuation client and supplier tags (HB-30). */
+function ContactTagBadges({ contact }: { contact: ContactWithOwners }) {
+  const tags = contactTags(contact);
+  if (tags.length === 0) return null;
+  return (
+    <div className="mt-1 flex flex-wrap gap-1">
+      {tags.map((t) => (
+        <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>
+      ))}
+    </div>
+  );
+}
+
 // Mobile equivalent of ContactTableRow: data tables stack as cards below md.
 const ContactCard = React.memo(function ContactCard({
   contact,
@@ -187,14 +211,19 @@ const ContactCard = React.memo(function ContactCard({
       variants={rowVariants}
       initial="hidden"
       animate="show"
-      className="rounded-[12px] border border-border-strong bg-card-bg p-4 space-y-3"
+      className="rounded-[20px] border border-border bg-card-bg shadow-[var(--shadow-card)] p-4 space-y-3"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
+<<<<<<< HEAD
           <button onClick={() => onView(contact)} className="block truncate text-left font-medium hover:text-primary">
+=======
+          <button onClick={() => onView(contact)} className="block truncate text-left font-medium hover:text-primary-ink">
+>>>>>>> upstream/main
             {contact.name}
           </button>
           {contact.company && <p className="truncate text-xs text-text-muted">{contact.company}</p>}
+          <ContactTagBadges contact={contact} />
         </div>
         <div className="flex flex-wrap justify-end gap-1">
           {contact.ownerNames.slice(0, 2).map((ownerName: string, i: number) => (
@@ -250,10 +279,19 @@ export default function ContactsPage() {
   // curated areas (covers orgs seeded from the older, smaller dataset).
   React.useEffect(() => {
     if (currentUser && locations !== undefined) {
+<<<<<<< HEAD
       if (locations.length === 0) {
         seedLocations();
       } else {
         syncLocations();
+=======
+      // Best-effort housekeeping; refused (harmlessly) in the read-only
+      // platform view, so never let the rejection surface.
+      if (locations.length === 0) {
+        seedLocations().catch(() => {});
+      } else {
+        syncLocations().catch(() => {});
+>>>>>>> upstream/main
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -264,10 +302,19 @@ export default function ContactsPage() {
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [ownerFilter, setOwnerFilter] = React.useState<Id<"users"> | "">("");
   // Sellers and landlords live in the same table under an owner role. Contacts
+<<<<<<< HEAD
   // shows buyers/tenants by default; this switches to owners or both.
   const [roleFilter, setRoleFilter] = React.useState<
     "buyer_tenant" | "owner" | "all"
   >("buyer_tenant");
+=======
+  // shows buyers/tenants by default; this switches to owners or both. An
+  // ?edit= deep link may target an owner- or supplier-only contact, so it
+  // starts on everyone.
+  const [roleFilter, setRoleFilter] = React.useState<
+    "buyer_tenant" | "owner" | "supplier" | "all"
+  >(() => (searchParams.get("edit") ? "all" : "buyer_tenant"));
+>>>>>>> upstream/main
 
   // Debounce search
   React.useEffect(() => {
@@ -320,6 +367,9 @@ export default function ContactsPage() {
   const [newLocation, setNewLocation] = React.useState("");
   const [isAddingLocation, setIsAddingLocation] = React.useState(false);
   const [ownerUserIds, setOwnerUserIds] = React.useState<Id<"users">[]>([]);
+  // Which lists the contact appears in: buyers/tenants and/or suppliers.
+  const [isBuyerTenant, setIsBuyerTenant] = React.useState(true);
+  const [isSupplier, setIsSupplier] = React.useState(false);
 
   // Preference fields
   const [interestType, setInterestType] = React.useState<InterestType | "">("");
@@ -412,6 +462,8 @@ export default function ContactsPage() {
       setNotes(selectedContact.notes || "");
       setPreferredAreas(selectedContact.preferredAreas || []);
       setOwnerUserIds(selectedContact.ownerUserIds);
+      setIsBuyerTenant(isBuyerTenantContact(selectedContact));
+      setIsSupplier(!!selectedContact.isSupplier);
       setInterestType(selectedContact.interestType || "");
       setBudgetCurrency(selectedContact.budgetCurrency || "USD");
       setBudgetMin(selectedContact.budgetMin ? String(selectedContact.budgetMin) : "");
@@ -433,6 +485,8 @@ export default function ContactsPage() {
     setPreferredAreas([]);
     setNewLocation("");
     setOwnerUserIds([]);
+    setIsBuyerTenant(true);
+    setIsSupplier(false);
     setInterestType("");
     setBudgetCurrency("USD");
     setBudgetMin("");
@@ -491,6 +545,8 @@ export default function ContactsPage() {
           notes: notes.trim() || undefined,
           preferredAreas: preferredAreas.length > 0 ? preferredAreas : undefined,
           ownerUserIds: ownerUserIds.length > 0 ? ownerUserIds : undefined,
+          isBuyerTenant,
+          isSupplier,
           ...prefFields,
         } as any);
       } else if (selectedContact) {
@@ -503,6 +559,8 @@ export default function ContactsPage() {
           notes: notes.trim() || undefined,
           preferredAreas: preferredAreas.length > 0 ? preferredAreas : undefined,
           ownerUserIds: ownerUserIds.length > 0 ? ownerUserIds : undefined,
+          isBuyerTenant,
+          isSupplier,
           ...prefFields,
         } as any);
       }
@@ -619,7 +677,11 @@ export default function ContactsPage() {
         </Button>
       </div>
 
+<<<<<<< HEAD
       <div className="rounded-[12px] border border-border-strong bg-card-bg p-4">
+=======
+      <div className="rounded-[20px] border border-border bg-card-bg shadow-[var(--shadow-card)] p-4">
+>>>>>>> upstream/main
         <div className="grid gap-3 md:grid-cols-4">
           <div className="space-y-2">
             <Label>Search</Label>
@@ -634,12 +696,20 @@ export default function ContactsPage() {
             <StaggeredDropDown
               value={roleFilter}
               onChange={(val) => {
+<<<<<<< HEAD
                 setRoleFilter(val as "buyer_tenant" | "owner" | "all");
+=======
+                setRoleFilter(val as "buyer_tenant" | "owner" | "supplier" | "all");
+>>>>>>> upstream/main
                 pagination.resetPage();
               }}
               options={[
                 { value: "buyer_tenant", label: "Buyers & tenants" },
                 { value: "owner", label: "Owners" },
+<<<<<<< HEAD
+=======
+                { value: "supplier", label: "Suppliers" },
+>>>>>>> upstream/main
                 { value: "all", label: "Everyone" },
               ]}
             />
@@ -689,7 +759,7 @@ export default function ContactsPage() {
           <tbody>
             <TableRow>
               <TableCell colSpan={6} className="text-center text-text-muted">
-                {debouncedSearch || ownerFilter
+                {debouncedSearch || ownerFilter || roleFilter !== "buyer_tenant"
                   ? "No contacts match your filters"
                   : "No contacts yet. Create one to get started."}
               </TableCell>
@@ -783,7 +853,7 @@ export default function ContactsPage() {
                 onClick={() => setModalTab(tab)}
                 className={`px-4 py-2 text-sm font-medium capitalize transition-colors ${
                   modalTab === tab
-                    ? "border-b-2 border-primary text-primary"
+                    ? "border-b-2 border-primary text-primary-ink"
                     : "text-text-muted hover:text-text"
                 }`}
               >
@@ -855,6 +925,40 @@ export default function ContactsPage() {
                 </div>
               </div>
 
+              <ContactDuplicateWarning
+                phone={phone.value}
+                email={email.value}
+                excludeId={selectedContact?._id}
+              />
+
+              {/* Lists this contact appears in */}
+              <div className="space-y-2">
+                <Label>Contact type</Label>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={isBuyerTenant}
+                      onChange={(e) => setIsBuyerTenant(e.target.checked)}
+                      className="h-4 w-4 rounded border-border"
+                    />
+                    Buyer or tenant
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={isSupplier}
+                      onChange={(e) => setIsSupplier(e.target.checked)}
+                      className="h-4 w-4 rounded border-border"
+                    />
+                    Supplier or contractor
+                  </label>
+                </div>
+                <p className="text-xs text-text-muted">
+                  Sellers, landlords, tenants and valuation clients are tagged by Owners, SyncStay and SyncWorth.
+                </p>
+              </div>
+
               {/* Notes */}
               <div className="space-y-2">
                 <Label>Notes</Label>
@@ -881,7 +985,7 @@ export default function ContactsPage() {
                             onClick={() => toggleOwner(user._id)}
                             className={`rounded-full px-3 py-1 text-sm transition-colors ${
                               isSelected
-                                ? "bg-primary text-white"
+                                ? "bg-primary text-primary-foreground"
                                 : "bg-surface-2 text-text-muted hover:bg-border"
                             }`}
                           >
@@ -1005,7 +1109,7 @@ export default function ContactsPage() {
                         }
                         className={`rounded-full px-3 py-1 text-sm transition-colors ${
                           selected
-                            ? "bg-primary text-white"
+                            ? "bg-primary text-primary-foreground"
                             : "bg-surface-2 text-text-muted hover:bg-border"
                         }`}
                       >
@@ -1062,7 +1166,7 @@ export default function ContactsPage() {
                     {preferredAreas.map((area) => (
                       <span
                         key={area}
-                        className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary"
+                        className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary-ink"
                       >
                         {area}
                         <button

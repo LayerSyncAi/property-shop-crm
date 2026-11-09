@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
+<<<<<<< HEAD
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { propertyShop } from "@/config/marketing-brand";
 import { ArrowUpRight, Building2, Home, Store } from "lucide-react";
+=======
+import { motion } from "framer-motion";
+import { brand } from "@/config/brand";
+import { MODULES, MODULE_ORDER } from "@/config/modules";
+>>>>>>> upstream/main
 
 /* ── Required field label helper ── */
 
@@ -17,6 +23,7 @@ export function RequiredLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+<<<<<<< HEAD
 /* ── Listings-by-type semicircle gauge (SVG) ──
  *  Coordinates are pre-computed for a top half-circle (cx 90, cy 82, r 70),
  *  split into three arc segments so it renders deterministically. */
@@ -205,14 +212,22 @@ function DashboardMockup() {
   );
 }
 
+=======
+>>>>>>> upstream/main
 /* ── Supplemental panel (right side) ── */
 
+/**
+ * Charcoal panel with the mark, the tagline and the products one sign-in
+ * opens. Hidden on phones, where the form is a single column.
+ */
 function SupplementalContent() {
   return (
-    <div className="relative h-full overflow-hidden rounded-3xl">
-      {/* Base gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1f2a44] via-[#263554] to-[#1a2236]" />
+    <div className="relative h-full overflow-hidden rounded-[28px] bg-sidebar-bg text-sidebar-fg">
+      {/* A soft green glow behind the mark, as on the logo sheet */}
+      <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-primary/15 blur-[70px]" />
+      <div className="absolute -bottom-20 -right-16 h-64 w-64 rounded-full bg-primary/10 blur-[60px]" />
 
+<<<<<<< HEAD
       {/* Golden glow orbs */}
       <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full bg-primary/20 blur-[60px]" />
       <div className="absolute bottom-1/4 -left-8 w-56 h-56 rounded-full bg-primary/15 blur-[50px]" />
@@ -259,11 +274,16 @@ function SupplementalContent() {
           />
         </motion.div>
 
+=======
+      <div className="relative z-10 flex h-full flex-col justify-between gap-8 p-8 lg:p-10">
+>>>>>>> upstream/main
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.7 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="space-y-5"
         >
+<<<<<<< HEAD
           <h2 className="text-2xl font-bold leading-tight text-white lg:text-3xl">
             Effortlessly manage your
             <br />
@@ -277,10 +297,40 @@ function SupplementalContent() {
 
         {/* Layered dashboard mockup — narrower than the form side */}
         <DashboardMockup />
-      </div>
+=======
+          {/* eslint-disable-next-line @next/next/no-img-element -- SVG mark, swappable per client */}
+          <img src={brand.logos.mark} alt="" className="h-16 w-auto" />
+          <h2 className="text-[28px] font-light leading-tight tracking-[-0.03em] text-white lg:text-[34px]">{brand.tagline}</h2>
+          <p className="max-w-sm text-sm leading-relaxed text-white/60">
+            Leads, lettings, valuations, developments and the money behind them, on one login. A landlord or tenant you add
+            once is the same person everywhere.
+          </p>
+        </motion.div>
 
-      {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 h-24 bg-gradient-to-b from-transparent to-[#1a2236]" />
+        <motion.ul
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          className="space-y-1"
+        >
+          {MODULE_ORDER.map((key) => {
+            const m = MODULES[key];
+            const Icon = m.icon;
+            return (
+              <li key={key} className="flex items-center gap-3 rounded-[14px] px-2 py-2">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] bg-white/[0.06] text-primary ring-1 ring-inset ring-white/10">
+                  <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium text-white">{m.name}</span>
+                  <span className="block truncate text-xs text-white/50">{m.tagline}</span>
+                </span>
+              </li>
+            );
+          })}
+        </motion.ul>
+>>>>>>> upstream/main
+      </div>
     </div>
   );
 }
@@ -289,9 +339,10 @@ function SupplementalContent() {
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <main className="grid h-screen grid-cols-1 md:grid-cols-[1fr_340px] lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_500px] bg-content-bg">
+    <main className="grid h-screen grid-cols-1 md:grid-cols-[1fr_360px] lg:grid-cols-[1fr_440px] xl:grid-cols-[1fr_520px] bg-content-bg">
       {/* Left — scrollable form side */}
       <div className="relative bg-content-bg overflow-y-auto flex flex-col">
+<<<<<<< HEAD
         <Link
           href="/"
           className="sticky top-0 z-20 flex items-center px-8 pt-8 pb-2 bg-content-bg md:px-14 lg:px-20"
@@ -305,8 +356,13 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
             priority
             className="h-14 w-auto object-contain"
           />
+=======
+        <Link href="/" className="sticky top-0 z-20 bg-content-bg px-6 pt-6 pb-2 sm:px-8 sm:pt-8 md:px-14 lg:px-20" aria-label={`${brand.name} home`}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- SVG logo, swappable per client */}
+          <img src={brand.logos.lockup} alt={brand.name} className="h-8 w-auto" />
+>>>>>>> upstream/main
         </Link>
-        <div className="flex flex-1 items-center justify-center px-8 pb-10 md:px-14 lg:px-20">
+        <div className="flex flex-1 items-center justify-center px-6 pb-10 sm:px-8 md:px-14 lg:px-20">
           <div className="w-full max-w-lg">
             {children}
           </div>

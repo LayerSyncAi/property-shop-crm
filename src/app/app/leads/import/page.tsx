@@ -22,6 +22,11 @@ import { generateCSV, downloadBlob } from "@/lib/csv";
 import { Upload, AlertTriangle, CheckCircle, XCircle, FileDown } from "lucide-react";
 import { importToasts } from "@/lib/toast";
 import type { CsvWorkerResult } from "@/workers/csv-parse.worker";
+import { LEAD_SOURCE_OPTIONS, leadSourceLabel, type LeadSource } from "@/lib/lead-sources";
+import {
+  resolveImportSource,
+  type ImportSourceMode,
+} from "../../../../../convex/lib/leadSources";
 
 const resultCardVariants = {
   hidden: {},
@@ -44,7 +49,7 @@ const LEAD_FIELDS: Array<{ key: string; label: string; required?: boolean }> = [
   { key: "fullName", label: "Full Name", required: true },
   { key: "phone", label: "Phone", required: true },
   { key: "email", label: "Email" },
-  { key: "source", label: "Source" },
+  { key: "source", label: "Source (optional — see batch source)" },
   { key: "interestType", label: "Interest Type" },
   { key: "budgetCurrency", label: "Budget Currency" },
   { key: "budgetMin", label: "Budget Min" },
@@ -63,7 +68,7 @@ interface MappedRow {
   fullName: string;
   phone: string;
   email?: string;
-  source: string;
+  source?: string;
   interestType: string;
   budgetCurrency?: string;
   budgetMin?: number;
@@ -91,6 +96,10 @@ export default function LeadImportPage() {
   const [csvRows, setCsvRows] = useState<string[][]>([]);
   const [columnMap, setColumnMap] = useState<Record<string, string>>({});
   const [importMode, setImportMode] = useState<ImportMode>("create_only");
+  // Source for this upload. Deliberately has no default: the user must say
+  // where the list came from so leads stop being filed under "Other".
+  const [batchSource, setBatchSource] = useState<LeadSource | "">("");
+  const [sourceMode, setSourceMode] = useState<ImportSourceMode>("batch");
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
   const [duplicates, setDuplicates] = useState<DuplicateInfo[]>([]);
@@ -194,18 +203,35 @@ export default function LeadImportPage() {
       );
       return;
     }
+    if (!batchSource) {
+      setError("Please choose the lead source for this batch");
+      return;
+    }
     setError("");
     setStep("preview");
   };
+
+  const hasSourceColumn = !!columnMap.source;
+  const effectiveSourceMode: ImportSourceMode =
+    hasSourceColumn && sourceMode === "column" ? "column" : "batch";
+  const resolvedSourceFor = (row: MappedRow): string =>
+    batchSource
+      ? leadSourceLabel(resolveImportSource(row.source, batchSource, effectiveSourceMode))
+      : row.source || "";
 
   const runImport = async () => {
     setStep("importing");
     setError("");
     importToasts.started(csvRows.length);
     try {
+      if (!batchSource) {
+        throw new Error("Please choose the lead source for this batch");
+      }
       const allMapped = getMappedRows(csvRows, csvHeaders, columnMap);
       const result = await bulkImport({
         mode: importMode,
+        batchSource,
+        sourceMode: effectiveSourceMode,
         rows: allMapped,
       });
       setImportResults(result);
@@ -234,6 +260,8 @@ export default function LeadImportPage() {
     setCsvHeaders([]);
     setCsvRows([]);
     setColumnMap({});
+    setBatchSource("");
+    setSourceMode("batch");
     setImportResults(null);
     setError("");
     setDuplicates([]);
@@ -303,9 +331,13 @@ export default function LeadImportPage() {
             <div className="mt-4 text-xs text-text-muted">
               <p className="font-medium">Expected columns:</p>
               <p>
-                Full Name (required), Phone (required), Email, Source, Interest
-                Type, Budget Currency, Budget Min, Budget Max, Preferred Areas,
-                Notes
+                Full Name (required), Phone (required), Email, Interest Type,
+                Budget Currency, Budget Min, Budget Max, Preferred Areas, Notes
+              </p>
+              <p className="mt-1">
+                You choose the lead source for the whole batch on the next step
+                (e.g. PropertyBook or Property.co.zw). A Source column in the
+                file is optional.
               </p>
             </div>
           </CardContent>
@@ -359,6 +391,47 @@ export default function LeadImportPage() {
               ))}
             </div>
 
+            <div className="mt-6 space-y-3 rounded-[10px] border border-border bg-surface-2 p-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="w-40 text-sm font-medium text-text">
+                  Lead source for this batch
+                  <span className="ml-1 text-red-500">*</span>
+                </label>
+                <StaggeredDropDown
+                  value={batchSource}
+                  onChange={(val) => setBatchSource(val as LeadSource | "")}
+                  className="max-w-xs"
+                  placeholder="Select source..."
+                  options={[
+                    { value: "", label: "Select source..." },
+                    ...LEAD_SOURCE_OPTIONS,
+                  ]}
+                />
+              </div>
+              <p className="text-xs text-text-muted">
+                Every lead in this upload is tagged with this source
+                {hasSourceColumn ? " unless you use the file's Source column below." : "."}
+              </p>
+              {hasSourceColumn && (
+                <label className="flex cursor-pointer items-start gap-2 text-sm text-text">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={sourceMode === "column"}
+                    onChange={(e) =>
+                      setSourceMode(e.target.checked ? "column" : "batch")
+                    }
+                  />
+                  <span>
+                    Use the mapped Source column where it names a known source
+                    (e.g. &ldquo;Property Book&rdquo;, &ldquo;Property.co.zw&rdquo;).
+                    Rows with an empty or unrecognised value fall back to the
+                    batch source.
+                  </span>
+                </label>
+              )}
+            </div>
+
             <div className="mt-6 flex items-center gap-4">
               <label className="text-sm font-medium text-text">
                 Import Mode:
@@ -406,6 +479,21 @@ export default function LeadImportPage() {
             </div>
           </CardHeader>
           <CardContent>
+            {batchSource && (
+              <p className="mb-3 text-sm text-text-muted">
+                {effectiveSourceMode === "column" ? (
+                  <>
+                    Rows without a recognised source will be tagged{" "}
+                    <span className="font-medium text-text">{leadSourceLabel(batchSource)}</span>.
+                  </>
+                ) : (
+                  <>
+                    All {csvRows.length} rows will be tagged{" "}
+                    <span className="font-medium text-text">{leadSourceLabel(batchSource)}</span>.
+                  </>
+                )}
+              </p>
+            )}
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -443,7 +531,7 @@ export default function LeadImportPage() {
                         <TableCell>{row.fullName}</TableCell>
                         <TableCell>{row.phone}</TableCell>
                         <TableCell>{row.email || ""}</TableCell>
-                        <TableCell>{row.source}</TableCell>
+                        <TableCell>{resolvedSourceFor(row)}</TableCell>
                         <TableCell>{row.interestType}</TableCell>
                         <TableCell>{row.budgetCurrency || ""}</TableCell>
                         <TableCell>{row.budgetMin ?? ""}</TableCell>
@@ -588,7 +676,7 @@ function getMappedRows(
       fullName: getVal("fullName"),
       phone: getVal("phone"),
       email: getVal("email") || undefined,
-      source: getVal("source") || "other",
+      source: getVal("source") || undefined,
       interestType: getVal("interestType") || "buy",
       budgetCurrency: getVal("budgetCurrency") || undefined,
       budgetMin: getVal("budgetMin") ? Number(getVal("budgetMin")) : undefined,

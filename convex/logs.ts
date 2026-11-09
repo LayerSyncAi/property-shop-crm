@@ -5,6 +5,7 @@ import {
   internalMutation,
   MutationCtx,
 } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { requireAdmin } from "./helpers";
 import { Doc, Id } from "./_generated/dataModel";
 
@@ -30,6 +31,10 @@ export async function recordAudit(
       | "property"
       | "email"
       | "system"
+      | "stay"
+      | "worth"
+      | "finance"
+      | "dev"
       | "other";
     description: string;
     targetType?: string;
@@ -97,6 +102,10 @@ export const recordAuditInternal = internalMutation({
       v.literal("property"),
       v.literal("email"),
       v.literal("system"),
+      v.literal("stay"),
+      v.literal("worth"),
+      v.literal("finance"),
+      v.literal("dev"),
       v.literal("other")
     ),
     description: v.string(),
@@ -121,7 +130,6 @@ export const recordAuditInternal = internalMutation({
 
 export const recordLogin = mutation({
   handler: async (ctx) => {
-    const { getAuthUserId } = await import("@convex-dev/auth/server");
     const userId = await getAuthUserId(ctx);
     if (!userId) return;
     const user = await ctx.db.get(userId);
@@ -157,6 +165,10 @@ export const adminListAuditLogs = query({
         v.literal("property"),
         v.literal("email"),
         v.literal("system"),
+        v.literal("stay"),
+        v.literal("worth"),
+        v.literal("finance"),
+        v.literal("dev"),
         v.literal("other")
       )
     ),

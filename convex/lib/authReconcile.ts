@@ -2,6 +2,24 @@ import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 
 /**
+<<<<<<< HEAD
+=======
+ * A one-off temporary password for a new or reset login. Every account gets
+ * its own, always paired with `resetPasswordOnNextLogin`, and it reaches the
+ * person by email. There is no shared default: a fixed value would ship to
+ * every browser and open every account that had not yet signed in.
+ *
+ * No 0/O or 1/l/I, so it can be read off an email and typed on a phone.
+ */
+export function randomPassword(): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  const bytes = new Uint8Array(12);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
+}
+
+/**
+>>>>>>> upstream/main
  * Single source of truth for reconciling a Convex Auth *password* account.
  *
  * `@convex-dev/auth` keeps the actual password in a separate `authAccounts`

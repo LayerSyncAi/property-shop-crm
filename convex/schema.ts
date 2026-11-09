@@ -3,6 +3,15 @@ import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
 import { leadSourceValidator } from "./lib/leadSources";
 import { activityTypeValidator } from "./lib/activityTypes";
+<<<<<<< HEAD
+=======
+import { estateRoleValidator, moduleKeyValidator, notificationModuleValidator } from "./lib/modules";
+import { stayTables } from "./schemas/stay";
+import { worthTables } from "./schemas/worth";
+import { financeTables } from "./schemas/finance";
+import { notifyTables } from "./schemas/notify";
+import { devTables } from "./schemas/dev";
+>>>>>>> upstream/main
 
 export default defineSchema({
   ...authTables,
@@ -10,6 +19,22 @@ export default defineSchema({
   organizations: defineTable({
     name: v.string(),
     slug: v.string(), // URL-friendly identifier
+    // Set when a platform admin starts a purge; the batched delete job then
+    // removes every row that belongs to the org and finally the org itself.
+    deletingAt: v.optional(v.number()),
+    // SyncEstate modules the agency pays for, switched on by LayerSync.
+    // Absent on orgs that predate the Hub, which read as CRM + SyncMedia
+    // (see convex/lib/modules.ts).
+    enabledModules: v.optional(v.array(moduleKeyValidator)),
+    // Agency settings shared by every module (receipts, reports, invoices).
+    defaultCurrency: v.optional(v.union(v.literal("USD"), v.literal("ZiG"))),
+    address: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
+    vatNumber: v.optional(v.string()),
+    // Agency branches (HB-02). `id` is stable so a rename keeps every user
+    // assigned to the branch; users.branchId points at it.
+    branches: v.optional(v.array(v.object({ id: v.string(), name: v.string() }))),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -30,14 +55,52 @@ export default defineSchema({
     resetPasswordOnNextLogin: v.optional(v.boolean()),
     passwordUpdatedAt: v.optional(v.number()),
     showOnboardingInterface: v.optional(v.boolean()),
+<<<<<<< HEAD
     // Admin/Agent view toggle: when true, an admin user is treated as a plain
     // agent for data VISIBILITY (their own leads/tasks/etc. only) and admin-only
     // UI is hidden. It never changes their real `role` or hard permission gates.
     agentMode: v.optional(v.boolean()),
+=======
+    // View-mode preference: a real admin can toggle into "Agent Mode" to see
+    // only their own work. Visibility-only — never changes role or permissions.
+    agentMode: v.optional(v.boolean()),
+    // Platform (LayerSync) staff. A platform admin has NO orgId, so they never
+    // appear in any organisation's user list. They can open any organisation
+    // in a read-only view by setting platformViewOrgId (see helpers.ts).
+    isPlatformAdmin: v.optional(v.boolean()),
+    platformViewOrgId: v.optional(v.id("organizations")),
+    // SyncEstate roles held on top of admin/agent (convex/lib/modules.ts).
+    // They decide which modules an agent can open; admins need none.
+    estateRoles: v.optional(v.array(estateRoleValidator)),
+    // The agency branch this staff member works from (organizations.branches).
+    branchId: v.optional(v.string()),
+    // Modules whose notification-centre alerts also arrive by email (HB-61).
+    // Absent means in-app only.
+    emailAlertModules: v.optional(v.array(notificationModuleValidator)),
+    // Landlord and tenant portal accounts. A portal user has NO orgId, so
+    // every staff function (getCurrentUserWithOrg) rejects them and they never
+    // appear in an organisation's user list. portalOrgId scopes the portal.
+    portalKind: v.optional(v.union(v.literal("landlord"), v.literal("tenant"))),
+    portalContactId: v.optional(v.id("contacts")),
+    portalOrgId: v.optional(v.id("organizations")),
+>>>>>>> upstream/main
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_email", ["email"])
+    .index("by_org", ["orgId"])
+    .index("by_platform_admin", ["isPlatformAdmin"])
+    .index("by_portal_org", ["portalOrgId"])
+    .index("by_portal_contact", ["portalContactId"]),
+  // Auditable record of a user accepting a versioned legal document at sign-up.
+  legalAcceptances: defineTable({
+    userId: v.id("users"),
+    documentType: v.union(v.literal("privacy"), v.literal("terms")),
+    version: v.string(),
+    acceptedAt: v.number(),
+    orgId: v.optional(v.id("organizations")),
+  })
+    .index("by_user", ["userId"])
     .index("by_org", ["orgId"]),
   // Auditable record of a user accepting a versioned legal document at sign-up.
   legalAcceptances: defineTable({
@@ -231,7 +294,13 @@ export default defineSchema({
     .index("by_filters", ["type", "listingType", "status"])
     .index("by_org", ["orgId"])
     .index("by_creator", ["createdByUserId"])
+<<<<<<< HEAD
     .index("by_pb_ref", ["orgId", "pbRefCode"]),
+=======
+    .index("by_pb_ref", ["orgId", "pbRefCode"])
+    .searchIndex("search_title", { searchField: "title", filterFields: ["orgId"] })
+    .searchIndex("search_location", { searchField: "location", filterFields: ["orgId"] }),
+>>>>>>> upstream/main
   // Explicitly authorised collaborators on a property. A row grants the agent
   // access to the property's private data (documents, mandate info) without
   // making them an owner. Granted by an owner or an admin.
@@ -457,12 +526,14 @@ export default defineSchema({
     // Polymorphic owner: exactly one of these should be set
     leadId: v.optional(v.id("leads")),
     propertyId: v.optional(v.id("properties")),
+    contactId: v.optional(v.id("contacts")),
     uploadedByUserId: v.id("users"),
     orgId: v.optional(v.id("organizations")),
     createdAt: v.number(),
   })
     .index("by_lead", ["leadId"])
     .index("by_property", ["propertyId"])
+    .index("by_contact", ["contactId"])
     .index("by_org", ["orgId"]),
   rateLimits: defineTable({
     key: v.string(), // e.g. "leadCreate:<userId>" or "importBulk:<userId>"
@@ -499,6 +570,10 @@ export default defineSchema({
       v.literal("property"),
       v.literal("email"),
       v.literal("system"),
+      v.literal("stay"),
+      v.literal("worth"),
+      v.literal("finance"),
+      v.literal("dev"),
       v.literal("other")
     ),
     // Optional polymorphic target reference, e.g. the user/lead/property acted on.
@@ -546,6 +621,9 @@ export default defineSchema({
     .index("by_status", ["status"]),
   contacts: defineTable({
     name: v.string(),
+    // SyncFinance: this landlord's default management commission %, applied
+    // to their properties; a property or lease can still differ (FN-30).
+    landlordFeePct: v.optional(v.number()),
     phone: v.optional(v.string()),
     normalizedPhone: v.optional(v.string()),
     email: v.optional(v.string()),
@@ -585,6 +663,27 @@ export default defineSchema({
       v.union(v.literal("seller"), v.literal("landlord"), v.literal("both"))
     ),
     isBuyerTenant: v.optional(v.boolean()),
+<<<<<<< HEAD
+=======
+    // Hub tags used by the other modules. `isLeaseTenant` marks a tenant on a
+    // SyncStay lease (isBuyerTenant above is a CRM rental prospect);
+    // `isValuationClient` marks a SyncWorth instructing party.
+    isLeaseTenant: v.optional(v.boolean()),
+    isValuationClient: v.optional(v.boolean()),
+    // A supplier or contractor the agency pays (HB-30).
+    isSupplier: v.optional(v.boolean()),
+    entityKind: v.optional(v.union(v.literal("individual"), v.literal("company"))),
+    idNumber: v.optional(v.string()),
+    // Payout details for landlords.
+    bankDetails: v.optional(
+      v.object({
+        bankName: v.optional(v.string()),
+        accountName: v.optional(v.string()),
+        accountNumber: v.optional(v.string()),
+        branch: v.optional(v.string()),
+      })
+    ),
+>>>>>>> upstream/main
     // Multiple owners can see this contact - agents only see contacts they own
     // (NB: "owner" here means the assigned agent, not the property owner above)
     ownerUserIds: v.array(v.id("users")),
@@ -596,7 +695,16 @@ export default defineSchema({
     .index("by_normalized_phone", ["normalizedPhone"])
     .index("by_name", ["name"])
     .index("by_org", ["orgId"])
+<<<<<<< HEAD
     .index("by_org_owner_type", ["orgId", "ownerType"]),
+=======
+    .index("by_org_owner_type", ["orgId", "ownerType"])
+    .index("by_org_lease_tenant", ["orgId", "isLeaseTenant"])
+    .index("by_org_valuation_client", ["orgId", "isValuationClient"])
+    .index("by_org_supplier", ["orgId", "isSupplier"])
+    .index("by_org_email", ["orgId", "email"])
+    .searchIndex("search_name", { searchField: "name", filterFields: ["orgId"] }),
+>>>>>>> upstream/main
   // Links a property to the client who owns it (its seller or landlord), as
   // distinct from `properties.ownerUserIds`, which is the agent who owns the
   // record. A property can have several owners (joint sellers) and an owner can
@@ -615,6 +723,7 @@ export default defineSchema({
     .index("by_property", ["propertyId"])
     .index("by_contact", ["contactId"])
     .index("by_property_contact", ["propertyId", "contactId"])
+<<<<<<< HEAD
     .index("by_org", ["orgId"]),
   // Viewing forms: a signed record proving an agent introduced a client to a
   // property during a viewing. Supports commission claims and internal audit.
@@ -659,7 +768,40 @@ export default defineSchema({
     .index("by_contact", ["contactId"])
     .index("by_lead", ["leadId"])
     .index("by_agent", ["agentUserId"])
+=======
+>>>>>>> upstream/main
     .index("by_org", ["orgId"]),
+  // Web Push (PWA) subscriptions. One row per browser/device endpoint a user
+  // has granted notification permission on. A user can have many (phone,
+  // laptop, etc.). Pruned automatically when the push service returns 404/410
+  // (subscription expired/unsubscribed).
+  pushSubscriptions: defineTable({
+    userId: v.id("users"),
+    // The unique push service endpoint URL — the natural key for a subscription.
+    endpoint: v.string(),
+    // Encryption keys from the browser's PushSubscription (base64url).
+    p256dh: v.string(),
+    auth: v.string(),
+    // Best-effort device label for the settings UI / debugging.
+    userAgent: v.optional(v.string()),
+    orgId: v.optional(v.id("organizations")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_endpoint", ["endpoint"]),
+  // Expo push tokens for the Android and iOS app, one per installed device.
+  // Kept apart from pushSubscriptions (browser Web Push), which has a different
+  // shape. No orgId: rows are reached and purged through their user.
+  expoPushTokens: defineTable({
+    userId: v.id("users"),
+    token: v.string(),
+    platform: v.union(v.literal("ios"), v.literal("android")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_token", ["token"]),
   // Marketing spend records, used by the reporting module for property ROI and
   // per-channel return-on-ad-spend. Spend can be attributed to a specific property
   // (propertyId set) or to a channel generally (propertyId unset).
@@ -678,4 +820,168 @@ export default defineSchema({
   })
     .index("by_org", ["orgId"])
     .index("by_property", ["propertyId"]),
+  viewingForms: defineTable({
+    // Links back to CRM records — all optional so a form can be raised ad-hoc
+    // and later associated, and so it can attach to several records at once.
+    propertyId: v.optional(v.id("properties")),
+    contactId: v.optional(v.id("contacts")),
+    leadId: v.optional(v.id("leads")),
+    // The property negotiator / agent who conducted the viewing.
+    agentUserId: v.id("users"),
+    // Form fields (mirroring the physical viewing form template)
+    viewingDate: v.string(), // "YYYY-MM-DD"
+    viewingTime: v.optional(v.string()), // "HH:mm"
+    propertyAddress: v.string(),
+    clientName: v.string(),
+    clientCompany: v.optional(v.string()),
+    clientIdNumber: v.optional(v.string()),
+    clientSpouseName: v.optional(v.string()),
+    clientPhone: v.optional(v.string()),
+    clientEmail: v.optional(v.string()),
+    // Signatures — stored as PNG images in file storage.
+    clientSignatureId: v.optional(v.id("_storage")),
+    negotiatorName: v.string(),
+    negotiatorSignatureId: v.optional(v.id("_storage")),
+    // Seller / caretaker who was present (optional).
+    sellerName: v.optional(v.string()),
+    sellerSignatureId: v.optional(v.id("_storage")),
+    // draft: still being completed. completed: signed and locked for audit.
+    status: v.union(v.literal("draft"), v.literal("completed")),
+    completedAt: v.optional(v.number()),
+    createdByUserId: v.id("users"),
+    orgId: v.optional(v.id("organizations")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_property", ["propertyId"])
+    .index("by_contact", ["contactId"])
+    .index("by_lead", ["leadId"])
+    .index("by_agent", ["agentUserId"])
+    .index("by_org", ["orgId"]),
+
+  // --- SyncMedia -----------------------------------------------------------
+  // The organisation's marketing brand kit: one row per org, edited by admins
+  // and read by every agent's brochures. Distinct from src/config/brand.ts,
+  // which white-labels the *app* at build time — this is per-tenant data that
+  // an admin can change without a redeploy.
+  orgBranding: defineTable({
+    orgId: v.id("organizations"),
+    // A Convex storage id or an absolute https URL, the same convention the
+    // brochure photos use, so one resolver handles both.
+    logoRef: v.optional(v.string()),
+    // Optional light-on-dark variant, used where the logo sits on the accent.
+    logoOnDarkRef: v.optional(v.string()),
+    // The admin picks an accent and a paper style; the remaining six theme
+    // tokens are derived from those two (see src/lib/syncmedia/theme.ts).
+    // Asking anyone for eight hex codes is a form nobody completes.
+    accent: v.optional(v.string()),
+    pageStyle: v.optional(
+      v.union(v.literal("light"), v.literal("cream"), v.literal("dark"))
+    ),
+    // Defaults offered to agents in the studio; each brochure still carries its
+    // own copy, so changing these never rewrites brochures already made.
+    contactPhone: v.optional(v.string()),
+    contactEmail: v.optional(v.string()),
+    website: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_org", ["orgId"]),
+
+  // Brochure drafts. Private to the agent who made them: every read scopes to
+  // (orgId, ownerUserId), so no id from the client can reach another agent's row.
+  brochures: defineTable({
+    orgId: v.id("organizations"),
+    ownerUserId: v.id("users"),
+    // Absent when the brochure is for a property that isn't on the system yet.
+    propertyId: v.optional(v.id("properties")),
+    // Plain strings rather than unions: these name entries in a frontend
+    // presentation registry that churns faster than the database, and every
+    // lookup falls back to a default, so an unknown value is ignored on read
+    // rather than being a schema migration.
+    formatKey: v.string(),
+    templateId: v.string(),
+    themeId: v.string(),
+    // Refs only — a storage id or an absolute URL, never a resolved display URL.
+    photos: v.array(v.string()),
+    eyebrow: v.string(),
+    title: v.string(),
+    location: v.string(),
+    price: v.string(),
+    priceLabel: v.string(),
+    features: v.array(v.string()),
+    reference: v.string(),
+    agentName: v.string(),
+    agentPhone: v.string(),
+    agentEmail: v.string(),
+    showLogo: v.boolean(),
+    whatsappContact: v.boolean(),
+    // Manual position tweaks on top of the template's automatic layout, one
+    // entry per adjusted block. `format` is part of the key because the same
+    // block needs different corrections on a 1080x1350 post and a 1200x630
+    // banner. Empty for any brochure nobody has hand-adjusted, which is most.
+    nudges: v.optional(
+      v.array(
+        v.object({
+          format: v.string(),
+          slot: v.string(),
+          x: v.number(),
+          y: v.number(),
+        })
+      )
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_org_owner", ["orgId", "ownerUserId"])
+    .index("by_owner_property", ["ownerUserId", "propertyId"]),
+
+  // --- SyncEstate Hub -----------------------------------------------------
+  // Notification centre. Every module posts alerts here (convex/lib/notify.ts);
+  // the topbar bell shows the unread count.
+  notifications: defineTable({
+    orgId: v.id("organizations"),
+    userId: v.id("users"),
+    module: notificationModuleValidator,
+    kind: v.string(),
+    title: v.string(),
+    body: v.optional(v.string()),
+    // In-app link to the record the alert is about.
+    href: v.optional(v.string()),
+    readAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_org", ["orgId"])
+    .index("by_user_created", ["userId", "createdAt"])
+    .index("by_user_read", ["userId", "readAt"]),
+
+  // --- Marketing ----------------------------------------------------------
+  // "Get in touch" enquiries from the SyncEstate landing page and
+  // layersyncai.com (convex/websiteEnquiries.ts). They belong to LayerSync,
+  // not to an agency, and show on the Platform page. One row per phone
+  // number: a repeat enquiry updates it and brings it back to "new".
+  websiteEnquiries: defineTable({
+    name: v.string(),
+    // International format, e.g. +263775187682.
+    phone: v.string(),
+    phoneDigits: v.string(),
+    site: v.union(v.literal("syncestate"), v.literal("layersync")),
+    // What they asked about: a module ("SyncStay") or a service.
+    interest: v.optional(v.string()),
+    page: v.optional(v.string()),
+    // Which button they pressed (the CTA's data-cta value).
+    cta: v.optional(v.string()),
+    status: v.union(v.literal("new"), v.literal("contacted"), v.literal("archived")),
+    submissions: v.number(),
+    createdAt: v.number(),
+    lastSubmittedAt: v.number(),
+  })
+    .index("by_phone", ["phoneDigits"])
+    .index("by_last_submitted", ["lastSubmittedAt"])
+    .index("by_status_last_submitted", ["status", "lastSubmittedAt"]),
+
+  ...stayTables,
+  ...worthTables,
+  ...financeTables,
+  ...notifyTables,
+  ...devTables,
 });

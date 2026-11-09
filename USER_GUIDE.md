@@ -269,9 +269,13 @@ At the top, a summary card shows:
 - Assigned owner
 - Creation date
 
+#### Editing a Lead's Details
+
+Click **Edit details** on the hero card to update anything you learn about the lead after it was created: name, phone, email, interest type (rent/buy), source, budget range and currency, and preferred areas (pick from the suggestion list or add a new location). Name, phone and email are shared with the linked contact, so saving them also updates the contact record and any other leads for that contact. A lead that has already moved past the first pipeline stage must keep at least a phone number or an email address. Every edit is recorded in the audit log and the lead score is recalculated.
+
 #### Duplicate Warning
 
-If this lead's email or phone matches another active lead, a warning banner appears with a link to view and merge the duplicates.
+If this lead's email or phone matches another active lead, a warning banner appears with a link to view and merge the duplicates. The same warning appears inside the edit dialog while you type a new phone or email.
 
 #### Tabs
 
@@ -553,13 +557,14 @@ Bulk import leads from CSV files:
 
 1. **Upload** — drag and drop or browse for a CSV file. The system parses it using a Web Worker for large files.
 2. **Map columns** — the system auto-maps CSV headers to lead fields. You can manually adjust mappings.
-3. **Choose import mode:**
+3. **Choose the lead source for this batch** (required) — e.g. PropertyBook or Property.co.zw. Every lead in the upload is tagged with it, so imported lists are no longer filed under "Other". If the file has its own Source column you can tick *Use the mapped Source column*: rows that name a known source (value or label, e.g. "Property Book") keep it, and the rest fall back to the batch source.
+4. **Choose import mode:**
    - **Create only** — fails on duplicates
    - **Upsert by email/phone** — updates existing leads that match
    - **Skip duplicates** — silently skips matching rows
-4. **Preview** — see the first 20 rows with duplicate detection flags before committing.
-5. **Run import** — a summary shows created/updated/skipped/failed counts.
-6. **Error report** — download a CSV of failed rows with error messages.
+5. **Preview** — see the first 20 rows with duplicate detection flags and the source each row will receive.
+6. **Run import** — a summary shows created/updated/skipped/failed counts.
+7. **Error report** — download a CSV of failed rows with error messages.
 
 **Duplicate detection during import:** Each row is checked against existing leads using:
 - Normalized email (trimmed, lowercased)
@@ -889,6 +894,26 @@ Archived leads no longer appear in the leads list, exports, or dashboards.
 
 ---
 
+<<<<<<< HEAD
+=======
+## 15A. Platform Administration (LayerSync Staff Only)
+
+SynCRM is multi-tenant: every organisation is an isolated data space. LayerSync support staff sometimes need to look inside an organisation — to confirm an update went through, to verify a feature is working, or to investigate something a client reports — **without** creating a user account inside the client's CRM.
+
+**Platform admins** are separate accounts that sit above all organisations:
+
+- They have no organisation of their own, so they never appear in any client's **Users** page.
+- Signing in lands them on **Platform** (`/app/platform`), which lists every organisation on the deployment with user / lead / contact / property counts and the date of the last activity.
+- **Open** puts the platform admin into that organisation in a **read-only view**: the dashboard, leads, contacts, properties, reports and admin pages all render exactly as an admin of that organisation would see them, under a yellow "Platform view" banner. Every write is refused with "Platform view is read-only", so nothing in the client's data is ever changed or attributed to a LayerSync account. The client's **Logs** page records that platform support opened the organisation, for transparency.
+- **Exit organisation** in the banner (or on the Platform page) returns to the overview.
+- **Platform admins** card: grant platform access to a colleague by email (a new account is created with the deployment's temporary password and must be changed on first sign-in), or revoke it.
+- **Delete** an organisation (trash icon, type the slug to confirm) removes the organisation and all of its data in the background — users and their logins, leads, contacts, properties, documents, activities, settings. There is no export and no undo.
+
+The first platform admin on a deployment is created from the command line; see `docs/platform-admin.md`.
+
+---
+
+>>>>>>> upstream/main
 ## 16. Tips & Best Practices
 
 ### For Agents

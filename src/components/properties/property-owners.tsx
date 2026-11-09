@@ -211,7 +211,11 @@ export function PropertyOwners({
               <div>
                 <Link
                   href={`/app/owners/${row!.contactId}`}
+<<<<<<< HEAD
                   className="font-medium hover:text-primary"
+=======
+                  className="font-medium hover:text-primary-ink"
+>>>>>>> upstream/main
                 >
                   {row!.name}
                 </Link>

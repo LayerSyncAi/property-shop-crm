@@ -85,7 +85,7 @@ export default function AdminRolesPage() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary-ink" />
       </div>
     );
   }
@@ -159,7 +159,7 @@ export default function AdminRolesPage() {
         <CardContent>
           {users === undefined ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+              <Loader2 className="h-6 w-6 animate-spin text-primary-ink" />
             </div>
           ) : users.length === 0 ? (
             <p className="text-sm text-text-muted text-center py-8">
@@ -190,7 +190,7 @@ export default function AdminRolesPage() {
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600/20 text-xs font-medium text-primary-600">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600/20 text-xs font-medium text-primary-ink">
                             {(u.fullName || u.name || u.email || "U")
                               .split(" ")
                               .map((n) => n[0])
@@ -282,12 +282,12 @@ export default function AdminRolesPage() {
               <p className="font-medium text-text mb-1">Role Permissions</p>
               <ul className="space-y-1">
                 <li>
-                  <strong>Admin:</strong> Full access to all features, can
-                  manage users and roles
+                  <strong>Admin:</strong> Every module the agency has switched
+                  on, can manage users, roles and modules
                 </li>
                 <li>
-                  <strong>Agent:</strong> Access to leads, contacts, properties,
-                  and tasks
+                  <strong>Agent:</strong> SynCRM, SyncDev and SyncMedia, plus the
+                  modules their roles open
                 </li>
               </ul>
             </div>

@@ -8,6 +8,10 @@ import {
   canManageProperty,
 } from "./helpers";
 import { recordAudit } from "./logs";
+<<<<<<< HEAD
+=======
+import { canAccessContact } from "./contacts";
+>>>>>>> upstream/main
 
 const folderValidator = v.union(
   v.literal("mandates_to_sell"),
@@ -18,7 +22,7 @@ const folderValidator = v.union(
 );
 
 /**
- * Upload a document linked to a lead or property.
+ * Upload a document linked to a lead, property or contact.
  */
 export const upload = mutation({
   args: {
@@ -29,15 +33,17 @@ export const upload = mutation({
     size: v.number(),
     leadId: v.optional(v.id("leads")),
     propertyId: v.optional(v.id("properties")),
+    contactId: v.optional(v.id("contacts")),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserWithOrg(ctx);
 
-    if (!args.leadId && !args.propertyId) {
-      throw new Error("Document must be linked to a lead or property");
+    const parents = [args.leadId, args.propertyId, args.contactId].filter(Boolean).length;
+    if (parents === 0) {
+      throw new Error("Document must be linked to a lead, property or contact");
     }
-    if (args.leadId && args.propertyId) {
-      throw new Error("Document cannot be linked to both a lead and a property");
+    if (parents > 1) {
+      throw new Error("Document can only be linked to one record");
     }
 
     // Verify the parent entity exists and belongs to the same org
@@ -53,6 +59,13 @@ export const upload = mutation({
       // Only owners, authorised collaborators and admins may attach documents
       // to a property — uploading is a privileged action, not just viewing.
       await assertCanAccessPropertyPrivate(ctx, property, user);
+<<<<<<< HEAD
+=======
+    }
+    if (args.contactId) {
+      const contact = await canAccessContact(ctx, args.contactId, user._id, user.role === "admin", user.orgId);
+      if (!contact) throw new Error("Contact not found");
+>>>>>>> upstream/main
     }
 
     return ctx.db.insert("documents", {
@@ -63,6 +76,7 @@ export const upload = mutation({
       size: args.size,
       leadId: args.leadId,
       propertyId: args.propertyId,
+      contactId: args.contactId,
       uploadedByUserId: user._id,
       orgId: user.orgId,
       createdAt: Date.now(),
@@ -139,6 +153,33 @@ export const listByProperty = query({
 });
 
 /**
+<<<<<<< HEAD
+=======
+ * List documents for a contact (HB-40). Only the contact's agents and admins
+ * see them, the same people who can open the contact.
+ */
+export const listByContact = query({
+  args: { contactId: v.id("contacts") },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserWithOrg(ctx);
+    const contact = await canAccessContact(ctx, args.contactId, user._id, user.role === "admin", user.orgId);
+    if (!contact) return [];
+
+    const docs = await ctx.db
+      .query("documents")
+      .withIndex("by_contact", (q) => q.eq("contactId", args.contactId))
+      .take(500);
+
+    return await Promise.all(
+      docs
+        .filter((d) => d.orgId === user.orgId)
+        .map(async (doc) => ({ ...doc, url: await ctx.storage.getUrl(doc.storageId) }))
+    );
+  },
+});
+
+/**
+>>>>>>> upstream/main
  * Record that an admin viewed a property's private documents via their admin
  * bypass (i.e. they are neither an owner nor a collaborator). Called from the
  * UI when the documents tab opens. No-op for owners/collaborators and for
@@ -217,6 +258,13 @@ export const remove = mutation({
         throw new Error("You are not authorised to delete this document");
       }
     }
+<<<<<<< HEAD
+=======
+    if (doc.contactId) {
+      const contact = await canAccessContact(ctx, doc.contactId, user._id, user.role === "admin", user.orgId);
+      if (!contact) throw new Error("You are not authorised to delete this document");
+    }
+>>>>>>> upstream/main
 
     // Delete the stored file
     await ctx.storage.delete(doc.storageId);
