@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "Property Shop",
   "short_name": "Property Shop",
   "description": "Property Shop CRM - manage leads, properties and your sales pipeline.",
@@ -7,6 +8,16 @@
   "orientation": "natural",
   "background_color": "#0c1e39",
   "theme_color": "#0c1e39",
+=======
+  "name": "SyncEstate",
+  "short_name": "SyncEstate",
+  "description": "Run your estate agency from your phone: leads, lettings, repairs, valuations, trust accounts and developments on one login.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "natural",
+  "background_color": "#f2f4f3",
+  "theme_color": "#0f1419",
+>>>>>>> upstream/main
   "categories": ["business", "productivity"],
   "lang": "en",
   "icons": [
@@ -72,9 +83,15 @@
   ],
   "shortcuts": [
     {
+<<<<<<< HEAD
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "View your pipeline dashboard",
+=======
+      "name": "Pipeline",
+      "short_name": "Pipeline",
+      "description": "View your sales pipeline",
+>>>>>>> upstream/main
       "url": "/app/dashboard",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },

@@ -1,0 +1,28 @@
+{
+  "_note": "The SyncEstate VSL script. One entry per spoken phrase, in order. 'name' keys the timeline (and vo_split.py --names); 'gap' is the pause after the phrase in the synthetic (no-voiceover) timeline, longer where the picture changes scene. Keep 'text' identical to the ElevenLabs prompt so a real voiceover lines up.",
+  "wordsPerSecond": 2.6,
+  "lead": 0.35,
+  "tail": 4.6,
+  "phrases": [
+    { "name": "hook", "gap": 0.8, "text": "If your agency still runs on WhatsApp, Excel and a notebook, this is for you." },
+    { "name": "pain1", "gap": 0.55, "text": "Leads get lost in chat threads." },
+    { "name": "pain2", "gap": 0.55, "text": "Rent hides in a spreadsheet called final, version seven." },
+    { "name": "pain3", "gap": 0.8, "text": "Signed mandates get buried in email, and commission gets worked out on a calculator." },
+    { "name": "agitate1", "gap": 0.8, "text": "It's not your team. It's the tools." },
+    { "name": "agitate2", "gap": 0.9, "text": "Five apps that don't talk to each other, and every gap is a deal that slips, a payment that hides, or a dispute waiting to start." },
+    { "name": "reveal", "gap": 0.8, "text": "Meet Sync Estate. One app that runs your whole agency, from the phone in your pocket." },
+    { "name": "hub", "gap": 0.8, "text": "One login. The Hub shows everything that needs you today: unworked leads, repair requests, overdue rent, and payouts waiting for approval." },
+    { "name": "crm", "gap": 0.8, "text": "Sync C R M scores every enquiry from cold to on fire, so your agents always know who to call next." },
+    { "name": "viewings", "gap": 0.8, "text": "Viewing forms are signed on the phone and locked, so nobody argues over who found the buyer." },
+    { "name": "stay", "gap": 0.8, "text": "Sync Stay digitises property management. Repairs with photos, room-by-room inspections, and rent and arrears that look after themselves." },
+    { "name": "worth", "gap": 0.8, "text": "Sync Worth gets valuations out the door on time, signed and locked." },
+    { "name": "finance", "gap": 0.8, "text": "Sync Finance keeps trust money ready for audit, with two-person payout approval. And U S dollars and Zig never mix." },
+    { "name": "dev", "gap": 0.8, "text": "With Sync Dev, you'll never double-sell a stand again." },
+    { "name": "media", "gap": 0.8, "text": "And Sync Media turns a listing into an Instagram story in a few taps." },
+    { "name": "zim", "gap": 0.8, "text": "It's built in Zimbabwe, for how Zimbabwe does property." },
+    { "name": "modules", "gap": 0.8, "text": "Switch on only the modules you need. Start with one, and add the rest when you're ready." },
+    { "name": "how", "gap": 0.9, "text": "And we don't just hand you software. LayerSync sets it up with you, brings your data across, and gets your team working in it." },
+    { "name": "payoff", "gap": 0.8, "text": "Your competitors are still in five tabs. You don't have to be." },
+    { "name": "cta", "gap": 0, "text": "Tap Get in touch, leave your name and number, and we'll pick it up with you on WhatsApp." }
+  ]
+}

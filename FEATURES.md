@@ -8,6 +8,7 @@
 | Lead Export | `/app/leads/export` | All users |
 | Merge Leads | `/app/leads/merge` | Admin only |
 | Lead Scoring | `/app/admin/lead-scoring` | Admin only |
+| Platform (organisations overview, read-only org view, org deletion) | `/app/platform` | LayerSync platform admins only — see `docs/platform-admin.md` |
 
 The sidebar has two new sections:
 - **Import / Export** – visible to all users (Lead Import, Lead Export)
@@ -21,19 +22,30 @@ The sidebar has two new sections:
 
 1. Upload a CSV file (drag-and-drop or file browser).
 2. Map CSV columns to lead fields (auto-mapping by header name).
-3. Choose an import mode:
+3. Choose the **lead source for the batch** (required, e.g. PropertyBook / Property.co.zw). Optionally use the file's own Source column, with unrecognised values falling back to the batch source.
+4. Choose an import mode:
    - **Create only** – fails on duplicates
    - **Upsert by email/phone** – updates existing leads that match
    - **Skip duplicates** – silently skips matching rows
+<<<<<<< HEAD
 4. Preview the first 20 rows with duplicate detection flags.
 5. Run the import. A summary shows created/updated/skipped/failed counts.
 6. Download an issues CSV (failed rows, unmatched agents, unreadable interest types).
+=======
+5. Preview the first 20 rows with duplicate detection flags and the resolved source.
+6. Run the import. A summary shows created/updated/skipped/failed counts.
+7. Download an issues CSV (failed rows, unmatched agents, unreadable interest types).
+>>>>>>> upstream/main
 
 **Primary Agent auto-assignment:** a mapped Primary Agent column assigns each lead to the org member whose name matches (case-insensitive, word order and extra spaces ignored, initials and partial names accepted — `convex/lib/leadImportMatching.ts`). Ambiguous or unknown names import as **Unassigned** (`leads.isUnassigned`), visible to everyone in the org until an admin assigns them or an agent takes one. The summary shows auto-assigned vs unassigned counts. No column / empty cell = previous behaviour.
 
 **Interest type:** portal wording (to let, for rent, for sale…) is parsed; empty or unrecognised values are flagged (`leads.interestNeedsReview`) instead of defaulting to Buying.
 
+<<<<<<< HEAD
 **Editing:** *Edit details* on the lead profile (`leads.updateDetails`) covers every field, including assigned agent (admin: anyone; agent: take an unassigned lead) and interest type.
+=======
+**Editing:** *Edit details* on the lead profile covers every field, including assigned agent (admin: anyone; agent: take an unassigned lead) and interest type.
+>>>>>>> upstream/main
 
 **Duplicate detection during import:** rows are checked against existing leads using normalized email (trim + lowercase) and normalized phone (strip non-digit chars, keep leading `+`).
 

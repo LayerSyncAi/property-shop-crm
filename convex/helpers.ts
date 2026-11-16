@@ -43,18 +43,71 @@ export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
 }
 
 /**
- * Get the current user with their orgId, ensuring they belong to an org.
- * Returns the user object (which includes orgId).
+ * Whether `ctx` can write. Convex builds a QueryCtx as {db, auth, storage,
+ * runQuery} and a MutationCtx adds {scheduler, runMutation}, so the presence
+ * of `scheduler` is a reliable (and type-narrowing) discriminator.
  */
-export async function getCurrentUserWithOrg(ctx: QueryCtx | MutationCtx) {
-  const user = await getCurrentUser(ctx);
-  if (!user.orgId) {
-    throw new ConvexError("User is not associated with an organization");
-  }
-  return user as typeof user & { orgId: Id<"organizations"> };
+export function isMutationCtx(ctx: QueryCtx | MutationCtx): ctx is MutationCtx {
+  return "scheduler" in ctx;
 }
 
 /**
+ * The organisation a user's requests are scoped to: their own org, or — for a
+ * platform admin, who has no org of their own — the org they have opened in
+ * the read-only platform view.
+ */
+export function getEffectiveOrgId(
+  user: Pick<Doc<"users">, "orgId" | "isPlatformAdmin" | "platformViewOrgId">
+): Id<"organizations"> | undefined {
+  return user.orgId ?? (user.isPlatformAdmin ? user.platformViewOrgId : undefined);
+}
+
+export const PLATFORM_READ_ONLY_MESSAGE = "Platform view is read-only";
+
+/**
+ * Get the current user with their orgId, ensuring they belong to an org.
+ * Returns the user object (which includes orgId).
+ *
+ * Platform admins (LayerSync staff, no orgId) viewing an organisation are
+ * returned as an admin of that organisation for QUERIES only. Any mutation
+ * reaching this helper while in platform view is rejected, which makes every
+ * org-scoped write read-only for platform staff in one place.
+ */
+export async function getCurrentUserWithOrg(ctx: QueryCtx | MutationCtx) {
+  const user = await getCurrentUser(ctx);
+  if (user.orgId) {
+    return user as typeof user & { orgId: Id<"organizations"> };
+  }
+  if (user.isPlatformAdmin && user.platformViewOrgId) {
+    if (isMutationCtx(ctx)) {
+      throw new ConvexError(PLATFORM_READ_ONLY_MESSAGE);
+    }
+    return {
+      ...user,
+      orgId: user.platformViewOrgId,
+      role: "admin" as const,
+      agentMode: false,
+    };
+  }
+  throw new ConvexError("User is not associated with an organization");
+}
+
+/**
+<<<<<<< HEAD
+=======
+ * Require a platform (LayerSync staff) admin. Platform admins are not members
+ * of any organisation; this gate is independent of the org-level `role`.
+ */
+export async function requirePlatformAdmin(ctx: QueryCtx | MutationCtx) {
+  const user = await getCurrentUser(ctx);
+  if (!user.isPlatformAdmin) {
+    throw new ConvexError("Platform access required");
+  }
+  return user;
+}
+
+/**
+>>>>>>> upstream/main
  * Effective-admin check for DATA VISIBILITY. An admin who has toggled into
  * "Agent Mode" (users.agentMode === true) is treated as a normal agent so they
  * see only their own records. This intentionally does NOT affect hard

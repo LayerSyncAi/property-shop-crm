@@ -269,9 +269,13 @@ At the top, a summary card shows:
 - Assigned owner
 - Creation date
 
+#### Editing a Lead's Details
+
+Click **Edit details** on the hero card to update anything you learn about the lead after it was created: name, phone, email, interest type (rent/buy), source, budget range and currency, and preferred areas (pick from the suggestion list or add a new location). Name, phone and email are shared with the linked contact, so saving them also updates the contact record and any other leads for that contact. A lead that has already moved past the first pipeline stage must keep at least a phone number or an email address. Every edit is recorded in the audit log and the lead score is recalculated.
+
 #### Duplicate Warning
 
-If this lead's email or phone matches another active lead, a warning banner appears with a link to view and merge the duplicates.
+If this lead's email or phone matches another active lead, a warning banner appears with a link to view and merge the duplicates. The same warning appears inside the edit dialog while you type a new phone or email.
 
 #### Tabs
 
@@ -553,6 +557,7 @@ Bulk import leads from CSV files:
 
 1. **Upload** — drag and drop or browse for a CSV file. The system parses it using a Web Worker for large files.
 2. **Map columns** — the system auto-maps CSV headers to lead fields (including **Primary Agent**, detected from headers such as "Primary Agent", "Agent" or "Assigned To"). You can manually adjust mappings. The mapping you import with is remembered in your browser and re-applied to the next file with the same columns.
+<<<<<<< HEAD
 3. **Choose import mode:**
    - **Create only** — fails on duplicates
    - **Upsert by email/phone** — updates existing leads that match
@@ -560,12 +565,25 @@ Bulk import leads from CSV files:
 4. **Preview** — see the first 20 rows with duplicate detection flags, the interest type and the agent each row will receive, plus how many rows will be auto-assigned or left unassigned.
 5. **Run import** — a summary shows created/updated/skipped/failed counts, and auto-assigned vs unassigned counts when a Primary Agent column is mapped.
 6. **Issues report** — download a CSV of failed rows, unmatched agents and unreadable interest types.
+=======
+3. **Choose the lead source for this batch** (required) — e.g. PropertyBook or Property.co.zw. Every lead in the upload is tagged with it, so imported lists are no longer filed under "Other". If the file has its own Source column you can tick *Use the mapped Source column*: rows that name a known source (value or label, e.g. "Property Book") keep it, and the rest fall back to the batch source.
+4. **Choose import mode:**
+   - **Create only** — fails on duplicates
+   - **Upsert by email/phone** — updates existing leads that match
+   - **Skip duplicates** — silently skips matching rows
+5. **Preview** — see the first 20 rows with duplicate detection flags, the source, the interest type and the agent each row will receive, plus how many rows will be auto-assigned or left unassigned.
+6. **Run import** — a summary shows created/updated/skipped/failed counts, and auto-assigned vs unassigned counts when a Primary Agent column is mapped.
+7. **Issues report** — download a CSV of failed rows, unmatched agents and unreadable interest types.
+>>>>>>> upstream/main
 
 **Primary Agent → assigned agent.** Each row's Primary Agent is matched to an active member of your organisation by name, ignoring case, punctuation, extra spaces and word order, and accepting initials or a first/last name on its own ("J. Moyo", "John M", "Moyo John" and "john.moyo@…" all find John Moyo). If the name matches more than one agent, or nobody, the system does not guess: the lead is imported **Unassigned**. Unassigned leads are visible to every user in the organisation (filter the Leads list by *Assigned agent → Unassigned*); an admin can assign them, and any agent can take one with *Edit details → Assign to me*. Rows with an empty Primary Agent, or imports without the column, behave as before (you own the leads).
 
 **Interest type.** Portal wording is understood: *rent, renting, rental, to let, for rent, lease…* → Renting; *buy, buying, purchase, for sale, sale…* → Buying. Empty or unrecognised values are never defaulted to Buying: the preview lists them so you can say what each means, and anything left as *Flag for review* is imported with an **Interest type needs review** badge until an agent confirms it from the lead's profile.
+<<<<<<< HEAD
 
 **Editing a lead.** *Edit details* on the lead profile changes name, phone, email, interest type, source, budget, preferred areas and assigned agent (admins can assign anyone; agents can take an unassigned lead). Changes show on the profile and in the Leads list immediately.
+=======
+>>>>>>> upstream/main
 
 **Duplicate detection during import:** Each row is checked against existing leads using:
 - Normalized email (trimmed, lowercased)
@@ -895,6 +913,26 @@ Archived leads no longer appear in the leads list, exports, or dashboards.
 
 ---
 
+<<<<<<< HEAD
+=======
+## 15A. Platform Administration (LayerSync Staff Only)
+
+SynCRM is multi-tenant: every organisation is an isolated data space. LayerSync support staff sometimes need to look inside an organisation — to confirm an update went through, to verify a feature is working, or to investigate something a client reports — **without** creating a user account inside the client's CRM.
+
+**Platform admins** are separate accounts that sit above all organisations:
+
+- They have no organisation of their own, so they never appear in any client's **Users** page.
+- Signing in lands them on **Platform** (`/app/platform`), which lists every organisation on the deployment with user / lead / contact / property counts and the date of the last activity.
+- **Open** puts the platform admin into that organisation in a **read-only view**: the dashboard, leads, contacts, properties, reports and admin pages all render exactly as an admin of that organisation would see them, under a yellow "Platform view" banner. Every write is refused with "Platform view is read-only", so nothing in the client's data is ever changed or attributed to a LayerSync account. The client's **Logs** page records that platform support opened the organisation, for transparency.
+- **Exit organisation** in the banner (or on the Platform page) returns to the overview.
+- **Platform admins** card: grant platform access to a colleague by email (a new account is created with the deployment's temporary password and must be changed on first sign-in), or revoke it.
+- **Delete** an organisation (trash icon, type the slug to confirm) removes the organisation and all of its data in the background — users and their logins, leads, contacts, properties, documents, activities, settings. There is no export and no undo.
+
+The first platform admin on a deployment is created from the command line; see `docs/platform-admin.md`.
+
+---
+
+>>>>>>> upstream/main
 ## 16. Tips & Best Practices
 
 ### For Agents

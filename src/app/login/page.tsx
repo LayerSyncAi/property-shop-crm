@@ -13,7 +13,13 @@ import { api } from "../../../convex/_generated/api";
 import { authToasts } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { AuthLayout, RequiredLabel } from "@/components/auth/auth-layout";
+<<<<<<< HEAD
 import { LEGAL_VERSIONS } from "@/lib/legal";
+=======
+import { brand } from "@/config/brand";
+import { LEGAL_VERSIONS } from "@/lib/legal";
+import { markActiveNow } from "@/hooks/useIdleSignOut";
+>>>>>>> upstream/main
 
 type AuthMode = "signIn" | "signUp";
 type SubmitState = "idle" | "submitting" | "success";
@@ -70,7 +76,11 @@ export default function LoginPage() {
       !didAttemptForward
     ) {
       didAttemptForward = true;
+<<<<<<< HEAD
       router.replace("/app/dashboard");
+=======
+      router.replace("/app");
+>>>>>>> upstream/main
     }
   }, [authLoading, isSessionAuthenticated, submitState, router]);
 
@@ -121,6 +131,7 @@ export default function LoginPage() {
       }
 
       await signIn("password", formData);
+      markActiveNow();
 
       if (mode === "signUp") {
         // Create the org and record acceptance of the legal documents shown at
@@ -145,11 +156,12 @@ export default function LoginPage() {
 
       if (process.env.NODE_ENV === "development") {
         console.log("[LoginPage] signIn completed successfully");
-        console.log("[LoginPage] Navigating to /app/dashboard");
+        console.log("[LoginPage] Navigating to /app");
       }
 
       setSubmitState("success");
       didAttemptForward = true;
+<<<<<<< HEAD
 
       // Show the success state briefly, then hand off to the dashboard with a
       // full-document navigation (window.location) rather than router.replace().
@@ -170,6 +182,10 @@ export default function LoginPage() {
       // deterministically: it IS the manual refresh, performed for the user.
       await new Promise((resolve) => setTimeout(resolve, 600));
       window.location.assign("/app/dashboard");
+=======
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      router.replace("/app");
+>>>>>>> upstream/main
     } catch (err) {
       console.error("[LoginPage] Auth error:", err);
 
@@ -210,7 +226,7 @@ export default function LoginPage() {
     return (
       <AuthLayout>
         <div className="flex flex-col items-center gap-4 py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary-ink" />
           <p className="text-sm text-text-muted">Loading...</p>
         </div>
       </AuthLayout>
@@ -234,14 +250,12 @@ export default function LoginPage() {
           transition={{ duration: 0.4, ease: "easeOut" }}
         >
           {/* Header */}
-          <h1 className="text-3xl font-bold text-text mb-2">
-            {mode === "signIn"
-              ? "Sign in to your account"
-              : "Create your account"}
+          <h1 className="text-display mb-3">
+            {mode === "signIn" ? `Sign in to ${brand.name}` : "Create your account"}
           </h1>
-          <p className="text-sm text-text-muted mb-8">
+          <p className="text-[15px] text-text-muted mb-8">
             {mode === "signIn"
-              ? "Welcome back! Enter your credentials to access your pipeline."
+              ? "One sign-in for every product your agency uses."
               : "Register your organization and create an admin account."}
           </p>
 
@@ -386,14 +400,22 @@ export default function LoginPage() {
                       checked={acceptedTerms}
                       onChange={(e) => setAcceptedTerms(e.target.checked)}
                       disabled={isDisabled}
+<<<<<<< HEAD
                       className="mt-0.5 h-4 w-4 shrink-0 rounded border-border-strong text-primary-600 focus:ring-primary-600"
+=======
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-border-strong text-primary-ink focus:ring-primary-600"
+>>>>>>> upstream/main
                     />
                     <span>
                       I have read and agree to the{" "}
                       <Link
                         href="/privacy"
                         target="_blank"
+<<<<<<< HEAD
                         className="font-medium text-primary-600 underline hover:text-primary"
+=======
+                        className="font-medium text-primary-ink underline hover:text-primary-ink"
+>>>>>>> upstream/main
                       >
                         Privacy Policy
                       </Link>{" "}
@@ -401,7 +423,11 @@ export default function LoginPage() {
                       <Link
                         href="/terms"
                         target="_blank"
+<<<<<<< HEAD
                         className="font-medium text-primary-600 underline hover:text-primary"
+=======
+                        className="font-medium text-primary-ink underline hover:text-primary-ink"
+>>>>>>> upstream/main
                       >
                         Terms &amp; Conditions
                       </Link>
@@ -432,10 +458,10 @@ export default function LoginPage() {
               type="submit"
               disabled={isDisabled}
               className={cn(
-                "relative inline-flex h-11 w-full items-center justify-center rounded-[10px] text-sm font-semibold text-white transition-colors duration-300 disabled:cursor-not-allowed overflow-hidden",
+                "relative inline-flex h-12 w-full items-center justify-center rounded-full text-[15px] font-semibold text-primary-foreground transition-colors duration-300 disabled:cursor-not-allowed overflow-hidden",
                 submitState === "success"
-                  ? "bg-green-500"
-                  : "bg-primary-600 hover:bg-primary shadow-[0_0_0_4px_rgba(236,164,0,0.12)] disabled:opacity-50"
+                  ? "bg-primary-600"
+                  : "bg-primary hover:bg-primary-600 shadow-[0_0_0_4px_var(--primary-glow)] disabled:opacity-50"
               )}
               whileTap={
                 submitState === "idle" ? { scale: 0.98 } : undefined
@@ -495,7 +521,7 @@ export default function LoginPage() {
                       setError(null);
                     }}
                     disabled={isDisabled}
-                    className="text-primary-600 font-medium hover:underline disabled:opacity-50"
+                    className="text-primary-ink font-medium hover:underline disabled:opacity-50"
                   >
                     Create an account
                   </button>
@@ -514,7 +540,7 @@ export default function LoginPage() {
                     setError(null);
                   }}
                   disabled={isDisabled}
-                  className="text-primary-600 font-medium hover:underline disabled:opacity-50"
+                  className="text-primary-ink font-medium hover:underline disabled:opacity-50"
                 >
                   Already have an account? Sign in
                 </button>

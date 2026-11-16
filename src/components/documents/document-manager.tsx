@@ -35,6 +35,7 @@ const FOLDER_ICONS: Record<Folder, string> = {
 interface DocumentManagerProps {
   leadId?: Id<"leads">;
   propertyId?: Id<"properties">;
+  contactId?: Id<"contacts">;
   folders: Folder[];
   disabled?: boolean;
 }
@@ -73,7 +74,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
 } as const;
 
-export function DocumentManager({ leadId, propertyId, folders, disabled = false }: DocumentManagerProps) {
+export function DocumentManager({ leadId, propertyId, contactId, folders, disabled = false }: DocumentManagerProps) {
   const [activeFolder, setActiveFolder] = React.useState<Folder>(folders[0]);
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -83,10 +84,25 @@ export function DocumentManager({ leadId, propertyId, folders, disabled = false 
   const removeDocument = useMutation(api.documents.remove);
   const logAdminAccess = useMutation(api.documents.logAdminPropertyDocumentAccess);
 
-  const documents = useQuery(
-    leadId ? api.documents.listByLead : api.documents.listByProperty,
-    leadId ? { leadId } : propertyId ? { propertyId } : "skip"
-  ) as DocumentWithUrl[] | undefined;
+  // One parent record; only its list query runs.
+  const leadDocs = useQuery(api.documents.listByLead, leadId ? { leadId } : "skip");
+  const propertyDocs = useQuery(api.documents.listByProperty, !leadId && propertyId ? { propertyId } : "skip");
+  const contactDocs = useQuery(
+    api.documents.listByContact,
+    !leadId && !propertyId && contactId ? { contactId } : "skip"
+  );
+  const documents = (leadId ? leadDocs : propertyId ? propertyDocs : contactDocs) as
+    | DocumentWithUrl[]
+    | undefined;
+
+  // Auditability: record when an admin opens a property's private documents via
+  // their admin bypass. The backend decides whether to log (no-op otherwise).
+  React.useEffect(() => {
+    if (!propertyId) return;
+    logAdminAccess({ propertyId }).catch(() => {
+      /* best-effort audit hook */
+    });
+  }, [propertyId, logAdminAccess]);
 
   // Auditability: record when an admin opens a property's private documents via
   // their admin bypass. The backend decides whether to log (no-op otherwise).
@@ -144,6 +160,7 @@ export function DocumentManager({ leadId, propertyId, folders, disabled = false 
           size: file.size,
           leadId,
           propertyId,
+          contactId,
         });
 
         documentToasts.uploaded(file.name);
@@ -187,7 +204,7 @@ export function DocumentManager({ leadId, propertyId, folders, disabled = false 
             onClick={() => setActiveFolder(folder)}
             className={`relative flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 ${
               activeFolder === folder
-                ? "bg-primary/10 text-primary border border-primary/20"
+                ? "bg-primary/10 text-primary-ink border border-primary/20"
                 : "bg-surface-2/60 text-text-muted hover:bg-surface-2 hover:text-text border border-transparent"
             }`}
           >
@@ -198,7 +215,7 @@ export function DocumentManager({ leadId, propertyId, folders, disabled = false 
             {folderCounts[folder] > 0 && (
               <span className={`ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-semibold ${
                 activeFolder === folder
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-border text-text-muted"
               }`}>
                 {folderCounts[folder]}

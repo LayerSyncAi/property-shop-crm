@@ -23,12 +23,16 @@ import {
   emailButton,
   ACCENTS,
   EMAIL_FONT,
+  detailCard,
+  escapeHtml,
 } from "./emailLayout";
 
 export interface EmailSendResult {
   success: boolean;
   messageId?: string;
   error?: string;
+  /** No email provider is configured: the message went to the console only. */
+  devLogged?: boolean;
 }
 
 export interface EmailLogContext {
@@ -45,6 +49,10 @@ export interface EmailOptions {
   subject: string;
   html: string;
   text?: string;
+  /** Where replies go, e.g. the agency's own address. */
+  replyTo?: string;
+  /** Files to attach; content is base64. */
+  attachments?: Array<{ filename: string; content: string }>;
 }
 
 const DEFAULT_FROM = "Syncrm <admin@accesshealthcare.co.zw>";
@@ -74,8 +82,9 @@ export async function sendEmail(
     console.log("To:", options.to);
     console.log("Subject:", options.subject);
     console.log("Text:", options.text || "(html only)");
+    if (options.attachments?.length) console.log("Attachments:", options.attachments.map((a) => a.filename).join(", "));
     console.log("============================================");
-    result = { success: true, messageId: `dev-${Date.now()}` };
+    result = { success: true, messageId: `dev-${Date.now()}`, devLogged: true };
     status = "dev_logged";
   } else {
     try {
@@ -87,6 +96,8 @@ export async function sendEmail(
         subject: options.subject,
         html: options.html,
         text: options.text,
+        ...(options.attachments?.length ? { attachments: options.attachments } : {}),
+        ...(options.replyTo ? { replyTo: options.replyTo } : {}),
       });
 
       if (error) {
@@ -176,5 +187,96 @@ export async function sendPasswordResetEmail(
     },
     ctx,
     { kind: "password_reset", ...(log || {}) }
+  );
+}
+
+/**
+ * Email a staff member their SyncEstate sign-in: a new invite, or a
+ * temporary password an admin issued. The password is single-use in effect,
+ * because the account is flagged to change it on first sign-in.
+ *
+ * Returns true only when the email actually went out, so the caller can fall
+ * back to showing the password to the admin once.
+ */
+export async function sendStaffSignInEmail(
+  ctx: ActionCtx,
+  args: {
+    to: string;
+    fullName: string;
+    orgName: string;
+    password: string;
+    reason: "invite" | "reset";
+  },
+  log: Omit<EmailLogContext, "kind">
+): Promise<boolean> {
+  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
+  const loginUrl = `${siteUrl}/login`;
+  const { accent, tint } = ACCENTS.blue;
+  const invite = args.reason === "invite";
+  const intro = invite
+    ? `${escapeHtml(args.orgName)} has set up a SyncEstate login for you.`
+    : `${escapeHtml(args.orgName)} has reset your SyncEstate password.`;
+  const content =
+    emailEyebrow(escapeHtml(args.orgName), accent, tint) +
+    emailHeading(`Hello ${escapeHtml(args.fullName)}`) +
+    emailText(intro) +
+    detailCard([
+      { label: "Email", value: escapeHtml(args.to) },
+      { label: "Temporary password", value: escapeHtml(args.password) },
+    ]) +
+    emailButton({ href: loginUrl, label: "Sign in", accentColor: accent }) +
+    emailText("You will be asked to choose your own password when you first sign in.");
+  const subject = invite
+    ? `Your ${args.orgName} SyncEstate login`
+    : `Your ${args.orgName} SyncEstate password was reset`;
+  const sent = await sendEmail(
+    {
+      to: args.to,
+      subject,
+      html: renderEmailShell({ accentColor: accent, preheader: subject, content }),
+      text: `${invite ? `${args.orgName} has set up a SyncEstate login for you.` : `${args.orgName} has reset your SyncEstate password.`}\n\nSign in at ${loginUrl}\nEmail: ${args.to}\nTemporary password: ${args.password}\n\nYou will be asked to choose your own password when you first sign in.`,
+    },
+    ctx,
+    { kind: invite ? "staff_invite" : "staff_password_reset", ...log }
+  );
+  return sent.success && !sent.devLogged;
+}
+
+/**
+ * HB-61: a notification-centre alert, copied by email to a user who chose
+ * this module's alerts. The button opens the record the alert is about.
+ */
+export async function sendAlertEmail(
+  args: {
+    to: string;
+    orgName: string;
+    moduleLabel: string;
+    title: string;
+    body?: string;
+    href?: string;
+  },
+  ctx: ActionCtx,
+  log: EmailLogContext
+): Promise<EmailSendResult> {
+  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
+  const url = `${siteUrl}${args.href ?? "/app/hub"}`;
+  const { accent, tint } = ACCENTS.blue;
+  const content =
+    emailEyebrow(`${escapeHtml(args.orgName)} · ${escapeHtml(args.moduleLabel)}`, accent, tint) +
+    emailHeading(escapeHtml(args.title)) +
+    (args.body ? emailText(escapeHtml(args.body)) : "") +
+    emailButton({ href: url, label: "Open", accentColor: accent }) +
+    emailText(
+      `<span style="color:#94a3b8;">You chose to receive ${escapeHtml(args.moduleLabel)} alerts by email. Change this under Email alerts in the app.</span>`
+    );
+  return sendEmail(
+    {
+      to: args.to,
+      subject: args.title,
+      html: renderEmailShell({ accentColor: accent, preheader: escapeHtml(args.body ?? args.title), content }),
+      text: `${args.title}\n\n${args.body ? `${args.body}\n\n` : ""}Open: ${url}\n\nYou chose to receive ${args.moduleLabel} alerts by email. Change this under Email alerts in the app.`,
+    },
+    ctx,
+    log
   );
 }

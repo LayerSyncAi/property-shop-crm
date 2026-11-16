@@ -1,14 +1,29 @@
 import { mutation, query, action, internalMutation, internalQuery } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { internal } from "./_generated/api";
 import { getCurrentUser, requireAdmin, getCurrentUserOptional, getCurrentUserWithOrg } from "./helpers";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Scrypt } from "lucia";
 import { recordAudit } from "./logs";
+<<<<<<< HEAD
 import { rebuildPasswordAccount } from "./lib/authReconcile";
+=======
+import { rebuildPasswordAccount, randomPassword } from "./lib/authReconcile";
+import { sendStaffSignInEmail } from "./email";
+import { ESTATE_ROLE_LABELS, estateRoleValidator } from "./lib/modules";
+import { Doc, Id } from "./_generated/dataModel";
+>>>>>>> upstream/main
 
-/** Default temporary password for admin-created users */
-const DEFAULT_TEMP_PASSWORD = "12345678";
+/**
+ * Admin-created and admin-reset logins get a fresh random temporary password,
+ * emailed to the person and forced to change on first sign-in (HB-11). The
+ * admin sees it only when the email could not be sent.
+ */
+type SignInIssued = { userId: Id<"users">; emailed: boolean; tempPassword: string | null };
+
+function branchExists(org: Doc<"organizations"> | null, branchId: string): boolean {
+  return !!org?.branches?.some((b) => b.id === branchId);
+}
 
 export const getMe = query({
   handler: async (ctx) => {
@@ -84,6 +99,8 @@ export const adminCreateUserInternal = internalMutation({
     fullName: v.string(),
     role: v.union(v.literal("admin"), v.literal("agent")),
     isActive: v.boolean(),
+    estateRoles: v.optional(v.array(estateRoleValidator)),
+    branchId: v.optional(v.string()),
     adminId: v.id("users"),
     orgId: v.id("organizations"),
     passwordHash: v.string(),
@@ -95,11 +112,24 @@ export const adminCreateUserInternal = internalMutation({
       .withIndex("by_email", (q) => q.eq("email", args.email))
       .unique();
     if (existing) {
-      if (existing.orgId && existing.orgId !== args.orgId) {
-        throw new Error("A user with this email already belongs to another organization");
+      if (existing.isPlatformAdmin) {
+        throw new ConvexError("This email belongs to a platform (LayerSync) account and cannot join an organization");
       }
-      return { userId: existing._id, alreadyExisted: true };
+      if (existing.orgId && existing.orgId !== args.orgId) {
+        throw new ConvexError("A user with this email already belongs to another organization");
+      }
+      if (existing.portalKind) {
+        throw new ConvexError("This email is already used for a landlord or tenant portal login");
+      }
+      throw new ConvexError("This email already has a login in your agency. Reset their password instead.");
     }
+
+    const org = await ctx.db.get(args.orgId);
+    if (args.branchId && !branchExists(org, args.branchId)) {
+      throw new ConvexError("That branch no longer exists");
+    }
+    // Admins open every module and need no SyncEstate roles.
+    const estateRoles = args.role === "admin" ? [] : [...new Set(args.estateRoles ?? [])];
 
     const timestamp = Date.now();
     const userId = await ctx.db.insert("users", {
@@ -109,6 +139,8 @@ export const adminCreateUserInternal = internalMutation({
       role: args.role,
       isActive: args.isActive,
       orgId: args.orgId,
+      estateRoles: estateRoles.length > 0 ? estateRoles : undefined,
+      branchId: args.branchId || undefined,
       resetPasswordOnNextLogin: true,
       showOnboardingInterface: true,
       createdAt: timestamp,
@@ -130,52 +162,97 @@ export const adminCreateUserInternal = internalMutation({
     );
 
     const admin = await ctx.db.get(args.adminId);
+    const branchName = org?.branches?.find((b) => b.id === args.branchId)?.name;
+    const roleNote = estateRoles.length > 0 ? `; roles: ${estateRoles.map((r) => ESTATE_ROLE_LABELS[r]).join(", ")}` : "";
+    const branchNote = branchName ? `; branch: ${branchName}` : "";
     await recordAudit(ctx, {
       actorUserId: args.adminId,
       actorLabel: admin?.fullName || admin?.name || admin?.email,
       action: "user.create",
       category: "user",
-      description: `Created ${args.role} account for ${args.fullName} (${args.email})`,
+      description: `Invited ${args.fullName} (${args.email}) as ${args.role}${roleNote}${branchNote}`,
       targetType: "user",
       targetId: userId,
       targetLabel: args.email,
-      metadata: { role: args.role, isActive: args.isActive },
+      metadata: { role: args.role, isActive: args.isActive, estateRoles, branchId: args.branchId },
       orgId: args.orgId,
     });
 
-    return { userId, alreadyExisted: false };
+    return { userId, orgName: org?.name ?? "Your agency" };
   },
 });
 
-// Action: Admin creates a user with a hashed temp password
+// Action: Admin invites a staff member (HB-11). Creates the login with a
+// one-off random password and emails it to them.
 export const adminCreateUser = action({
   args: {
     email: v.string(),
     fullName: v.string(),
     role: v.union(v.literal("admin"), v.literal("agent")),
     isActive: v.boolean(),
+    estateRoles: v.optional(v.array(estateRoleValidator)),
+    branchId: v.optional(v.string()),
   },
-  handler: async (ctx, args): Promise<string> => {
+  handler: async (ctx, args): Promise<SignInIssued> => {
     // Verify caller is admin
     const adminId = await getAuthUserId(ctx);
     if (!adminId) throw new Error("Unauthorized");
     const admin = await ctx.runQuery(internal.users.getAdminForAction, { userId: adminId });
     if (!admin) throw new Error("Admin access required");
 
-    // Hash the default temp password using Scrypt (same as @convex-dev/auth Password provider)
-    const passwordHash = await new Scrypt().hash(DEFAULT_TEMP_PASSWORD);
+    // Hash with Scrypt (same as the @convex-dev/auth Password provider)
+    const tempPassword = randomPassword();
+    const passwordHash = await new Scrypt().hash(tempPassword);
+    const email = args.email.trim().toLowerCase();
+    const fullName = args.fullName.trim();
 
     const result = await ctx.runMutation(internal.users.adminCreateUserInternal, {
-      email: args.email.trim().toLowerCase(),
-      fullName: args.fullName.trim(),
+      email,
+      fullName,
       role: args.role,
       isActive: args.isActive,
+      estateRoles: args.estateRoles,
+      branchId: args.branchId,
       adminId: admin._id,
       orgId: admin.orgId,
       passwordHash,
     });
 
-    return result.userId;
+    const emailed = await sendStaffSignInEmail(
+      ctx,
+      { to: email, fullName, orgName: result.orgName, password: tempPassword, reason: "invite" },
+      { triggeredByUserId: admin._id, relatedType: "user", relatedId: result.userId, orgId: admin.orgId }
+    );
+    return { userId: result.userId, emailed, tempPassword: emailed ? null : tempPassword };
+  },
+});
+
+/** Assign a staff member to one of the agency's branches, or clear it. */
+export const adminSetUserBranch = mutation({
+  args: { userId: v.id("users"), branchId: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const admin = await requireAdmin(ctx);
+    const target = await ctx.db.get(args.userId);
+    if (!target || target.orgId !== admin.orgId) throw new ConvexError("User not found");
+    const org = await ctx.db.get(admin.orgId);
+    if (args.branchId && !branchExists(org, args.branchId)) {
+      throw new ConvexError("That branch no longer exists");
+    }
+    const nameOf = (id?: string) => org?.branches?.find((b) => b.id === id)?.name ?? "none";
+    const before = target.branchId;
+    await ctx.db.patch(target._id, { branchId: args.branchId || undefined, updatedAt: Date.now() });
+    await recordAudit(ctx, {
+      actorUserId: admin._id,
+      actorLabel: admin.fullName || admin.name || admin.email,
+      action: "user.branch_change",
+      category: "user",
+      description: `Changed branch for ${target.email || "user"}: ${nameOf(before)} → ${nameOf(args.branchId)}`,
+      targetType: "user",
+      targetId: target._id,
+      targetLabel: target.email,
+      metadata: { from: before, to: args.branchId },
+      orgId: admin.orgId,
+    });
   },
 });
 
@@ -312,7 +389,8 @@ export const updateMyTimezone = mutation({
     timezone: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUserWithOrg(ctx);
+    // Own-row preference: no org needed (platform admins have none).
+    const user = await getCurrentUser(ctx);
     // Validate timezone string using Intl
     try {
       Intl.DateTimeFormat(undefined, { timeZone: args.timezone });
@@ -334,7 +412,12 @@ export const updateMyTimezone = mutation({
 export const setMyViewMode = mutation({
   args: { agentMode: v.boolean() },
   handler: async (ctx, args) => {
+<<<<<<< HEAD
     const user = await getCurrentUserWithOrg(ctx);
+=======
+    // Own-row preference: no org needed (platform admins have none).
+    const user = await getCurrentUser(ctx);
+>>>>>>> upstream/main
     await ctx.db.patch(user._id, {
       agentMode: args.agentMode,
       updatedAt: Date.now(),
@@ -470,24 +553,29 @@ export const adminResetUserPasswordInternal = internalMutation({
       orgId: args.orgId,
     });
 
-    return { success: true };
+    const org = await ctx.db.get(args.orgId);
+    return {
+      email: targetUser.email,
+      fullName: targetUser.fullName || targetUser.name || targetUser.email,
+      orgName: org?.name ?? "Your agency",
+    };
   },
 });
 
-// Action: Admin resets a user's password to the default temp password
+// Action: Admin issues a user a fresh temporary password and emails it
 export const adminResetUserPassword = action({
   args: {
     targetUserId: v.id("users"),
   },
-  handler: async (ctx, args): Promise<{ success: boolean }> => {
+  handler: async (ctx, args): Promise<SignInIssued> => {
     // Verify caller is admin
     const adminId = await getAuthUserId(ctx);
     if (!adminId) throw new Error("Unauthorized");
     const admin = await ctx.runQuery(internal.users.getAdminForAction, { userId: adminId });
     if (!admin) throw new Error("Admin access required");
 
-    // Hash the default temp password using Scrypt
-    const passwordHash = await new Scrypt().hash(DEFAULT_TEMP_PASSWORD);
+    const tempPassword = randomPassword();
+    const passwordHash = await new Scrypt().hash(tempPassword);
 
     const result = await ctx.runMutation(internal.users.adminResetUserPasswordInternal, {
       adminId: admin._id,
@@ -496,7 +584,12 @@ export const adminResetUserPassword = action({
       passwordHash,
     });
 
-    return result;
+    const emailed = await sendStaffSignInEmail(
+      ctx,
+      { to: result.email, fullName: result.fullName, orgName: result.orgName, password: tempPassword, reason: "reset" },
+      { triggeredByUserId: admin._id, relatedType: "user", relatedId: args.targetUserId, orgId: admin.orgId }
+    );
+    return { userId: args.targetUserId, emailed, tempPassword: emailed ? null : tempPassword };
   },
 });
 

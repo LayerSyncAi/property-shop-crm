@@ -1,10 +1,22 @@
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
+<<<<<<< HEAD
+=======
+import { internal } from "./_generated/api";
+>>>>>>> upstream/main
 import type { Id } from "./_generated/dataModel";
 import { getCurrentUserWithOrg } from "./helpers";
 import { checkRateLimit } from "./rateLimit";
 import { canonicalizeAreas } from "./lib/locations";
+<<<<<<< HEAD
 import { LEAD_SOURCE_VALUES, LEGACY_PORTAL_SOURCE } from "./lib/leadSources";
+=======
+import {
+  leadSourceValidator,
+  LEGACY_PORTAL_SOURCE,
+  resolveImportSource,
+} from "./lib/leadSources";
+>>>>>>> upstream/main
 import {
   matchAgent,
   parseInterestType,
@@ -22,6 +34,7 @@ function normalizePhone(phone: string): string {
   return hasPlus ? "+" + digits : digits;
 }
 
+<<<<<<< HEAD
 const sourceValues = LEAD_SOURCE_VALUES;
 
 /** Active members of the org, as candidates for the Primary Agent column. */
@@ -35,6 +48,19 @@ async function orgAgentCandidates(ctx: QueryCtx, orgId: Id<"organizations">): Pr
     .map((u) => ({ id: u._id, name: u.fullName || u.name, email: u.email }));
 }
 
+=======
+/** Active members of the org, as candidates for the Primary Agent column. */
+async function orgAgentCandidates(ctx: QueryCtx, orgId: Id<"organizations">): Promise<AgentCandidate[]> {
+  const users = await ctx.db
+    .query("users")
+    .withIndex("by_org", (q) => q.eq("orgId", orgId))
+    .collect();
+  return users
+    .filter((u) => u.isActive)
+    .map((u) => ({ id: u._id, name: u.fullName || u.name, email: u.email }));
+}
+
+>>>>>>> upstream/main
 /**
  * Preview of how each distinct Primary Agent value will resolve, so the
  * import page can show who each row goes to before anything is written.
@@ -195,12 +221,21 @@ export const bulkImport = mutation({
       v.literal("upsert"),
       v.literal("skip_duplicates")
     ),
+    // The source chosen for this upload. Every row is tagged with it unless
+    // sourceMode is "column" and the row carries a recognisable source of its
+    // own — so an imported list is never defaulted to "other" any more.
+    batchSource: leadSourceValidator,
+    sourceMode: v.optional(v.union(v.literal("batch"), v.literal("column"))),
     rows: v.array(
       v.object({
         fullName: v.string(),
         phone: v.string(),
         email: v.optional(v.string()),
+<<<<<<< HEAD
         source: v.string(),
+=======
+        source: v.optional(v.string()),
+>>>>>>> upstream/main
         // Raw cell from the file ("To Let", "For Sale", ...). Empty or
         // unrecognised values are flagged for review, never defaulted.
         interestType: v.optional(v.string()),
@@ -255,6 +290,8 @@ export const bulkImport = mutation({
       interestFlagged: 0,
       interestIssues: [] as Array<{ row: number; value: string }>,
     };
+    // New leads per auto-assigned agent, for one notification each.
+    const assignedCounts = new Map<Id<"users">, number>();
 
     for (let i = 0; i < args.rows.length; i++) {
       const row = args.rows[i];
@@ -272,9 +309,17 @@ export const bulkImport = mutation({
         }
 
         const normalizedPhoneVal = normalizePhone(row.phone);
+<<<<<<< HEAD
         const source = sourceValues.includes(row.source as any)
           ? (row.source as (typeof sourceValues)[number])
           : "other";
+=======
+        const source = resolveImportSource(
+          row.source,
+          args.batchSource,
+          args.sourceMode ?? "batch"
+        );
+>>>>>>> upstream/main
         // A CSV can still carry the retired generic portal bucket. Accept it
         // rather than losing the row, but flag it for reassignment to the real
         // platform — same treatment the migration gives historical leads.
@@ -410,7 +455,16 @@ export const bulkImport = mutation({
         });
 
         results.created++;
+<<<<<<< HEAD
         if (matchedAgentId) results.autoAssigned++;
+=======
+        if (matchedAgentId) {
+          results.autoAssigned++;
+          if (matchedAgentId !== user._id) {
+            assignedCounts.set(matchedAgentId, (assignedCounts.get(matchedAgentId) ?? 0) + 1);
+          }
+        }
+>>>>>>> upstream/main
         if (agentIssue) {
           results.unassigned++;
           results.assignmentIssues.push(agentIssue);
@@ -423,6 +477,16 @@ export const bulkImport = mutation({
         results.errors.push({ row: i, message: e.message || "Unknown error" });
         results.failed++;
       }
+    }
+
+    for (const [agentId, count] of assignedCounts) {
+      await ctx.scheduler.runAfter(0, internal.pushSender.sendToUser, {
+        userId: agentId,
+        title: count === 1 ? "New lead assigned" : `${count} new leads assigned`,
+        body: `${count === 1 ? "A lead was" : `${count} leads were`} imported and assigned to you.`,
+        url: "/app/leads",
+        tag: `lead-import-${timestamp}`,
+      });
     }
 
     return results;
